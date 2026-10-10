@@ -185,6 +185,57 @@ def _python_services() -> int:
     return sum(1 for p in d.iterdir() if p.is_dir() and not p.name.startswith(".")) if d.is_dir() else 0
 
 
+def _executor_arms() -> dict[str, int] | None:
+    """Vendor arms the live-action registry can dispatch, and the verbs they cover.
+
+    Counted by parsing `services/actions/app/live_actions/`, not by importing
+    it: this script runs on a bare interpreter before any `pip install`, and
+    importing the actions package drags in httpx, structlog and pydantic.
+
+    An *arm* is one `(vendor_id, capability)` pair — one class that declares
+    both. That is the unit a tenant experiences: "AiSOC can disable a user"
+    is false for a tenant on Okta if the only arm is for Entra, which is the
+    gap depth 5.5 exists to close. Counting verbs alone would report a
+    product that looks broad and answers `executor_not_found` for most
+    estates; counting files would report neither.
+
+    An abstract base that declares one of the two and not the other is not
+    counted, because the registry refuses to register it.
+    """
+    import ast
+
+    root = ROOT / "services" / "actions" / "app" / "live_actions"
+    if not root.is_dir():
+        return None
+
+    arms: set[tuple[str, str]] = set()
+    for path in sorted(root.glob("*.py")):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:
+            return None
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ClassDef):
+                continue
+            declared: dict[str, str] = {}
+            for statement in node.body:
+                if not isinstance(statement, ast.Assign) or len(statement.targets) != 1:
+                    continue
+                target = statement.targets[0]
+                value = statement.value
+                if isinstance(target, ast.Name) and isinstance(value, ast.Constant) and isinstance(value.value, str):
+                    if target.id in ("vendor_id", "capability"):
+                        declared[target.id] = value.value
+            if len(declared) == 2:
+                arms.add((declared["vendor_id"], declared["capability"]))
+
+    return {
+        "arms": len(arms),
+        "verbs": len({capability for _, capability in arms}),
+        "vendors": len({vendor for vendor, _ in arms}),
+    }
+
+
 def collect() -> dict:
     stats: dict = {
         "connectors": _connectors(),
@@ -194,6 +245,7 @@ def collect() -> dict:
         "services_in_repo": _python_services(),
         "compose": _compose_services(),
         "claim_gate": _claim_gate_rows(),
+        "executor_arms": _executor_arms(),
     }
     version = ROOT / "VERSION"
     if version.is_file():
@@ -204,6 +256,7 @@ def collect() -> dict:
 def _render(stats: dict) -> str:
     c = stats["compose"]
     g = stats["claim_gate"]
+    arms = stats.get("executor_arms")
     playbook_yaml = stats["detections_yaml_files"] - stats["detections_files_on_disk"]
     lines = [
         "",
@@ -221,6 +274,8 @@ def _render(stats: dict) -> str:
         lines.append(
             f"  Claim-to-gate matrix           {g['total']} rows — {g['GATED']} gated, {g['PARTIAL']} partial, {g['NO GATE']} ungated"
         )
+    if arms:
+        lines.append(f"  Executor arms                  {arms['arms']}  ({arms['verbs']} verbs across {arms['vendors']} vendors)")
     lines.append("")
     return "\n".join(lines)
 
