@@ -97,10 +97,14 @@ def lake():
     try:
         import clickhouse_driver as driver  # noqa: PLC0415 — live-only dependency
     except ImportError as exc:  # pragma: no cover — only on a misconfigured runner
-        pytest.fail(
+        # `raise` rather than a bare `pytest.fail(...)`: Failed is a
+        # BaseException and the call never returns, but that is not visible
+        # to static analysis, which then reads `driver` below as possibly
+        # unbound. Raising the same failure says so in the syntax.
+        raise pytest.fail.Exception(
             f"ISOLATION_CLICKHOUSE_HOST is set, so this is a live run, but clickhouse_driver is missing ({exc}). "
             "Install it in the job rather than letting the suite skip."
-        )
+        ) from exc
     client = driver.Client(
         host=os.environ["ISOLATION_CLICKHOUSE_HOST"],
         port=int(os.environ.get("ISOLATION_CLICKHOUSE_PORT", "9000")),
