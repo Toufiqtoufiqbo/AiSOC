@@ -49,7 +49,7 @@ and labels the scorecard with it, so the floor can be published as a floor.
 Run:
 
     python3 scripts/run_verdict_eval.py \\
-        --model ollama_chat/llama3.1:8b-instruct-q4_K_M \\
+        --model llama3.1:8b-instruct-q4_K_M \\
         --api-base http://127.0.0.1:11435/v1 \\
         --out /tmp/scorecard.json
 """
@@ -323,7 +323,17 @@ def git_commit() -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--model", required=True, help="the model id to pin every role to, e.g. ollama_chat/llama3.1:8b-instruct-q4_K_M")
+    parser.add_argument(
+        "--model",
+        required=True,
+        help=(
+            "the model id to pin every role to, exactly as the endpoint at --api-base names it, "
+            "e.g. llama3.1:8b-instruct-q4_K_M. A LiteLLM routing prefix such as ollama_chat/ "
+            "belongs only in front of a LiteLLM gateway: an OpenAI-compatible server answers 404 "
+            "for it, triage swallows that into its deterministic fallback, and the run is refused "
+            "for measuring nothing."
+        ),
+    )
     parser.add_argument("--api-base", default=os.getenv("OPENAI_BASE_URL") or "", help="OpenAI-compatible base URL the model is served at")
     parser.add_argument("--api-key", default=os.getenv("OPENAI_API_KEY") or "", help="key for that endpoint; local servers accept any non-empty string")
     parser.add_argument("--corpus", type=Path, default=CORPUS)
