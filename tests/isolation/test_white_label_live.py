@@ -135,8 +135,7 @@ async def _user(session: AsyncSession, tenant_id: uuid.UUID, *, role: str = "adm
     email = f"wl-{user_id.hex[:10]}@example.com"
     await session.execute(
         sqlalchemy.text(
-            "INSERT INTO users (id, tenant_id, email, username, role, is_active, hashed_password)"
-            " VALUES (:i, :t, :e, :u, :r, TRUE, :p)"
+            "INSERT INTO users (id, tenant_id, email, username, role, is_active, hashed_password) VALUES (:i, :t, :e, :u, :r, TRUE, :p)"
         ),
         {
             "i": user_id,
@@ -198,9 +197,7 @@ async def outsider(db: AsyncSession) -> dict[str, Any]:
 
 
 async def _bearer(client: httpx.AsyncClient, user: dict[str, Any]) -> dict[str, str]:
-    response = await client.post(
-        "/api/v1/auth/login", json={"email": user["email"], "password": TEST_PASSPHRASE}
-    )
+    response = await client.post("/api/v1/auth/login", json={"email": user["email"], "password": TEST_PASSPHRASE})
     assert response.status_code == 200, response.text
     return {"Authorization": f"Bearer {response.json()['access_token']}"}
 
@@ -208,9 +205,7 @@ async def _bearer(client: httpx.AsyncClient, user: dict[str, Any]) -> dict[str, 
 class TestTheBrandAssetRoute:
     """The defect the plan asked to be verified rather than reasoned about."""
 
-    async def test_the_request_an_img_tag_makes_is_refused(
-        self, app_client: httpx.AsyncClient, branded: dict[str, Any]
-    ) -> None:
+    async def test_the_request_an_img_tag_makes_is_refused(self, app_client: httpx.AsyncClient, branded: dict[str, Any]) -> None:
         """No credential, because an `<img src>` cannot send one.
 
         This is exactly the request the browser issued when `logo_url` was
@@ -248,9 +243,7 @@ class TestTheBrandAssetRoute:
         response = await app_client.get(f"/api/v1/branding/assets/{branded['asset_id']}", headers=headers)
         assert response.status_code in (403, 404), response.text
 
-    async def test_the_resolved_logo_url_is_a_path_on_this_deployment(
-        self, app_client: httpx.AsyncClient, branded: dict[str, Any]
-    ) -> None:
+    async def test_the_resolved_logo_url_is_a_path_on_this_deployment(self, app_client: httpx.AsyncClient, branded: dict[str, Any]) -> None:
         """A remote logo would be an outbound request from the operator's
         browser on every page load, telling whoever hosts it who is
         looking at what -- and, in a server-rendered PDF, an outbound
@@ -310,9 +303,7 @@ class TestTheScheduledReportEmail:
             assert envelope["settings"].sender_name == SENDER
         finally:
             await db.rollback()
-            await db.execute(
-                sqlalchemy.text("DELETE FROM report_artefacts WHERE template_id = :i"), {"i": template_id}
-            )
+            await db.execute(sqlalchemy.text("DELETE FROM report_artefacts WHERE template_id = :i"), {"i": template_id})
             await db.execute(sqlalchemy.text("DELETE FROM report_templates WHERE id = :i"), {"i": template_id})
             await db.commit()
 
@@ -337,9 +328,7 @@ class TestTheClosedInvestigationSummary:
         await db.commit()
 
         headers = await _bearer(app_client, branded["user"])
-        closed = await app_client.post(
-            f"/api/v1/investigations/{run_id}/close", json={"analyst_note": None}, headers=headers
-        )
+        closed = await app_client.post(f"/api/v1/investigations/{run_id}/close", json={"analyst_note": None}, headers=headers)
         assert closed.status_code == 200, closed.text
 
         await db.rollback()

@@ -995,9 +995,7 @@ async def close_investigation(
     )
     events = list(events_result.scalars().all())
 
-    summary_md = _build_summary_markdown(
-        run, events, body.analyst_note, await resolve_branding(db, current_user.tenant_id)
-    )
+    summary_md = _build_summary_markdown(run, events, body.analyst_note, await resolve_branding(db, current_user.tenant_id))
     encoded = summary_md.encode()
     sha = hashlib.sha256(encoded).hexdigest()
 
