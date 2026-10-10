@@ -26,7 +26,7 @@ the real ``run_once``, and read the bytes that were actually stored.
 
 The covering email that ``report_scheduler`` sends carries the same defect
 and is proved next door, in
-``tests/isolation/test_white_label_scheduled_reports_live.py``: its template
+``tests/isolation/test_white_label_live.py``: its template
 row stores recipients in a Postgres ``text[]``, which SQLite cannot bind, so
 asserting on it here would mean asserting against a reshaped schema.
 """
