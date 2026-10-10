@@ -358,3 +358,102 @@ class AzureEntraClient:
             resp.raise_for_status()
             logger.info("entra.require_mfa.success", user_id=user_id)
             return {"success": True, "action": "require_mfa", "user_id": user_id}
+
+    # ── Workload identities and consent grants (depth 5.5) ──────────────────
+    #
+    # Microsoft Graph reference, read before writing each of these:
+    #   servicePrincipals      https://learn.microsoft.com/graph/api/resources/serviceprincipal
+    #   oauth2PermissionGrants https://learn.microsoft.com/graph/api/resources/oauth2permissiongrant
+    #   appRoleAssignments     https://learn.microsoft.com/graph/api/resources/approleassignment
+    #
+    # A compromised Entra tenant is more often an application than a person:
+    # a consented OAuth app reading every mailbox, or a service principal
+    # with a leaked secret. Disabling the human who consented stops nothing,
+    # because the application holds its own credential.
+
+    async def set_service_principal_enabled(self, service_principal_id: str, *, enabled: bool) -> dict[str, Any]:
+        """Turn a workload identity off, and read it back.
+
+        `accountEnabled: false` on a service principal stops it
+        authenticating while leaving the application registration, its
+        permissions and its audit history intact — so an investigation can
+        still see what it did. Deleting it would end both.
+        """
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            await self._ensure_token(client)
+            resp = await client.patch(
+                f"{_GRAPH}/servicePrincipals/{service_principal_id}",
+                headers=self._headers(),
+                json={"accountEnabled": enabled},
+            )
+            resp.raise_for_status()
+            # PATCH answers 204 with no body, so the state is read back
+            # rather than restated. Without this, "disabled" would mean
+            # "Graph accepted the request".
+            read = await client.get(
+                f"{_GRAPH}/servicePrincipals/{service_principal_id}?$select=accountEnabled,displayName,appId",
+                headers=self._headers(),
+            )
+            read.raise_for_status()
+            body = read.json()
+
+        observed = bool(body.get("accountEnabled", not enabled))
+        logger.info("entra.service_principal.set_enabled", service_principal_id=service_principal_id, enabled=enabled)
+        return {
+            "success": True,
+            "action": "enable_service_principal" if enabled else "disable_service_principal",
+            "service_principal_id": service_principal_id,
+            "display_name": body.get("displayName"),
+            "app_id": body.get("appId"),
+            "requested_enabled": enabled,
+            "observed_enabled": observed,
+            "verified": observed == enabled,
+        }
+
+    async def list_oauth_grants(self, *, service_principal_id: str) -> list[dict[str, Any]]:
+        """Every delegated permission grant this application holds."""
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            await self._ensure_token(client)
+            resp = await client.get(
+                f"{_GRAPH}/servicePrincipals/{service_principal_id}/oauth2PermissionGrants",
+                headers=self._headers(),
+            )
+            resp.raise_for_status()
+            return list(resp.json().get("value") or [])
+
+    async def revoke_oauth_grants(self, *, service_principal_id: str) -> dict[str, Any]:
+        """Delete every delegated grant the application holds.
+
+        One DELETE per grant, because Graph has no bulk form. Each failure
+        is collected rather than raised on the first: a partial revocation
+        that reports total failure sends a responder to re-run something
+        that already half-worked, and the honest answer is which ones went.
+        """
+        grants = await self.list_oauth_grants(service_principal_id=service_principal_id)
+        revoked: list[str] = []
+        failed: list[dict[str, str]] = []
+
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            await self._ensure_token(client)
+            for grant in grants:
+                grant_id = str(grant.get("id") or "")
+                if not grant_id:
+                    continue
+                resp = await client.delete(f"{_GRAPH}/oauth2PermissionGrants/{grant_id}", headers=self._headers())
+                if resp.status_code >= 400:
+                    failed.append({"grant_id": grant_id, "error": f"HTTP {resp.status_code} {resp.text[:120]}"})
+                else:
+                    revoked.append(grant_id)
+
+        remaining = await self.list_oauth_grants(service_principal_id=service_principal_id)
+        logger.info("entra.oauth_grants.revoked", service_principal_id=service_principal_id, revoked=len(revoked), failed=len(failed))
+        return {
+            "success": not failed,
+            "action": "revoke_oauth_grant",
+            "service_principal_id": service_principal_id,
+            "grants_found": len(grants),
+            "revoked": revoked,
+            "failed": failed,
+            # The claim is "nothing is left", not "we sent deletes".
+            "verified": not remaining,
+        }

@@ -22,6 +22,8 @@ does not move anyone's patch target.
 from __future__ import annotations
 
 from app.clients.aws_cloudtrail_client import AWSCloudTrailClient
+from app.clients.aws_ec2_client import AWSEc2Client
+from app.clients.aws_iam_client import AWSIamClient
 from app.clients.aws_security_groups import AWSSecurityGroupsClient
 from app.clients.azure_entra_client import AzureEntraClient
 from app.clients.cloudflare_client import CloudflareClient
@@ -29,6 +31,7 @@ from app.clients.cortex_xdr_client import CortexXdrClient
 from app.clients.crowdstrike_rtr import CrowdStrikeRTRClient
 from app.clients.defender_client import DefenderClient
 from app.clients.fortigate_client import FortiGateClient
+from app.clients.gcp_client import GcpActionError, GcpClient
 from app.clients.google_workspace_client import GoogleWorkspaceClient
 from app.clients.okta_client import OktaClient
 from app.clients.panos_client import PanOsClient
@@ -204,3 +207,55 @@ __all__ = [
     "_panos_client",
     "_s1_client",
 ]
+
+
+# ── Cloud control plane (depth 5.5) ────────────────────────────────────────
+#
+# Each returns None when the credentials are absent, which the executors
+# report as "not configured" rather than as the action failing: "we could
+# not reach the vendor" and "the vendor refused" send an operator to
+# different places.
+#
+# The key names match what `credential_resolver` writes for each connector,
+# which is the mismatch that once let a Splunk "dry run" reach production —
+# a strip list that did not match what the factory read.
+
+
+def _aws_iam_client(params: dict) -> AWSIamClient | None:
+    access_key = params.get("aws_access_key_id")
+    secret_key = params.get("aws_secret_access_key")
+    if not (access_key and secret_key):
+        return None
+    return AWSIamClient(
+        str(access_key),
+        str(secret_key),
+        session_token=(str(params["aws_session_token"]) if params.get("aws_session_token") else None),
+    )
+
+
+def _aws_ec2_client(params: dict) -> AWSEc2Client | None:
+    access_key = params.get("aws_access_key_id")
+    secret_key = params.get("aws_secret_access_key")
+    if not (access_key and secret_key):
+        return None
+    return AWSEc2Client(
+        str(access_key),
+        str(secret_key),
+        region=str(params.get("aws_region") or "us-east-1"),
+        session_token=(str(params["aws_session_token"]) if params.get("aws_session_token") else None),
+    )
+
+
+def _gcp_client(params: dict) -> GcpClient | None:
+    key = params.get("gcp_service_account_key")
+    project = params.get("gcp_project_id")
+    if not (key and project):
+        return None
+    try:
+        return GcpClient(project_id=str(project), service_account_key=key)
+    except GcpActionError:
+        # A malformed key is a configuration error, and the caller's
+        # contract here is "None means not configured". Raising instead
+        # would surface as an unhandled exception inside the dispatcher;
+        # the executor reports it as credentials that are not usable.
+        return None

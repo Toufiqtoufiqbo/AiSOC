@@ -98,6 +98,7 @@ from .investigation_reads import (
 from .models import LiveActionRequest, LiveActionResult, LiveActionStatus
 from .notify_arms import NOTIFY_ARMS
 from .osquery_arms import OSQUERY_ARMS
+from .cloud_arms import CLOUD_ARM_EXECUTORS
 from .vendor_breadth import VENDOR_BREADTH_EXECUTORS
 
 logger = structlog.get_logger(__name__)
@@ -999,6 +1000,13 @@ _BUILTIN_ADAPTERS: tuple[type[LiveActionExecutor], ...] = (
     # the registry could not reach. SentinelOne exposed seven
     # operations and one was wired; Entra six and one.
     *VENDOR_BREADTH_EXECUTORS,
+    # Depth 5.5. Cloud control-plane containment: a leaked access key, a
+    # stolen role session, a consented OAuth application, a workload
+    # identity with a secret in a repository, and an instance with no agent
+    # on it. Every containment verb before this assumed an agent on a
+    # machine, so the honest answer to "somebody is using this access key
+    # from another continent" was a ticket.
+    *CLOUD_ARM_EXECUTORS,
     # Endpoint
     CrowdStrikeIsolateHost,
     DefenderIsolateHost,

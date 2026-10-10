@@ -73,6 +73,23 @@ KNOWN_CAPABILITIES: frozenset[str] = frozenset(
         "allow_ioc",
         "enable_user",
         "restore_file",
+        # Cloud control-plane containment (depth 5.5). A leaked access key,
+        # a stolen role session, a workload identity with a leaked secret,
+        # and an instance with no agent on it — each with its reverse, so a
+        # declared rollback resolves to something.
+        "deactivate_access_key",
+        "activate_access_key",
+        "revoke_role_sessions",
+        "restore_role_sessions",
+        "quarantine_instance",
+        "release_instance",
+        "disable_service_account",
+        "enable_service_account",
+        "disable_service_account_key",
+        "enable_service_account_key",
+        "disable_service_principal",
+        "enable_service_principal",
+        "revoke_oauth_grant",
         # WS-E live action verbs
         "allow_ip",
         "block_ioc",

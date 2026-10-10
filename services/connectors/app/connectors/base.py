@@ -118,6 +118,28 @@ class Capability(str, Enum):
     RESET_PASSWORD = "reset_password"
     REVOKE_TOKEN = "revoke_token"
 
+    # Cloud control-plane containment (depth 5.5). An estate is more often
+    # taken through a credential than through a laptop, and none of these
+    # had a verb: a leaked access key, a stolen role session, a workload
+    # identity with a leaked secret, and an instance with no agent on it.
+    #
+    # Each reverse is in the vocabulary beside its forward verb rather than
+    # described in a comment, because a rollback that resolves to nothing is
+    # worse than one that is absent — the path believes it has a route back.
+    DEACTIVATE_ACCESS_KEY = "deactivate_access_key"
+    ACTIVATE_ACCESS_KEY = "activate_access_key"
+    REVOKE_ROLE_SESSIONS = "revoke_role_sessions"
+    RESTORE_ROLE_SESSIONS = "restore_role_sessions"
+    QUARANTINE_INSTANCE = "quarantine_instance"
+    RELEASE_INSTANCE = "release_instance"
+    DISABLE_SERVICE_ACCOUNT = "disable_service_account"
+    ENABLE_SERVICE_ACCOUNT = "enable_service_account"
+    DISABLE_SERVICE_ACCOUNT_KEY = "disable_service_account_key"
+    ENABLE_SERVICE_ACCOUNT_KEY = "enable_service_account_key"
+    DISABLE_SERVICE_PRINCIPAL = "disable_service_principal"
+    ENABLE_SERVICE_PRINCIPAL = "enable_service_principal"
+    REVOKE_OAUTH_GRANT = "revoke_oauth_grant"
+
     # WS-E: additional live vendor action verbs
     # CrowdStrike Falcon RTR
     RUN_SCRIPT = "run_script"

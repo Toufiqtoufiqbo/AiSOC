@@ -173,6 +173,230 @@ CAPABILITY_CONTRACTS: dict[str, CapabilityContract] = {
             "whole contract exists to prevent."
         ),
     ),
+    # ── Cloud control plane (depth 5.5) ────────────────────────────────────
+    #
+    # Every verb below shares a verification posture and it is stated once
+    # here rather than thirteen times: the client performs the write and
+    # then re-reads the resource, and the observed state travels back in the
+    # result as `verified`. That is a genuine read-back, and it is *not* a
+    # `PostActionVerifier` probe — that registry is keyed by `ActionType`
+    # and none of these verbs has one, which is the same gap `unisolate_host`
+    # records above. So each declares `has_verification_probe=False` with the
+    # read-back named, because claiming a probe that the governance layer
+    # cannot reach is the dishonesty this contract exists to remove.
+    #
+    # None is AUTOMATIC. A cloud containment acts on a credential or a
+    # machine somebody is using, the blast radius is an outage rather than
+    # an inconvenience, and nothing here has been exercised against a live
+    # cloud account from this repository.
+    "deactivate_access_key": CapabilityContract(
+        impact=ActionImpact.HIGH,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="activate_access_key",
+        required_permission=_IDENTITY,
+        has_verification_probe=False,
+        verification_gap=(
+            "The executor re-reads the key with ListAccessKeys and reports the "
+            "observed Status, so the effect is confirmed against AWS rather "
+            "than inferred from a 200. It is not a PostActionVerifier probe: "
+            "that registry is keyed by ActionType and this verb has none."
+        ),
+        note=(
+            "Stops one credential and touches nothing else the principal owns. "
+            "Deliberately not DeleteAccessKey, which is irreversible and "
+            "destroys the record of what the key was used for."
+        ),
+    ),
+    "activate_access_key": CapabilityContract(
+        impact=ActionImpact.MODERATE,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="deactivate_access_key",
+        required_permission=_IDENTITY,
+        has_verification_probe=False,
+        verification_gap="Same read-back as deactivate_access_key, and the same reason it is not a registered probe.",
+        note="Re-enabling a credential during an incident is itself a decision, so it needs the same approval.",
+    ),
+    "revoke_role_sessions": CapabilityContract(
+        impact=ActionImpact.SEVERE,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="restore_role_sessions",
+        required_permission=_IDENTITY,
+        has_verification_probe=False,
+        verification_gap=(
+            "The executor re-reads the inline policy with GetRolePolicy and "
+            "reports whether it is attached. Not a registered probe, for the "
+            "ActionType reason above."
+        ),
+        note=(
+            "SEVERE rather than HIGH, and the distinction is the point: a role "
+            "is usually assumed by many workloads, so this ends every session "
+            "minted before the cutoff for all of them at once. AWS has no API "
+            "that invalidates one issued token, so an inline deny on "
+            "aws:TokenIssueTime is the documented technique and this is what "
+            "the console's own button writes."
+        ),
+    ),
+    "restore_role_sessions": CapabilityContract(
+        impact=ActionImpact.MODERATE,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="revoke_role_sessions",
+        required_permission=_IDENTITY,
+        has_verification_probe=False,
+        verification_gap="Same read-back as revoke_role_sessions, and the same reason it is not a registered probe.",
+        note="Deletes the revocation policy, restoring the role to whatever it was before.",
+    ),
+    "quarantine_instance": CapabilityContract(
+        impact=ActionImpact.SEVERE,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="release_instance",
+        required_permission=_CONTAIN,
+        has_verification_probe=False,
+        verification_gap=(
+            "The executor re-reads the instance and reports the security "
+            "groups or network tags it observes, so containment is confirmed "
+            "against the control plane. Not a registered probe, for the "
+            "ActionType reason above."
+        ),
+        note=(
+            "Cuts a cloud instance off the network by replacing its security "
+            "groups (AWS) or network tags (GCP). SEVERE because a cloud "
+            "instance is usually serving something. Deliberately not a stop or "
+            "a terminate: stopping discards memory and ends every forensic "
+            "option that needs a running system. The reverse needs the groups "
+            "or tags the instance had, which is why the forward action returns "
+            "them and the result records them."
+        ),
+    ),
+    "release_instance": CapabilityContract(
+        impact=ActionImpact.MODERATE,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="quarantine_instance",
+        required_permission=_CONTAIN,
+        has_verification_probe=False,
+        verification_gap="Same read-back as quarantine_instance, and the same reason it is not a registered probe.",
+        note="Restoring an instance's network access is a decision somebody should make deliberately.",
+    ),
+    "disable_service_account": CapabilityContract(
+        impact=ActionImpact.SEVERE,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="enable_service_account",
+        required_permission=_IDENTITY,
+        has_verification_probe=False,
+        verification_gap=(
+            "The executor re-reads the service account and reports the "
+            "observed `disabled` flag. Not a registered probe, for the "
+            "ActionType reason above."
+        ),
+        note=(
+            "Stops a workload identity authenticating. SEVERE because a "
+            "service account is usually what a production system runs as, so "
+            "the blast radius is a service outage rather than one person's "
+            "day. Deliberately not a delete: the identity, its grants and its "
+            "audit history stay, so the investigation can still see what it did."
+        ),
+    ),
+    "enable_service_account": CapabilityContract(
+        impact=ActionImpact.MODERATE,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="disable_service_account",
+        required_permission=_IDENTITY,
+        has_verification_probe=False,
+        verification_gap="Same read-back as disable_service_account, and the same reason it is not a registered probe.",
+        note="Restoring a workload identity mid-incident is a decision, not a cleanup step.",
+    ),
+    "disable_service_account_key": CapabilityContract(
+        impact=ActionImpact.HIGH,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="enable_service_account_key",
+        required_permission=_IDENTITY,
+        has_verification_probe=False,
+        verification_gap="The executor re-reads the key and reports its observed `disabled` flag. Not a registered probe.",
+        note=(
+            "The narrow form: one leaked key stops working and the identity "
+            "keeps running on its others. This is the right first action when "
+            "a key turns up in a public repository, and Google added the "
+            "disable endpoints precisely so that responding does not mean "
+            "deleting the key and losing the audit trail."
+        ),
+    ),
+    "enable_service_account_key": CapabilityContract(
+        impact=ActionImpact.MODERATE,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="disable_service_account_key",
+        required_permission=_IDENTITY,
+        has_verification_probe=False,
+        verification_gap="Same read-back as disable_service_account_key, and the same reason it is not a registered probe.",
+        note="Re-enabling a credential that was disabled during an incident needs a human.",
+    ),
+    "disable_service_principal": CapabilityContract(
+        impact=ActionImpact.SEVERE,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="enable_service_principal",
+        required_permission=_IDENTITY,
+        has_verification_probe=False,
+        verification_gap=(
+            "The executor re-reads the service principal and reports the "
+            "observed `accountEnabled`. Not a registered probe, for the "
+            "ActionType reason above."
+        ),
+        note=(
+            "A compromised Entra tenant is more often an application than a "
+            "person: disabling the human who consented stops nothing, because "
+            "the application holds its own credential. SEVERE for the same "
+            "reason as a service account — this is what a production "
+            "integration authenticates as."
+        ),
+    ),
+    "enable_service_principal": CapabilityContract(
+        impact=ActionImpact.MODERATE,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="disable_service_principal",
+        required_permission=_IDENTITY,
+        has_verification_probe=False,
+        verification_gap="Same read-back as disable_service_principal, and the same reason it is not a registered probe.",
+        note="Restoring a workload identity mid-incident is a decision, not a cleanup step.",
+    ),
+    "revoke_oauth_grant": CapabilityContract(
+        impact=ActionImpact.HIGH,
+        # MANDATORY_HUMAN rather than ANALYST, and the contract gate is what
+        # forced the question: a HIGH-impact action with no platform reverse
+        # is only coherent when a human is accepting the irreversibility
+        # knowingly. That is exactly this verb — re-consent happens in the
+        # provider's own flow, not here — so the floor is raised rather than
+        # the reversal overstated.
+        approval=ApprovalRequirement.MANDATORY_HUMAN,
+        reversal=Reversal.MANUAL_ONLY,
+        required_permission=_IDENTITY,
+        has_verification_probe=False,
+        verification_gap=(
+            "The executor re-lists the grants afterwards and reports whether "
+            "any remain, so the claim is `nothing is left` rather than `we "
+            "sent deletes`. Not a registered probe, for the ActionType reason "
+            "above."
+        ),
+        note=(
+            "MANUAL_ONLY, and it is the one verb here with no platform "
+            "reverse. Re-granting consent means a tenant administrator or a "
+            "user re-consenting through the provider's own flow, which is not "
+            "something this platform should be able to do on their behalf — "
+            "an automation that can restore an application's access to every "
+            "mailbox is a worse problem than the one it solves. The approval "
+            "conversation has to say so, which is why it is declared rather "
+            "than left to be discovered during the rollback."
+        ),
+    ),
     "unisolate_host": CapabilityContract(
         impact=ActionImpact.MODERATE,
         approval=ApprovalRequirement.ANALYST,
