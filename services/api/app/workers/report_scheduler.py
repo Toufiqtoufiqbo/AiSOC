@@ -209,7 +209,13 @@ async def run_once(*, moment: datetime | None = None) -> dict[str, int]:
                 output_format="html",
                 storage_key=f"reports/{template.tenant_id}/{template.id}/{now:%Y%m%dT%H%M}.html",
                 delivered_to=recipients,
-                status="generated",
+                # `migrations/019_board_reports.sql` constrains this column to
+                # pending | generating | completed | failed. "generated" is
+                # not a member, so every sweep raised a CheckViolationError on
+                # commit and no scheduled report has ever been stored on a real
+                # deployment. The ORM model declares no CHECK, so a suite that
+                # builds its tables from the model cannot see this.
+                status="completed",
                 generated_by="scheduler",
             )
             body = _render(template, artefact)

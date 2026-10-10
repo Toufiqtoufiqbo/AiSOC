@@ -179,7 +179,10 @@ async def _generate_for_tenant(
             file_size_bytes=len(raw_bytes),
             data_snapshot=digest.model_dump(mode="json"),
             generated_by="weekly_digest_worker",
-            status="ready",
+            # See report_scheduler: the column's CHECK allows
+            # pending | generating | completed | failed, and "ready" is not a
+            # member either, so the Monday digest raised on commit too.
+            status="completed",
         )
         db.add(artefact)
         await db.commit()
