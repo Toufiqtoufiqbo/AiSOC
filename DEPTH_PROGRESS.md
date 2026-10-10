@@ -55,7 +55,17 @@ is written. Next free at capture: migration `095`, ADR `0010`
 
 | Number | Claimed by | Status |
 |---|---|---|
-| (none yet) | | |
+| migration `102` | 2.4 — `102_sessions.sql` (session store + alert session columns) | claimed |
+| migration `103` | 2.5 — `103_posture_snapshots.sql` (versioned provider snapshots) | claimed |
+| ADR `0010` | 2.7 — entity and session context in CORE | claimed |
+
+Numbers 095--101 were taken by lanes that landed before this one, so the
+Phase 0.2 "next migration 095" figure is stale; 102 is the next free on
+`main` at the time of claiming. Note that `096` is **already a three-way
+collision on `main`** (`096_access_governance_permissions.sql`,
+`096_console_mfa.sql`, `096_playbook_wait_pauses.sql`) — three lanes each
+took the next free number against the tree they branched from, which is
+exactly what this table exists to prevent. Claim here first.
 
 ## Phase 0: Kickoff
 
