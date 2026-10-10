@@ -91,9 +91,6 @@ NON_MODEL_TIERS: Final[tuple[str, ...]] = ("cached", "deterministic", "memory")
 MODEL_RUNS: Final[tuple[str, ...]] = tuple(f"{AUTO_TRIAGE_PREFIX}{tier}" for tier in MODEL_TIERS)
 NON_MODEL_RUNS: Final[tuple[str, ...]] = tuple(f"{AUTO_TRIAGE_PREFIX}{tier}" for tier in NON_MODEL_TIERS)
 
-#: Kept because `replay_redaction` and the entitlement limit both name it.
-DETERMINISTIC_RUN: Final[str] = f"{AUTO_TRIAGE_PREFIX}deterministic"
-
 #: The approval tier `services/actions` grades a submission at, recorded on
 #: the action row at submit time. `automatic` is the only value that means
 #: the platform would run it unattended; everything else needed a human or
