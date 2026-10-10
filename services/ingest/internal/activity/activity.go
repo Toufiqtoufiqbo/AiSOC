@@ -127,6 +127,11 @@ type Activity struct {
 	Resource Resource `json:"resource,omitempty"`
 	Location Location `json:"location,omitempty"`
 	Outcome  Outcome  `json:"outcome"`
+	// Session is which session this event belongs to and how strongly that
+	// is known. See session.go: the grouping itself is stateful and happens
+	// in fusion, but the key can only be read here, while the vendor record
+	// still exists.
+	Session Session `json:"session,omitempty"`
 }
 
 // Project builds the projection for one normalized event.
@@ -150,6 +155,10 @@ func Project(connectorType string, payload, ocsf map[string]any) Activity {
 		Outcome:  deriveOutcome(payload, vendor, ocsf),
 	}
 	act.Location = deriveLocation(payload, vendor, ocsf)
+	// Last: the derived session key falls back to the principal, the address
+	// and the parsed client, so it needs the actor and the location already
+	// filled.
+	act.Session = deriveSession(connectorType, payload, vendor, &act)
 	return act
 }
 
