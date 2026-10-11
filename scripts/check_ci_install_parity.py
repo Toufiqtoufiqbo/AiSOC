@@ -533,7 +533,8 @@ _SHELL_BREAK = re.compile(r"^(?:\||\|\||&&|;|\)|>>?|<|&>|[0-9]+>&?[0-9]?)")
 def _pytest_arguments(args: str) -> list[str]:
     """The arguments pytest actually receives, stopping at the shell.
 
-    ``python -m pytest tests/x.py -q 2>&1 | tee /tmp/wl.txt`` credits pytest
+    ``python -m pytest tests/isolation/test_white_label_live.py -q 2>&1 |
+    tee /tmp/wl.txt`` credits pytest
     with six arguments if you simply split on whitespace, and ``/tmp/wl.txt``
     then satisfies every test for a directory path: it does not start with a
     dash, does not end in ``.py``, and contains a slash. The gate concluded
@@ -1531,7 +1532,7 @@ def self_test() -> int:
     # a real directory argument must still be seen, or the gate stops
     # detecting the thing it exists for.
     argument_cases: list[tuple[str, list[str]]] = [
-        ("tests/x.py -q 2>&1 | tee /tmp/wl.txt", ["tests/x.py", "-q"]),
+        ("t/a_test.py -q 2>&1 | tee /tmp/wl.txt", ["t/a_test.py", "-q"]),
         ("tests/ -q", ["tests/", "-q"]),
         ("a.py >/dev/null", ["a.py"]),
         ("a.py > /dev/null", ["a.py"]),
