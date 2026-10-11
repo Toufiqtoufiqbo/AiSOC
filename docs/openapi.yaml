@@ -33302,6 +33302,25 @@ components:
         campaign_created:
           type: boolean
           title: Campaign Created
+        analysis_run_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Analysis Run Id
+        auth_results:
+          additionalProperties:
+            type: string
+          type: object
+          title: Auth Results
+        artefacts_analysed:
+          type: integer
+          title: Artefacts Analysed
+          default: 0
+        artefacts_unanalysed:
+          type: integer
+          title: Artefacts Unanalysed
+          default: 0
         grouping_basis:
           type: string
           title: Grouping Basis
