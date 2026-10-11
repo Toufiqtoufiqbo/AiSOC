@@ -338,6 +338,26 @@ Caveats published rather than smoothed over:
 - **Auto-close precision rests on 7 to 37 candidates.** Small denominators;
   read the column as a warning sign, not a ranking.
 
+**Writing the winner into the GPU overlay broke the GPU overlay, and CI
+caught it.** Adding the model default left the
+`deploy.resources.reservations.devices` block nested under `litellm`
+instead of `ollama`. The file still parsed, `docker compose config` still
+resolved, and `make up-gpu` would still have come up -- with the card
+reserved by a proxy that runs no inference while generation fell back to
+the CPU. There is no error anywhere in that sequence, which is why the
+existing `test_it_touches_only_ollama` was the only thing between it and a
+release.
+
+Its companion assertion failed for a legitimate reason at the same time:
+the overlay now *must* touch three services, since the measured default
+needs a pull instruction on `ollama-pull` and routing on `litellm`. The
+assertion was re-expressed rather than relaxed, and two properties added --
+a device reserved on any service but `ollama` fails, and the model pulled
+must be the model routed to. That second one guards the quiet failure: the
+gateway 404s on a model nothing pulled, triage swallows it into the
+deterministic fallback, and the stack looks healthy while measuring no
+model at all. Each was proven by injecting the defect it names.
+
 ### 1.5 -- run end to end against a live stack, not a mock
 
 `make replay-eval` / `make replay-eval-verify` drove a real run through the
