@@ -43,7 +43,7 @@ requires in its own pull request body.
 | 8.2 | #1206 | `endpoints/access_conditions.py` |
 | 8.3 | #1210 | `docs/security/` |
 
-Not started: phases 3, 4, 6, 7, 9 and the whole of 10, plus 1.4--1.6 and
+Not started: phases 3, 4, 6, 7, 9 and the whole of 10, and
 2.4--2.7. Those remain `[ ]` and are not claimed here.
 
 ## Migration and ADR numbers claimed
@@ -190,9 +190,10 @@ will re-take it on a sized host.
 
 `scripts/run_model_matrix.py` reports **0 of 2 models measured** with "no live
 LLM key configured". This is the gate behaving correctly: it refuses to
-publish `0.000` where it means "not measured". Phase 1.4 adds local 7--8B
-candidates, which need no key and *can* be measured here; the hosted rows stay
-`[!]` until the maintainer funds a key.
+publish `0.000` where it means "not measured". Phase 1.4 has since measured
+two local candidates, which need no key: see the verdict-quality table on the
+benchmark page and the 1.4 note below. The hosted rows stay `[!]` until the
+maintainer funds a key, and still read "not measured" rather than zero.
 
 ### D4 -- Not all 74 "windowed" rules need a window
 
@@ -285,9 +286,77 @@ invented fields on the first run of the gate.
   Wilson interval, false negatives, auto-close precision, escalation rate,
   time to verdict
 - [x] **1.3** Close `fake_tool_output` structurally (≤ 0.10 tuned and held-out)
-- [ ] **1.4** A 7--8B local model in the matrix, chosen by score
-- [ ] **1.5** `make replay-eval` design-partner kit
-- [ ] **1.6** Published "Verdict quality" table with a `--check` drift gate
+- [x] **1.4** A 7--8B local model in the matrix, chosen by score
+- [x] **1.5** `make replay-eval` design-partner kit
+- [x] **1.6** Published "Verdict quality" table with a `--check` drift gate
+
+### 1.4 -- measured, and the answer was "do not move"
+
+Both rows graded the same corpus digest through the production triage path,
+72 model calls each, zero provider errors:
+
+| Model | Balanced acc. | MCC | Malicious recall | Auto-close precision |
+|---|---|---|---|---|
+| `llama3.2:3b-instruct-q4_K_M` (shipped) | 0.285 | 0.047 | 0.250 / 36 | 0.571 |
+| `llama3:8b` (candidate) | 0.279 | 0.113 | 0.639 / 36 | 0.091 |
+
+Four classes, so a constant answer scores **0.250** balanced accuracy and
+**0.500** plain accuracy. Both models sit just above the first and below the
+second. Chosen strictly by score as the plan requires, the incumbent 3B
+stays: the 8B loses on balanced accuracy and its auto-close precision
+collapses. The compose defaults are therefore **unchanged**, which is a
+decision the measurement made rather than work left undone.
+
+The real finding is that neither model is good at this task, so the next
+move belongs to the verdict path and the prompt, not to a larger model.
+
+Two caveats published rather than smoothed over:
+
+- **Latency is excluded from the comparison.** The 3B ran CPU-bound inside
+  the stack container and the 8B GPU-accelerated on the host, so the two
+  figures measure different machines. Both are still printed.
+- **Per-decision model attribution is unverified.** Every call was placed
+  and answered -- each decision carries reasoning specific to its alert --
+  but `resolved_models` came back empty, so the scorecard can show that 72
+  calls happened and not which model served each. Worth closing separately.
+
+Not done here: a candidate beyond `llama3:8b`. `qwen2.5:7b` could not be
+fetched -- the Ollama CDN stalled at 63 MB of 2.0 GB on this host and never
+recovered -- so it is **not measured and not listed**, rather than listed
+with a zero.
+
+### 1.5 -- run end to end against a live stack, not a mock
+
+`make replay-eval` / `make replay-eval-verify` drove a real run through the
+API against a mocked Splunk ES holding 200 recorded closed notables: 200
+read, 60 replayed in the test window, 240 production writes intercepted, a
+signed bundle written and verified, and a wrong key refused with exit 1.
+
+The live run is what found the three defects the unit tests could not: the
+decisions route answers a bare array and the kit assumed an envelope; a
+machine named only in the agent's reasoning survived redaction; and the
+prose and identifier passes named their counter namespace in different
+cases, so one host could take two tokens. All three are fixed with
+regression tests, each proven to fail against the pre-fix tree.
+
+Known gap: the run abstained on all 60 decisions because the stack's triage
+reached no model, so the kit has been exercised on a deterministic run end
+to end but **not yet on a run with real model verdicts in it**.
+
+### 1.6 -- the section it replaced was wrong, not merely stale
+
+`apps/docs/docs/benchmark.md` said verdict accuracy was not measured here
+and could not be. Item 1.1's corpus made that false. The reasoning is kept
+(it is why `score_replay_set.py` still refuses this tree's two all-malicious
+corpora) and the conclusion is replaced by the measurement.
+
+`scripts/check_verdict_quality.py --check` is wired into `ci.yml` and fails
+on drift between the committed scorecard and the published block, proven by
+reverting a number and watching it red. It also refuses five scorecard
+shapes that would each publish a score-shaped cell with no measurement
+behind it -- the load-bearing one being a row claiming a live measurement
+that placed zero model calls, which is precisely what a run against a dead
+endpoint produces once triage falls through to its deterministic scorer.
 
 ## Phase 2: A semantic layer and live posture
 
