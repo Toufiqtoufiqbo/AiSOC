@@ -264,6 +264,94 @@ CAPABILITY_CONTRACTS: dict[str, CapabilityContract] = {
             "precisely because its blast radius is not knowable in advance."
         ),
     ),
+    # ── AI-estate containment (depth plan 6.6) ────────────────────────────
+    #
+    # Two of these four are IRREVERSIBLE, and that is the vendor's design
+    # rather than a gap in ours: a deleted OpenAI key has no un-delete, an
+    # archived Anthropic key does not hand the secret back, and a revoked
+    # OAuth grant is re-created by the *user* consenting again in their own
+    # browser. No API of ours can undo either, so both are MANDATORY_HUMAN —
+    # no autonomy tier may lift that floor.
+    #
+    # The third is the one to reach for when you are not yet certain, and the
+    # reason it is here at all: blocking a key at a gateway stops every call
+    # it can make without destroying it, and one request undoes it.
+    "revoke_provider_key": CapabilityContract(
+        impact=ActionImpact.IRREVERSIBLE,
+        approval=ApprovalRequirement.MANDATORY_HUMAN,
+        reversal=Reversal.NONE,
+        required_permission=_CONTAIN,
+        has_verification_probe=True,
+        note=(
+            "Deletes an OpenAI key or sets an Anthropic key to inactive. "
+            "IRREVERSIBLE is literal: neither vendor returns the secret, so "
+            "a replacement has to be minted and redistributed to every "
+            "workload that held it — which is why this is CRITICAL blast "
+            "radius rather than HIGH. It is not one person's access; it is "
+            "every process using that key, including ones nobody remembers "
+            "deploying. MANDATORY_HUMAN because no confidence score should "
+            "be able to authorise it. "
+            "The probe reads the key back: gone, or inactive. A 200 from the "
+            "revoke call is the vendor accepting the request, which is a "
+            "different claim from the key having stopped working."
+        ),
+    ),
+    "revoke_oauth_grant": CapabilityContract(
+        impact=ActionImpact.IRREVERSIBLE,
+        approval=ApprovalRequirement.MANDATORY_HUMAN,
+        reversal=Reversal.NONE,
+        required_permission=_IDENTITY,
+        has_verification_probe=True,
+        note=(
+            "Removes an AI application's standing access to a Workspace or "
+            "Entra estate. Irreversible from this side: re-granting is the "
+            "user consenting again, in their browser, which nothing here can "
+            "do on their behalf. "
+            "Workspace revokes **per user**, so containing an application "
+            "across a domain is a loop over its grantees and the result says "
+            "which scope was achieved rather than implying the whole tenant. "
+            "Entra's delegated grant is one object and deleting it revokes "
+            "that grant outright. Permission is actions:identity and not "
+            "actions:contain: the subject is a principal's authorisation, "
+            "which is the same thing disable_user governs."
+        ),
+    ),
+    "block_ai_key_at_gateway": CapabilityContract(
+        impact=ActionImpact.SEVERE,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="unblock_ai_key_at_gateway",
+        required_permission=_CONTAIN,
+        has_verification_probe=True,
+        note=(
+            "Blocks a virtual key at a LiteLLM-compatible gateway. SEVERE "
+            "because a gateway key is usually shared — blocking it stops "
+            "every application routed through it, not one agent — and the "
+            "outage is real while it lasts. ANALYST rather than "
+            "MANDATORY_HUMAN precisely because it has a route back: this is "
+            "the containment an approver can be told is undoable, which is "
+            "what makes it the right first move when the verdict is not yet "
+            "certain. "
+            "The reverse is a first-class verb with its own executor and "
+            "probe. A declared reverse that is not in the vocabulary is "
+            "worse than none, because the rollback path believes it has a "
+            "route — which is what unisolate_host was for a release."
+        ),
+    ),
+    "unblock_ai_key_at_gateway": CapabilityContract(
+        impact=ActionImpact.LOW,
+        approval=ApprovalRequirement.ANALYST,
+        reversal=Reversal.PLATFORM,
+        reverse_capability="block_ai_key_at_gateway",
+        required_permission=_CONTAIN,
+        has_verification_probe=True,
+        note=(
+            "Lifts a gateway block. LOW impact — it restores service rather "
+            "than removing it — but still analyst-gated, because undoing a "
+            "containment during an incident is a decision somebody should "
+            "own. The probe reads the key's blocked flag back."
+        ),
+    ),
     "capture_forensics": CapabilityContract(
         impact=ActionImpact.LOW,
         approval=ApprovalRequirement.ANALYST,

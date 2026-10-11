@@ -6,6 +6,12 @@ Each executor falls back to simulation mode when vendor credentials are absent f
 ActionRequest.parameters — no credentials = safe, observable simulation.
 """
 
+from app.executors.ai_estate import (
+    BlockAIKeyAtGatewayExecutor,
+    RevokeOAuthGrantExecutor,
+    RevokeProviderKeyExecutor,
+    UnblockAIKeyAtGatewayExecutor,
+)
 from app.executors.chatops import ChatOpsVerifyExecutor
 from app.executors.endpoint import (
     CaptureForensicsExecutor,
@@ -49,6 +55,15 @@ EXECUTOR_REGISTRY = {
     # Evidence acquisition. The agent proposes this on the C2 / exfiltration
     # path, where it previously resolved to nothing.
     ActionType.CAPTURE_FORENSICS: CaptureForensicsExecutor(),
+    # AI estate (depth 6.6). Off by default: each refuses unless
+    # AISOC_AI_CONTAINMENT_ENABLED is set, and refuses with a FAILED result
+    # naming the variable rather than silently simulating — a containment
+    # that reports success while touching nothing is the worst of the three
+    # outcomes.
+    ActionType.REVOKE_PROVIDER_KEY: RevokeProviderKeyExecutor(),
+    ActionType.REVOKE_OAUTH_GRANT: RevokeOAuthGrantExecutor(),
+    ActionType.BLOCK_AI_KEY_AT_GATEWAY: BlockAIKeyAtGatewayExecutor(),
+    ActionType.UNBLOCK_AI_KEY_AT_GATEWAY: UnblockAIKeyAtGatewayExecutor(),
     # Identity (Okta)
     ActionType.DISABLE_USER: DisableUserExecutor(),
     ActionType.RESET_PASSWORD: ResetPasswordExecutor(),

@@ -30,6 +30,12 @@ from typing import Any
 
 import structlog
 
+from app.clients.ai_estate_client import (
+    AIEstateError,
+    AIGatewayKeyClient,
+    AIOAuthGrantClient,
+    AIProviderKeyClient,
+)
 from app.clients.factories import _entra_client, _mde_client, _okta_client
 from app.executors.endpoint import AV_SCAN_ACTION, INVESTIGATION_PACKAGE_ACTION, _cs_client
 from app.executors.siem import _ack_vendor, _qradar_client, _splunk_client
@@ -448,6 +454,66 @@ async def _probe_suppress_alert(target: str, params: dict[str, Any]) -> bool | N
     return await _read_back_finding_state(target, params, expect_closed=True)
 
 
+# ---------------------------------------------------------------------------
+# AI-estate containment probes (depth plan 6.6)
+# ---------------------------------------------------------------------------
+#
+# All four verbs are at IRREVERSIBLE, SEVERE or HIGH impact, and the contract
+# rule is unconditional at those tiers: a probe is required, because the only
+# alternative is inferring the effect from the vendor accepting the request.
+# For a key revocation that distinction is the whole action — a 200 says the
+# vendor took the instruction, not that the key has stopped working.
+#
+# Each returns ``None`` for "could not read", never ``False``. Reporting
+# "still active" when nobody knows tells an operator their containment failed
+# and sends them to do it again by hand, during an incident.
+
+
+async def _probe_revoke_provider_key(target: str, params: dict[str, Any]) -> bool | None:
+    """Read the key back: gone (OpenAI) or inactive (Anthropic)."""
+    provider = str(params.get("ai_key_provider") or "")
+    admin_key = params.get("ai_provider_admin_key")
+    if not (provider and admin_key):
+        return None
+    try:
+        client = AIProviderKeyClient(provider, str(admin_key), project_id=str(params.get("ai_provider_project_id") or ""))
+        return await client.key_is_revoked(target)
+    except AIEstateError:
+        return None
+
+
+async def _probe_revoke_oauth_grant(target: str, params: dict[str, Any]) -> bool | None:
+    """Read the grants back and confirm this application is absent."""
+    provider = str(params.get("ai_grant_provider") or "")
+    token = params.get("ai_grant_access_token")
+    if not (provider and token):
+        return None
+    try:
+        client = AIOAuthGrantClient(provider, str(token))
+        return await client.grant_is_revoked(target, user=str(params.get("ai_grant_user") or ""))
+    except AIEstateError:
+        return None
+
+
+async def _probe_block_ai_key_at_gateway(target: str, params: dict[str, Any]) -> bool | None:
+    """Read the gateway's own blocked flag for this key."""
+    base_url = params.get("ai_gateway_url")
+    master_key = params.get("ai_gateway_master_key")
+    if not (base_url and master_key):
+        return None
+    try:
+        client = AIGatewayKeyClient(str(base_url), str(master_key), verify_tls=bool(params.get("ai_gateway_verify_tls", True)))
+        return await client.key_is_blocked(target)
+    except AIEstateError:
+        return None
+
+
+async def _probe_unblock_ai_key_at_gateway(target: str, params: dict[str, Any]) -> bool | None:
+    """The same read, inverted: the rollback succeeded when the key is not blocked."""
+    blocked = await _probe_block_ai_key_at_gateway(target, params)
+    return None if blocked is None else not blocked
+
+
 _DEFAULT_PROBES: dict[ActionType, Probe] = {
     ActionType.ISOLATE_HOST: _probe_isolate,
     ActionType.BLOCK_IP: _probe_block_ip,
@@ -463,6 +529,12 @@ _DEFAULT_PROBES: dict[ActionType, Probe] = {
     ActionType.KILL_PROCESS: _probe_kill_process,
     ActionType.QUARANTINE_FILE: _probe_quarantine_file,
     ActionType.RUN_AV_SCAN: _probe_run_av_scan,
+    # Depth 6.6. Required unconditionally at these impact tiers: the
+    # alternative is inferring an irreversible containment from a 200.
+    ActionType.REVOKE_PROVIDER_KEY: _probe_revoke_provider_key,
+    ActionType.REVOKE_OAUTH_GRANT: _probe_revoke_oauth_grant,
+    ActionType.BLOCK_AI_KEY_AT_GATEWAY: _probe_block_ai_key_at_gateway,
+    ActionType.UNBLOCK_AI_KEY_AT_GATEWAY: _probe_unblock_ai_key_at_gateway,
 }
 
 

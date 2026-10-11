@@ -123,6 +123,15 @@ KNOWN_CAPABILITIES: frozenset[str] = frozenset(
         "create_ticket",
         # NOTIFY
         "notify",
+        # AI-ESTATE CONTAINMENT. Depth 6.6. Two are irreversible by the
+        # vendor's own design — a revoked key has no un-delete, and a
+        # re-granted OAuth consent is a user action no API of ours can
+        # perform — and the third ships with its reverse as a first-class
+        # verb so the rollback path resolves to something.
+        "revoke_provider_key",
+        "revoke_oauth_grant",
+        "block_ai_key_at_gateway",
+        "unblock_ai_key_at_gateway",
         # AUDIT
         "read_audit_trail",
     }

@@ -66,7 +66,11 @@ def test_register_builtin_executors_returns_full_count() -> None:
     # sign-ins, Google Workspace login audit) and two verbs whose subject is
     # neither a host nor a principal (AWS CloudTrail lookup, Defender
     # endpoint-telemetry search).
-    assert count == 79
+    # Plus 4 from depth 6.6: AI-estate containment. Four rather than three
+    # because `block_ai_key_at_gateway` declares a platform reverse, and a
+    # declared reverse that is not a first-class verb cannot be dispatched
+    # under governance — which is what `unisolate_host` was for a release.
+    assert count == 83
 
 
 def test_builtin_executors_cover_canonical_vendor_capability_pairs() -> None:
@@ -102,6 +106,13 @@ def test_builtin_executors_cover_canonical_vendor_capability_pairs() -> None:
         ("defender", "ack_alert"),
         ("defender", "block_ioc"),
         ("defender", "capture_forensics"),
+        # Depth 6.6. Vendor ids name the thing being contained rather than a
+        # security product: one verb covers OpenAI and Anthropic, whose two
+        # vendor actions genuinely differ (delete versus deactivate).
+        ("ai_provider", "revoke_provider_key"),
+        ("ai_directory", "revoke_oauth_grant"),
+        ("ai_gateway", "block_ai_key_at_gateway"),
+        ("ai_gateway", "unblock_ai_key_at_gateway"),
         ("defender", "update_alert_disposition"),
         ("defender", "get_host"),
         ("defender", "isolate_host"),
@@ -199,7 +210,7 @@ def test_register_builtin_executors_is_idempotent_with_overwrite() -> None:
     register_builtin_executors()
     # Second call without overwrite would raise — confirm overwrite works.
     count = register_builtin_executors(overwrite=True)
-    assert count == 79
+    assert count == 83
 
 
 def test_register_builtin_twice_without_overwrite_raises() -> None:

@@ -40,6 +40,12 @@ from uuid import uuid4
 import structlog
 
 from app.executors import siem
+from app.executors.ai_estate import (
+    BlockAIKeyAtGatewayExecutor,
+    RevokeOAuthGrantExecutor,
+    RevokeProviderKeyExecutor,
+    UnblockAIKeyAtGatewayExecutor,
+)
 from app.executors.base import BaseExecutor
 from app.executors.chatops import ChatOpsVerifyExecutor
 from app.executors.endpoint import (
@@ -973,6 +979,74 @@ class TeamsChatOpsVerify(_ChatOpsVerify):
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# AI-estate containment adapters (depth plan 6.6)
+# ---------------------------------------------------------------------------
+#
+# Vendor ids name the *thing being contained* rather than a security product,
+# because that is what varies here: `ai_provider` covers OpenAI and Anthropic
+# behind one verb whose two vendor actions genuinely differ (delete versus
+# deactivate), and `ai_gateway` covers any LiteLLM-compatible proxy. Splitting
+# them per vendor would mean four adapters for two verbs and would invite the
+# per-vendor drift the capability contract exists to prevent.
+
+_AI_PROVIDER_KEYS = ("ai_key_provider", "ai_provider_admin_key")
+_AI_GRANT_KEYS = ("ai_grant_provider", "ai_grant_access_token")
+_AI_GATEWAY_KEYS = ("ai_gateway_url", "ai_gateway_master_key")
+
+
+@apply_contract
+class AIProviderRevokeKey(_LegacyExecutorAdapter):
+    """Revoke a model-provider API key. No un-delete exists."""
+
+    vendor_id = "ai_provider"
+    capability = "revoke_provider_key"
+    description = "Delete an OpenAI key or deactivate an Anthropic key."
+    requires_credentials = True
+    _legacy_executor = RevokeProviderKeyExecutor()
+    _legacy_action_type = ActionType.REVOKE_PROVIDER_KEY
+    _credential_keys = _AI_PROVIDER_KEYS
+
+
+@apply_contract
+class AIDirectoryRevokeOAuthGrant(_LegacyExecutorAdapter):
+    """Revoke an AI application's OAuth grant in Workspace or Entra."""
+
+    vendor_id = "ai_directory"
+    capability = "revoke_oauth_grant"
+    description = "Revoke an AI application's OAuth grant."
+    requires_credentials = True
+    _legacy_executor = RevokeOAuthGrantExecutor()
+    _legacy_action_type = ActionType.REVOKE_OAUTH_GRANT
+    _credential_keys = _AI_GRANT_KEYS
+
+
+@apply_contract
+class AIGatewayBlockKey(_LegacyExecutorAdapter):
+    """Block a virtual key at a gateway. The reversible containment."""
+
+    vendor_id = "ai_gateway"
+    capability = "block_ai_key_at_gateway"
+    description = "Block a virtual key at a LiteLLM-compatible gateway."
+    requires_credentials = True
+    _legacy_executor = BlockAIKeyAtGatewayExecutor()
+    _legacy_action_type = ActionType.BLOCK_AI_KEY_AT_GATEWAY
+    _credential_keys = _AI_GATEWAY_KEYS
+
+
+@apply_contract
+class AIGatewayUnblockKey(_LegacyExecutorAdapter):
+    """Lift a gateway block: the rollback the arm above declares."""
+
+    vendor_id = "ai_gateway"
+    capability = "unblock_ai_key_at_gateway"
+    description = "Unblock a virtual key at a LiteLLM-compatible gateway."
+    requires_credentials = True
+    _legacy_executor = UnblockAIKeyAtGatewayExecutor()
+    _legacy_action_type = ActionType.UNBLOCK_AI_KEY_AT_GATEWAY
+    _credential_keys = _AI_GATEWAY_KEYS
+
+
 _BUILTIN_ADAPTERS: tuple[type[LiveActionExecutor], ...] = (
     # Read-only investigation verbs. Registered first because they are
     # the ones an agent should reach for before anything below them.
@@ -1061,6 +1135,11 @@ _BUILTIN_ADAPTERS: tuple[type[LiveActionExecutor], ...] = (
     # so it raised in every agents image. Same verb, run where its clients and
     # its credentials are.
     *OSQUERY_ARMS,
+    # Depth 6.6. AI-estate containment, off by default at the executor.
+    AIProviderRevokeKey,
+    AIDirectoryRevokeOAuthGrant,
+    AIGatewayBlockKey,
+    AIGatewayUnblockKey,
 )
 
 

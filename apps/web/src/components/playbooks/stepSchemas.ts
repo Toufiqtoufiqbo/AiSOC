@@ -860,6 +860,88 @@ export const STEP_SCHEMAS: Record<StepType, StepSchema> = {
       },
     ],
   },
+  revoke_provider_key: {
+    type: 'revoke_provider_key',
+    execution: 'governed',
+    label: 'Revoke provider key',
+    description:
+      'Delete an OpenAI key or deactivate an Anthropic one. There is no un-delete: whatever held it stops, and a replacement has to be minted and redistributed.',
+    accent: '#f43f5e',
+    bgColor: '#4a1220',
+    icon: '\uD83D\uDD11',
+    shortCode: 'revk',
+    fields: [
+      {
+        name: 'key_id',
+        label: 'Provider key id',
+        kind: 'text',
+        required: true,
+        help: 'The vendor\u2019s key id, not the secret. The secret never reaches AiSOC.',
+      },
+    ],
+  },
+  revoke_oauth_grant: {
+    type: 'revoke_oauth_grant',
+    execution: 'governed',
+    label: 'Revoke OAuth grant',
+    description:
+      'Remove an AI application\u2019s standing access. Re-granting is the user consenting again in their browser, so AiSOC cannot undo this.',
+    accent: '#f43f5e',
+    bgColor: '#4a1220',
+    icon: '\uD83D\uDEAB',
+    shortCode: 'oagr',
+    fields: [
+      {
+        name: 'client_id',
+        label: 'Application client id',
+        kind: 'text',
+        required: true,
+      },
+      {
+        name: 'ai_grant_user',
+        label: 'Grantee (Workspace only)',
+        kind: 'text',
+        help: 'Google revokes per user, so a domain-wide containment is one step per grantee.',
+      },
+    ],
+  },
+  block_ai_key_at_gateway: {
+    type: 'block_ai_key_at_gateway',
+    execution: 'governed',
+    label: 'Block key at AI gateway',
+    description:
+      'Stop every call a virtual key can make, without destroying it. The reversible containment: one step undoes it.',
+    accent: '#f59e0b',
+    bgColor: '#452c08',
+    icon: '\u26D4',
+    shortCode: 'blkg',
+    fields: [
+      {
+        name: 'gateway_key',
+        label: 'Virtual key',
+        kind: 'text',
+        required: true,
+      },
+    ],
+  },
+  unblock_ai_key_at_gateway: {
+    type: 'unblock_ai_key_at_gateway',
+    execution: 'governed',
+    label: 'Unblock key at AI gateway',
+    description: 'Lift a gateway block. The rollback the block step declares, and a real verb rather than a promise.',
+    accent: '#22c55e',
+    bgColor: '#0f3a22',
+    icon: '\u2705',
+    shortCode: 'unbg',
+    fields: [
+      {
+        name: 'gateway_key',
+        label: 'Virtual key',
+        kind: 'text',
+        required: true,
+      },
+    ],
+  },
   create_notable_event: {
     type: 'create_notable_event',
     execution: 'governed',

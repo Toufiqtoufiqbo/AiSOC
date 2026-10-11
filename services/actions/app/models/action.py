@@ -21,6 +21,11 @@ class ActionType(str, Enum):
     KILL_PROCESS = "kill_process"
     QUARANTINE_FILE = "quarantine_file"
     CAPTURE_FORENSICS = "capture_forensics"
+    # AI-estate containment (depth 6.6).
+    REVOKE_PROVIDER_KEY = "revoke_provider_key"
+    REVOKE_OAUTH_GRANT = "revoke_oauth_grant"
+    BLOCK_AI_KEY_AT_GATEWAY = "block_ai_key_at_gateway"
+    UNBLOCK_AI_KEY_AT_GATEWAY = "unblock_ai_key_at_gateway"
     NOTIFY_SLACK = "notify_slack"
     CREATE_TICKET = "create_ticket"
     # `add_ioc_to_blocklist` and `run_playbook` were here and had no executor
@@ -115,6 +120,13 @@ ACTION_BLAST_RADIUS: dict[ActionType, BlastRadius] = {
     ActionType.KILL_PROCESS: BlastRadius.MEDIUM,
     ActionType.QUARANTINE_FILE: BlastRadius.LOW,
     ActionType.CAPTURE_FORENSICS: BlastRadius.LOW,
+    # Depth 6.6. Revoking a provider key is CRITICAL rather than HIGH: it is
+    # not one person's access, it is every workload holding that key, and
+    # there is no un-delete.
+    ActionType.REVOKE_PROVIDER_KEY: BlastRadius.CRITICAL,
+    ActionType.REVOKE_OAUTH_GRANT: BlastRadius.HIGH,
+    ActionType.BLOCK_AI_KEY_AT_GATEWAY: BlastRadius.HIGH,
+    ActionType.UNBLOCK_AI_KEY_AT_GATEWAY: BlastRadius.LOW,
     ActionType.NOTIFY_SLACK: BlastRadius.MINIMAL,
     ActionType.CREATE_TICKET: BlastRadius.MINIMAL,
     ActionType.CHATOPS_VERIFY: BlastRadius.MINIMAL,

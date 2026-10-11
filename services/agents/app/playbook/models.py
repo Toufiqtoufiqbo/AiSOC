@@ -52,6 +52,13 @@ class StepType(str, Enum):
     # SIEM / investigation
     SEARCH_SIEM = "search_siem"
     CREATE_NOTABLE_EVENT = "create_notable_event"
+    # AI-estate containment (depth 6.6). Four, because the gateway block
+    # declares a platform reverse and a reverse that is not a dispatchable
+    # verb is a rollback path that resolves to nothing.
+    REVOKE_PROVIDER_KEY = "revoke_provider_key"
+    REVOKE_OAUTH_GRANT = "revoke_oauth_grant"
+    BLOCK_AI_KEY_AT_GATEWAY = "block_ai_key_at_gateway"
+    UNBLOCK_AI_KEY_AT_GATEWAY = "unblock_ai_key_at_gateway"
 
 
 class StepCondition(BaseModel):

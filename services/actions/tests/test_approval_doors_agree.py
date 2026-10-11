@@ -73,7 +73,13 @@ def test_the_sweep_covers_every_impact_tier() -> None:
     """A sweep that silently stopped covering an impact would still pass."""
     covered = {CAPABILITY_CONTRACTS[c].impact for c in SHARED_CAPABILITIES}
     assert len(SHARED_CAPABILITIES) >= 20
-    assert {i.value for i in covered} == {"read_only", "low", "moderate", "high", "severe"}
+    # `irreversible` joined the sweep with depth 6.6's provider-key and
+    # OAuth-grant revocations — the first verbs in this product where the
+    # vendor itself offers no undo. Pinned as an exact set in both
+    # directions: a tier silently leaving the sweep is the failure this test
+    # exists to catch, and a tier silently joining it is a verb nobody
+    # decided to grade.
+    assert {i.value for i in covered} == {"read_only", "low", "moderate", "high", "severe", "irreversible"}
 
 
 class _VendorTouches:

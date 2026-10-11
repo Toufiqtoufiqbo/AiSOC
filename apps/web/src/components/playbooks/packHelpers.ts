@@ -217,6 +217,8 @@ export const INTEGRATION_TYPES = [
   'Notification',
   'Firewall / Network',
   'HTTP / Custom',
+  // Depth 6.6. Model providers, AI gateways and application OAuth grants.
+  'AI Estate',
 ] as const;
 
 export type IntegrationType = (typeof INTEGRATION_TYPES)[number];
@@ -247,6 +249,14 @@ const STEP_TYPE_TO_INTEGRATION: Record<StepType, IntegrationType | null> = {
   create_ticket:       'Ticketing',
   search_siem:         'SIEM',
   create_notable_event:'SIEM',
+  // AI estate (depth 6.6). Its own integration category rather than folded
+  // into Identity: the thing being contained is a model provider, a gateway
+  // or an application's grant, and a reader choosing a pack needs to know
+  // that is what it will reach.
+  revoke_provider_key:      'AI Estate',
+  revoke_oauth_grant:       'AI Estate',
+  block_ai_key_at_gateway:  'AI Estate',
+  unblock_ai_key_at_gateway:'AI Estate',
   notify:              'Notification',
   block_ip:            'Firewall / Network',
   block_ioc:           'Firewall / Network',

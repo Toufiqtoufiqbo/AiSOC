@@ -615,6 +615,13 @@ _TARGET_KEYS: dict[StepType, tuple[str, ...]] = {
     # every live query in this image raised. The clients it wanted are beside
     # the executors it now dispatches to.
     StepType.OSQUERY_LIVE_QUERY: ("host", "hostname", "device_id", "host_id"),
+    # Depth 6.6. The target is the thing being contained, and for a key that
+    # is the vendor's key *id* rather than the secret — the secret never
+    # reaches this service and could not revoke itself anyway.
+    StepType.REVOKE_PROVIDER_KEY: ("key_id", "api_key_id", "provider_key_id"),
+    StepType.REVOKE_OAUTH_GRANT: ("client_id", "application_id", "app_id"),
+    StepType.BLOCK_AI_KEY_AT_GATEWAY: ("gateway_key", "virtual_key", "key"),
+    StepType.UNBLOCK_AI_KEY_AT_GATEWAY: ("gateway_key", "virtual_key", "key"),
 }
 
 #: Verbs whose step params do not already read as the capability's params.

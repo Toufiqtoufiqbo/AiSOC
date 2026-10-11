@@ -31,6 +31,10 @@
     "run_script": "governed",
     "search_siem": "governed",
     "create_notable_event": "governed",
+    "revoke_provider_key": "governed",
+    "revoke_oauth_grant": "governed",
+    "block_ai_key_at_gateway": "governed",
+    "unblock_ai_key_at_gateway": "governed",
     "wait": "executed",
     "parallel": "executed",
     "loop": "executed"
@@ -196,7 +200,11 @@
             "run_av_scan",
             "run_script",
             "search_siem",
-            "create_notable_event"
+            "create_notable_event",
+            "revoke_provider_key",
+            "revoke_oauth_grant",
+            "block_ai_key_at_gateway",
+            "unblock_ai_key_at_gateway"
           ]
         },
         "params": {
