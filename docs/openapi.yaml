@@ -2070,6 +2070,343 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/case-depth/alerts/merge:
+    post:
+      tags:
+      - case-depth
+      summary: Merge Alerts Route
+      description: Fold duplicate alerts into one. Every row survives.
+      operationId: merge_alerts_route_api_v1_case_depth_alerts_merge_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MergeRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MergeResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/v1/case-depth/cases/merge:
+    post:
+      tags:
+      - case-depth
+      summary: Merge Cases Route
+      description: Fold duplicate cases into one. Alerts follow; both rows survive.
+      operationId: merge_cases_route_api_v1_case_depth_cases_merge_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MergeRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MergeResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/v1/case-depth/alerts/bulk-triage:
+    post:
+      tags:
+      - case-depth
+      summary: Bulk Triage Route
+      description: 'Apply one triage decision to many alerts, with a preflight count.
+
+
+        A match larger than ``max_count`` is a **409 carrying the real figure**
+
+        and nothing is written — the same contract ``POST /alerts/bulk-close``
+
+        uses, deliberately, because a second bulk path with weaker guarantees is
+
+        how the weaker one becomes the one everybody reaches for.'
+      operationId: bulk_triage_route_api_v1_case_depth_alerts_bulk_triage_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkTriageRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkTriageResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/v1/case-depth/custom-fields:
+    get:
+      tags:
+      - case-depth
+      summary: List Custom Fields
+      operationId: list_custom_fields_api_v1_case_depth_custom_fields_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: include_inactive
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Include Inactive
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomFieldOut'
+                title: Response List Custom Fields Api V1 Case Depth Custom Fields
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - case-depth
+      summary: Create Custom Field
+      operationId: create_custom_field_api_v1_case_depth_custom_fields_post
+      security:
+      - HTTPBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomFieldIn'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomFieldOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/case-depth/custom-fields/{field_id}:
+    patch:
+      tags:
+      - case-depth
+      summary: Update Custom Field
+      operationId: update_custom_field_api_v1_case_depth_custom_fields__field_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: field_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Field Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomFieldPatch'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomFieldOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - case-depth
+      summary: Retire Custom Field
+      description: 'Retire, never delete: values already written stay readable and
+        attributable.'
+      operationId: retire_custom_field_api_v1_case_depth_custom_fields__field_id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: field_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Field Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomFieldOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/case-depth/cases/{case_id}/custom-values:
+    get:
+      tags:
+      - case-depth
+      summary: Get Custom Values
+      description: 'Every active field, with this case''s value or an empty one.
+
+
+        Returns the *fields*, not the stored rows, so a field defined after the
+
+        case was created still renders — the alternative is a form that silently
+
+        omits whatever was added last week.'
+      operationId: get_custom_values_api_v1_case_depth_cases__case_id__custom_values_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomValueOut'
+                title: Response Get Custom Values Api V1 Case Depth Cases  Case Id  Custom
+                  Values Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - case-depth
+      summary: Set Custom Values
+      operationId: set_custom_values_api_v1_case_depth_cases__case_id__custom_values_put
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomValuesIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomValueOut'
+                title: Response Set Custom Values Api V1 Case Depth Cases  Case Id  Custom
+                  Values Put
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/case-depth/workload:
+    get:
+      tags:
+      - case-depth
+      summary: Workload
+      description: 'Per-analyst open, closed, overdue and mean time to close.
+
+
+        Every number is counted by this request over rows it selected. An analyst
+
+        who has closed nothing gets ``mean_hours_to_close: null`` and the console
+
+        renders that as "no data" — never ``0.0``, which reads as "instant".'
+      operationId: workload_api_v1_case_depth_workload_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: days
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 365
+          minimum: 1
+          default: 30
+          title: Days
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Workload Api V1 Case Depth Workload Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/cases/{case_id}/attack-chain:
     get:
       tags:
@@ -22767,6 +23104,69 @@ components:
       - updated
       - skipped
       title: BulkToggleResponse
+    BulkTriageRequest:
+      properties:
+        alert_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 5000
+          minItems: 1
+          title: Alert Ids
+        set_status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Set Status
+        set_severity:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Set Severity
+        assign_to:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Assign To
+        unassign:
+          type: boolean
+          title: Unassign
+          default: false
+        max_count:
+          type: integer
+          maximum: 5000.0
+          minimum: 1.0
+          title: Max Count
+          default: 100
+        comment:
+          type: string
+          maxLength: 500
+          title: Comment
+          default: ''
+      type: object
+      required:
+      - alert_ids
+      title: BulkTriageRequest
+    BulkTriageResponse:
+      properties:
+        matched_count:
+          type: integer
+          title: Matched Count
+        updated_count:
+          type: integer
+          title: Updated Count
+        changes:
+          additionalProperties: true
+          type: object
+          title: Changes
+      type: object
+      required:
+      - matched_count
+      - updated_count
+      - changes
+      title: BulkTriageResponse
     BundleJob:
       properties:
         job_id:
@@ -25075,6 +25475,180 @@ components:
       - summary
       - evidence
       title: CspmScanResponse
+    CustomFieldIn:
+      properties:
+        key:
+          type: string
+          maxLength: 64
+          minLength: 1
+          pattern: ^[a-z][a-z0-9_]*$
+          title: Key
+        label:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: Label
+        field_type:
+          type: string
+          title: Field Type
+        help_text:
+          type: string
+          maxLength: 400
+          title: Help Text
+          default: ''
+        choices:
+          items:
+            type: string
+          type: array
+          maxItems: 50
+          title: Choices
+        required:
+          type: boolean
+          title: Required
+          default: false
+        position:
+          type: integer
+          maximum: 999.0
+          minimum: 0.0
+          title: Position
+          default: 0
+      type: object
+      required:
+      - key
+      - label
+      - field_type
+      title: CustomFieldIn
+    CustomFieldOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        key:
+          type: string
+          title: Key
+        label:
+          type: string
+          title: Label
+        help_text:
+          type: string
+          title: Help Text
+        field_type:
+          type: string
+          title: Field Type
+        choices:
+          items:
+            type: string
+          type: array
+          title: Choices
+        required:
+          type: boolean
+          title: Required
+        position:
+          type: integer
+          title: Position
+        active:
+          type: boolean
+          title: Active
+      type: object
+      required:
+      - id
+      - key
+      - label
+      - help_text
+      - field_type
+      - choices
+      - required
+      - position
+      - active
+      title: CustomFieldOut
+    CustomFieldPatch:
+      properties:
+        label:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Label
+        help_text:
+          anyOf:
+          - type: string
+            maxLength: 400
+          - type: 'null'
+          title: Help Text
+        choices:
+          anyOf:
+          - items:
+              type: string
+            type: array
+            maxItems: 50
+          - type: 'null'
+          title: Choices
+        required:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Required
+        position:
+          anyOf:
+          - type: integer
+            maximum: 999.0
+            minimum: 0.0
+          - type: 'null'
+          title: Position
+        active:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Active
+      type: object
+      title: CustomFieldPatch
+    CustomValueOut:
+      properties:
+        key:
+          type: string
+          title: Key
+        label:
+          type: string
+          title: Label
+        field_type:
+          type: string
+          title: Field Type
+        value:
+          type: string
+          title: Value
+        required:
+          type: boolean
+          title: Required
+        updated_by:
+          type: string
+          title: Updated By
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Updated At
+      type: object
+      required:
+      - key
+      - label
+      - field_type
+      - value
+      - required
+      - updated_by
+      - updated_at
+      title: CustomValueOut
+    CustomValuesIn:
+      properties:
+        values:
+          additionalProperties:
+            type: string
+          type: object
+          title: Values
+      type: object
+      required:
+      - values
+      title: CustomValuesIn
     DashboardMetrics:
       properties:
         period:
@@ -30253,6 +30827,51 @@ components:
       required:
       - query
       title: MemoryRecallIn
+    MergeRequest:
+      properties:
+        primary_id:
+          type: string
+          format: uuid
+          title: Primary Id
+        duplicate_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 200
+          minItems: 1
+          title: Duplicate Ids
+        reason:
+          type: string
+          maxLength: 500
+          title: Reason
+          default: ''
+      type: object
+      required:
+      - primary_id
+      - duplicate_ids
+      title: MergeRequest
+    MergeResponse:
+      properties:
+        primary_id:
+          type: string
+          title: Primary Id
+        merged_ids:
+          items:
+            type: string
+          type: array
+          title: Merged Ids
+        case_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Case Id
+      type: object
+      required:
+      - primary_id
+      - merged_ids
+      - case_id
+      title: MergeResponse
     MetricsOut:
       properties:
         tenant_id:

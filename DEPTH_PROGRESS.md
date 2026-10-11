@@ -497,7 +497,34 @@ invented fields on the first run of the gate.
   against real Postgres 16, real Qdrant v1.7.0 and a real embedding backend,
   recorded in the PR. **The measurement is published as it came out, and it is
   unflattering:** see D11.
-- [ ] **9.3** Case depth (parity 5.6 remainder)
+- [x] **9.3** Case depth (parity 5.6 remainder). All four open bullets.
+  **Alert merge needed no schema at all**: `is_merged`, `parent_alert_id` and
+  `child_alert_ids` have been on `alerts` since migration 001 with the ORM
+  model as their only mention anywhere — the repository's recurring defect,
+  and worth naming so "new" means something. Merge keeps every row: a
+  duplicate is marked and pointed at its parent, the survivor's children are
+  **appended** not replaced, re-merging and merging into a merged alert are
+  both refused because each would orphan or cycle the chain, and the
+  survivor inherits the case a duplicate was already on. Case merge (migration
+  `106`) repoints the alerts and keeps both case rows, because deleting loses
+  the audit chain, the custody entries and any vendor ticket already naming
+  that id. Bulk triage is new in the route **and** the console: a checkbox per
+  row, a select-all that selects this page only, and a bar whose Apply
+  performs a real write and surfaces the preflight 409 with the real matched
+  count instead of silently retrying. `closed` is deliberately unreachable
+  there — `bulk-close` snapshots every row first and a weaker second path to
+  one destination is how the weaker one wins. Tenant custom fields are two
+  tables rather than a JSONB blob so a field can be enumerated, rendered,
+  validated at write time and retired cleanly; values are canonicalised on
+  write. Workload is counted per request over rows the query selected, a
+  merged-away case is not counted as work, and **a mean over nothing is
+  `null`, never `0.0`** — with the count it was taken over beside it. Graded
+  by `.github/workflows/case-depth-live.yml` against a real Postgres with
+  three negative controls, because every statement here is Postgres-only and
+  a SQLite stand-in would be a different query. 29 new tests (23 API live, 6
+  web). The live suite earned its keep immediately: it caught that
+  `aisoc_cases.alert_ids` is `uuid[]` while the two columns beside it are
+  JSONB, which a stand-in would have accepted.
 - [ ] **9.4** War rooms
 - [ ] **9.5** Hunt to report
 - [ ] **9.6** Native responder
@@ -511,6 +538,7 @@ invented fields on the first run of the gate.
 
 | Date | Item | What happened |
 |---|---|---|
+| 2026-10-11 | 9.3 | Reproduced: the alert merge columns had zero writers outside the ORM model; `grep -rn custom_field services/api` and `grep -rn workload` (excluding workload *identities*) both counted zero; and `grep -rn bulk apps/web/src/components/alerts` found only unrelated comments, so the only bulk verb in the product was `POST /alerts/bulk-close` with no console surface at all. The two-case-table trap named in the brief was already closed by migration 083 and `check_one_case_table.py` reports OK, so `aisoc_cases` is the table this item deepens. Three negative controls recorded in the PR and wired into the live workflow. The live suite found a real defect on its first run: `aisoc_cases.alert_ids` is `uuid[]` while `ioc_ids` and `artifact_ids` beside it are JSONB, and the merge statement had assumed JSONB. |
 | 2026-10-11 | 9.2 | Reproduced: `knowledge_base.py` searched with `to_tsvector`/`plainto_tsquery` and nothing else; `grep -rn qdrant services/api/app/` found only the migration runner and the tenant-deletion sweep, no recall path; and no memory row anywhere carried an author, a source, a scope, an expiry or a state. Built the store of record, the Qdrant index over it, the conflict state machine, the case-closure writer and the recall scorer. Two negative controls recorded in the PR: restoring last-write-wins on a contradiction fails three tests, and restoring vector truncation fails one. The measurement is negative and is published as such — see D11, which also records that it caught the truncation defect. |
 | 2026-10-07 | 0.1 | This file created at base commit `1b8bc2d4`. |
 | 2026-10-07 | 0.2 | Every figure re-derived. Two matched exactly (detections, unreachable families); executor arms measured 74 against a captured 73; the cloud/identity/SaaS/code figure measured 395 against a captured 461 on a grouping the plan does not pin, recorded above. Two measurement caveats found: executable and quarantined overlap by 1,724 rules, and the "69% Windows" figure does not reproduce from the index. |

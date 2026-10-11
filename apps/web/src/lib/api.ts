@@ -7374,3 +7374,114 @@ export const evaluationsApi = {
     `${API_BASE}/api/v1/evaluations/replay/${id}/export` +
     `?format=${format}&exclude_latency=${excludeLatency ? 'true' : 'false'}`,
 };
+
+// ─── Case depth (depth 9.3 / parity 5.6 remainder) ───────────────────────────
+
+export interface BulkTriageChange {
+  set_status?: string;
+  set_severity?: string;
+  assign_to?: string;
+  unassign?: boolean;
+}
+
+export interface BulkTriageResult {
+  matched_count: number;
+  updated_count: number;
+  changes: Record<string, unknown>;
+}
+
+export interface AnalystWorkloadRow {
+  analyst: string;
+  total: number;
+  open_cases: number;
+  closed_cases: number;
+  open_high_or_critical: number;
+  overdue: number;
+  /**
+   * `null` when the analyst has closed nothing in the window. The console
+   * must render that as "no data" and never as `0.0`, which reads as
+   * "instant" — the exact confusion that left two console figures wrong for
+   * months.
+   */
+  mean_hours_to_close: number | null;
+  /** How many closed cases the mean above was taken over. */
+  mean_over_cases: number;
+}
+
+export interface AnalystWorkload {
+  since: string;
+  computed_at: string;
+  analysts: AnalystWorkloadRow[];
+  unassigned: { open_cases: number; open_high_or_critical: number };
+}
+
+export const caseDepthApi = {
+  /**
+   * Apply one triage decision to many alerts.
+   *
+   * `maxCount` is a preflight the caller states: a larger match is refused
+   * with a 409 carrying the real figure and **nothing is written**, so the
+   * first call is a dry run. The bar surfaces that count and asks again
+   * rather than retrying silently with a bigger number.
+   */
+  bulkTriage: (alertIds: string[], change: BulkTriageChange, maxCount: number, comment = '') =>
+    request<BulkTriageResult>('/api/v1/case-depth/alerts/bulk-triage', {
+      method: 'POST',
+      body: JSON.stringify({ alert_ids: alertIds, max_count: maxCount, comment, ...change }),
+    }),
+
+  mergeAlerts: (primaryId: string, duplicateIds: string[], reason = '') =>
+    request<{ primary_id: string; merged_ids: string[]; case_id: string | null }>(
+      '/api/v1/case-depth/alerts/merge',
+      {
+        method: 'POST',
+        body: JSON.stringify({ primary_id: primaryId, duplicate_ids: duplicateIds, reason }),
+      },
+    ),
+
+  mergeCases: (primaryId: string, duplicateIds: string[], reason = '') =>
+    request<{ primary_id: string; merged_ids: string[]; case_id: string | null }>(
+      '/api/v1/case-depth/cases/merge',
+      {
+        method: 'POST',
+        body: JSON.stringify({ primary_id: primaryId, duplicate_ids: duplicateIds, reason }),
+      },
+    ),
+
+  workload: (days = 30) =>
+    request<AnalystWorkload>('/api/v1/case-depth/workload', { params: { days: String(days) } }),
+
+  customFields: () =>
+    request<
+      Array<{
+        id: string;
+        key: string;
+        label: string;
+        help_text: string;
+        field_type: string;
+        choices: string[];
+        required: boolean;
+        position: number;
+        active: boolean;
+      }>
+    >('/api/v1/case-depth/custom-fields'),
+
+  caseCustomValues: (caseId: string) =>
+    request<
+      Array<{
+        key: string;
+        label: string;
+        field_type: string;
+        value: string;
+        required: boolean;
+        updated_by: string;
+        updated_at: string | null;
+      }>
+    >(`/api/v1/case-depth/cases/${caseId}/custom-values`),
+
+  setCaseCustomValues: (caseId: string, values: Record<string, string>) =>
+    request<unknown>(`/api/v1/case-depth/cases/${caseId}/custom-values`, {
+      method: 'PUT',
+      body: JSON.stringify({ values }),
+    }),
+};
