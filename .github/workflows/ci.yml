@@ -714,6 +714,16 @@ jobs:
         run: python3 scripts/check_ai_asset_inventory.py --self-test
       - name: AI asset inventory gate
         run: python3 scripts/check_ai_asset_inventory.py
+      # Depth 6.2. The endpoint half, and the rule that carries it is
+      # NAMESPACE: the four endpoint connectors put their process fields in
+      # the connector payload under `raw_data`, and the canonical OCSF
+      # profile maps none of them — so a classifier reading `process.name`
+      # finds None on every real source while its unit tests pass against
+      # events built in the shape it expects.
+      - name: AI endpoint discovery gate — self-test
+        run: python3 scripts/check_ai_endpoint_discovery.py --self-test
+      - name: AI endpoint discovery gate
+        run: python3 scripts/check_ai_endpoint_discovery.py
       # One layer in from the name: the profile gate asks whether a connector
       # reaches a normalization path, this asks which OCSF class it reaches
       # when it gets there. The class uid divided by a thousand is the

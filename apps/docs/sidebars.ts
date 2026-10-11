@@ -28,6 +28,7 @@ const sidebars: SidebarsConfig = {
         "concepts/python-detections",
         "concepts/windowed-detections",
         "concepts/ai-estate",
+        "concepts/ai-estate-discovery",
         "concepts/groundedness",
         "concepts/live-actions",
         "concepts/retro-hunts",
