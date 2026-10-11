@@ -13,6 +13,7 @@ the recurring defect here is a test double more capable than the real source.
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 from typing import Any
 
@@ -62,16 +63,44 @@ def runtime_event(**overrides: Any) -> dict[str, Any]:
 
 
 def process_event(name: str, cmd_line: str = "", hostname: str = "ada-mbp") -> dict[str, Any]:
-    """An OCSF Process Activity event, the class EDR telemetry normalizes to."""
+    """A process-activity event in the shape the endpoint connectors emit.
+
+    `services/ingest` stores the connector's own normalized dict as a JSON
+    string under `raw_data`, and the canonical OCSF field map carries almost
+    nothing else — so `exe`, `process_name` and a command line live only
+    here. An earlier version of this helper built a nested `process.name`
+    instead, which no endpoint connector in this product produces; see
+    `test_ai_endpoint_discovery.py` for the four real shapes.
+    """
+    payload: dict[str, Any] = {"source": "auditd", "syscall": "execve", "exe": name, "hostname": hostname, "actor": "ada@example.com"}
+    if cmd_line:
+        payload["cmdline"] = cmd_line
     return {
         "tenant_id": TENANT,
         "ocsf_event": {
             "class_uid": 1007,
             "class_name": "Process Activity",
-            "source_type": "crowdstrike_falcon",
-            "process": {"name": name, "cmd_line": cmd_line},
+            "source_type": "auditd",
+            "raw_data": json.dumps(payload),
             "device": {"name": hostname},
             "actor": {"user": {"name": "ada@example.com"}},
+        },
+    }
+
+
+def ocsf_native_process_event(name: str, hostname: str = "ada-mbp") -> dict[str, Any]:
+    """The other shape: OCSF posted directly, with no connector payload.
+
+    Kept as its own helper and its own case because both shapes reach this
+    code and reading only one of them is the defect 6.2 reproduced.
+    """
+    return {
+        "tenant_id": TENANT,
+        "ocsf_event": {
+            "class_uid": 1007,
+            "class_name": "Process Activity",
+            "process": {"name": name},
+            "device": {"name": hostname},
         },
     }
 
@@ -117,7 +146,7 @@ def test_process_activity_finds_a_coding_agent_with_a_device_and_no_model():
     This is why `discovery_source` is stored: an analyst reading a row with no
     model needs to know whether it is missing or unknowable.
     """
-    sightings = classify(process_event("claude", "claude --resume"))
+    sightings = classify(process_event("/usr/local/bin/claude", "claude --resume"))
     assert len(sightings) == 1
     assert sightings[0].kind == "coding_agent"
     assert sightings[0].discovery_source == "endpoint"
@@ -125,9 +154,14 @@ def test_process_activity_finds_a_coding_agent_with_a_device_and_no_model():
     assert "models" not in sightings[0].attributes
 
 
+def test_an_ocsf_native_process_event_is_read_too():
+    sightings = classify(ocsf_native_process_event("/usr/local/bin/claude"))
+    assert [s.kind for s in sightings] == ["coding_agent"]
+
+
 @pytest.mark.parametrize("flag", ["--dangerously-skip-permissions", "--yolo", "--auto-approve", "--no-confirm"])
 def test_permission_prompts_disabled_is_read_from_the_command_line(flag: str):
-    sightings = classify(process_event("claude", f"claude {flag} -p 'refactor'"))
+    sightings = classify(process_event("/usr/local/bin/claude", f"claude {flag} -p 'refactor'"))
     assert sightings[0].attributes["permission_prompts_disabled"] is True
 
 

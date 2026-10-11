@@ -45,6 +45,7 @@ rather than mysterious.
 from __future__ import annotations
 
 import json
+import re
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -78,13 +79,104 @@ CODING_AGENT_PROCESSES: dict[str, str] = {
     "cline": "Cline",
 }
 
-#: Process names that mean an MCP server is running locally.
+#: Process names that mean an MCP server is running locally. Matched as a
+#: prefix on the executable's base name, never as a substring anywhere: `uvx`
+#: as a substring matches nothing useful and `mcp` as one matches `mcpelauncher`.
 MCP_SERVER_PROCESSES: tuple[str, ...] = (
     "mcp-server",
     "mcp_server",
     "mcp-proxy",
-    "uvx",
 )
+
+#: Configuration files the popular MCP clients read, and the client each
+#: belongs to. Depth plan 6.2 names these explicitly, and they are a
+#: different kind of evidence from a running process: a config file says a
+#: server is *wired in*, which survives a reboot and survives a `ps` that
+#: happened to miss the window.
+#:
+#: Matched on a path suffix rather than an absolute path, because every one
+#: of them sits under a per-user home directory whose shape differs across
+#: macOS, Linux and Windows. Each entry was taken from the client's own
+#: published configuration documentation.
+MCP_CLIENT_CONFIGS: tuple[tuple[str, str], ...] = (
+    ("/claude/claude_desktop_config.json", "Claude Desktop"),
+    ("/.claude.json", "Claude Code"),
+    ("/.cursor/mcp.json", "Cursor"),
+    ("/.codeium/windsurf/mcp_config.json", "Windsurf"),
+    ("/code/user/mcp.json", "VS Code"),
+    ("/.vscode/mcp.json", "VS Code"),
+    ("/.continue/config.json", "Continue"),
+    ("/.aws/amazonq/mcp.json", "Amazon Q"),
+    ("/.gemini/settings.json", "Gemini CLI"),
+    ("/.codex/config.toml", "Codex CLI"),
+    ("/.config/zed/settings.json", "Zed"),
+)
+
+#: Directories an editor keeps its extensions in. The path under one of these
+#: carries `<publisher>.<name>-<version>`, which is where the extension's
+#: identity comes from.
+IDE_EXTENSION_DIRS: tuple[str, ...] = (
+    "/.vscode/extensions/",
+    "/.vscode-insiders/extensions/",
+    "/.vscode-server/extensions/",
+    "/.cursor/extensions/",
+    "/.windsurf/extensions/",
+)
+
+#: Extension publishers and names that are AI assistants. Deliberately a
+#: named list: an editor has hundreds of extensions and six of them are AI,
+#: so listing all of them would turn the AI inventory into a package manifest
+#: and make the column that matters unreadable.
+AI_IDE_EXTENSIONS: dict[str, str] = {
+    "github.copilot": "GitHub",
+    "github.copilot-chat": "GitHub",
+    "continue.continue": "Continue",
+    "codeium.codeium": "Codeium",
+    "amazonwebservices.amazon-q-vscode": "Amazon",
+    "tabnine.tabnine-vscode": "Tabnine",
+    "sourcegraph.cody-ai": "Sourcegraph",
+    "google.geminicodeassist": "Google",
+    "anthropic.claude-code": "Anthropic",
+}
+
+#: Command-line flags that disable an agent's permission prompts. The single
+#: highest-signal attribute an endpoint source can supply, and the only place
+#: it appears: an agent started this way takes no human confirmation before
+#: acting.
+NO_PROMPT_FLAGS: tuple[str, ...] = (
+    "--dangerously-skip-permissions",
+    "--yolo",
+    "--auto-approve",
+    "--no-confirm",
+    "--yes-always",
+    "--full-auto",
+)
+
+#: Connector fields that carry an executable's name or path, in the order
+#: they are consulted. Read from each connector's own `normalize()` rather
+#: than assumed: `windows_event` sets `process_name` and lifts `Image` out of
+#: `EventData`; `auditd` emits `exe`; an osquery row's columns arrive under
+#: whatever the query selected, which for `processes` is `name` and `path`.
+#:
+#: This list is the item. The OCSF canonical field map carries `title`,
+#: `external_id` and the identity aliases and nothing else, so a reader
+#: looking for `process.name` on the OCSF event finds `None` for every
+#: endpoint source this product has.
+PROCESS_FIELDS: tuple[str, ...] = ("process_name", "Image", "exe", "name", "path", "process")
+
+#: Connector fields carrying a command line, same reasoning.
+COMMAND_LINE_FIELDS: tuple[str, ...] = ("CommandLine", "cmdline", "cmd_line", "command_line", "argv")
+
+#: Connector fields carrying a file path, for the config-file and extension
+#: evidence. `path` doubles as a process path, which is why the file rules
+#: run only when the process rules have already declined.
+FILE_PATH_FIELDS: tuple[str, ...] = ("path", "file_path", "target_path", "filename")
+
+#: Connector fields carrying the device, in order.
+DEVICE_FIELDS: tuple[str, ...] = ("hostname", "host_hostname", "computer", "Computer", "device_name", "host")
+
+#: Connector fields carrying the acting user, in order.
+PRINCIPAL_FIELDS: tuple[str, ...] = ("username", "user", "actor", "TargetUserName", "SubjectUserName", "user_name")
 
 #: The six kinds. Mirrors `app.models.ai_asset.AI_ASSET_KINDS` in the API
 #: service; the two cannot import each other because both package their code
@@ -105,6 +197,75 @@ ALL_KINDS = (
     KIND_PROVIDER_KEY,
     KIND_OAUTH_GRANT,
 )
+
+#: Every discovery source a row may carry. Mirrors the CHECK constraint in
+#: `105_ai_assets.sql` and `AI_ASSET_SOURCES` in the API model.
+DISCOVERY_SOURCES: tuple[str, ...] = ("ai_runtime", "endpoint", "provider_audit", "oauth_audit", "declared")
+
+
+@dataclass(frozen=True)
+class SourceCapability:
+    """What one discovery source can and cannot see.
+
+    Depth plan 6.2 asks for this in words — *record what each source can and
+    cannot see* — and the second half is the half that matters. A table
+    listing only what a source provides reads as complete coverage; the blind
+    spots are what an analyst needs when a column on the inventory page is
+    empty, because "no device" and "this source has never carried a device"
+    are different facts and only one of them is a finding.
+    """
+
+    sees: tuple[str, ...]
+    cannot_see: tuple[str, ...]
+    connectors: tuple[str, ...]
+
+
+SOURCE_CAPABILITIES: dict[str, SourceCapability] = {
+    "ai_runtime": SourceCapability(
+        sees=("agent identity", "model", "provider", "tool names", "the human it acted for", "prompt secret shapes"),
+        cannot_see=(
+            "the device, unless the app reports a hostname",
+            "anything about an agent that is not instrumented",
+            "a process that never called a model",
+        ),
+        connectors=("ai_gateway", "inbox ai-runtime template", "inbox ai-finding template"),
+    ),
+    "endpoint": SourceCapability(
+        sees=(
+            "the device",
+            "the binary and its command line",
+            "whether permission prompts were disabled",
+            "MCP client configuration files",
+            "IDE extension directories",
+        ),
+        cannot_see=(
+            "which model was called",
+            "which tools were invoked",
+            "what the prompt contained",
+            "an agent running somewhere with no endpoint agent",
+        ),
+        connectors=("fleetdm", "osctrl", "auditd", "windows_event"),
+    ),
+    "provider_audit": SourceCapability(
+        sees=("the provider account", "who minted or used a key", "role and logging changes"),
+        cannot_see=(
+            "any device",
+            "which application used the key",
+            "anything about a key minted outside the audited organisation",
+        ),
+        connectors=("llm_usage",),
+    ),
+    "oauth_audit": SourceCapability(
+        sees=("the application that was granted access", "the scopes granted", "who consented"),
+        cannot_see=("any device", "what the application did with the grant", "a grant made in an unaudited directory"),
+        connectors=("llm_usage", "google_workspace", "azure_entra"),
+    ),
+    "declared": SourceCapability(
+        sees=("whatever an operator wrote down",),
+        cannot_see=("anything nobody declared, which is the population this inventory exists to find",),
+        connectors=("console",),
+    ),
+}
 
 _UPSERT_SQL = """
 INSERT INTO aisoc_ai_assets (
@@ -213,12 +374,74 @@ def classify(message: dict[str, Any]) -> list[_Sighting]:
 
     if source_type in ("ai-runtime", "ai-finding", "AI Runtime", "AI Guardrail"):
         out.extend(_from_ai_telemetry(tenant_id, ocsf, now))
-    elif ocsf.get("class_uid") == 1007:
-        out.extend(_from_process_activity(tenant_id, ocsf, now))
     elif source_type in ("llm_usage", "AI / LLM Usage Audit"):
         out.extend(_from_provider_audit(tenant_id, ocsf, now))
+    elif ocsf.get("class_uid") == 1007:
+        out.extend(_from_endpoint(tenant_id, ocsf, now))
 
     return out
+
+
+def _connector_fields(ocsf: dict[str, Any]) -> dict[str, Any]:
+    """The flat namespace the connector actually produced.
+
+    `services/ingest` stores the connector's own normalized dict as a JSON
+    **string** under `ocsf["raw_data"]`, and the canonical OCSF field map
+    carries `title`, `external_id` and the identity aliases and nothing else.
+    So every endpoint field this module needs — `exe`, `process_name`,
+    `Image`, `CommandLine`, an osquery row's columns — exists only here.
+
+    This is the same reconstruction `DetectionEngine._raw_fields` performs,
+    and for the same reason: 663 of 825 loaded rules once matched on fields
+    that were not visible because nothing merged this namespace back. It is
+    reimplemented rather than imported only because the detection engine
+    loads the whole compiled ruleset at import time, which this module has no
+    business doing; `test_ai_endpoint_discovery.py` asserts the two agree.
+    """
+    raw = ocsf.get("raw_data")
+    decoded: dict[str, Any] | None = None
+    if isinstance(raw, dict):
+        decoded = raw
+    elif isinstance(raw, str) and raw.strip():
+        try:
+            parsed = json.loads(raw)
+        except (ValueError, TypeError):
+            # One malformed payload must not raise out of the consumer's hot
+            # path. An event we cannot read evidences no AI asset, which is
+            # the safe direction for an inventory.
+            return {}
+        if isinstance(parsed, dict):
+            decoded = parsed
+    if decoded is None:
+        return ocsf
+
+    nested = decoded.get("raw_event")
+    if isinstance(nested, dict):
+        merged = {k: v for k, v in nested.items() if isinstance(k, str)}
+        # Connector-normalized keys win on collision: the connector has
+        # already made a deliberate decision about `severity` or `hostname`
+        # and a vendor field of the same name must not override it.
+        merged.update(decoded)
+        return merged
+    return decoded
+
+
+def _first(fields: dict[str, Any], names: tuple[str, ...]) -> str | None:
+    """First non-empty value among `names`, flattened if it is a list.
+
+    `auditd` emits `argv` as a list, so a caller asking for a command line
+    gets the joined vector rather than a repr.
+    """
+    for name in names:
+        value = fields.get(name)
+        if isinstance(value, list):
+            joined = " ".join(str(v) for v in value if v)
+            if joined.strip():
+                return joined.strip()[:1000]
+        text = _text(value)
+        if text:
+            return text
+    return None
 
 
 def _from_ai_telemetry(tenant_id: str, ocsf: dict[str, Any], now: float) -> list[_Sighting]:
@@ -284,62 +507,180 @@ def _from_ai_telemetry(tenant_id: str, ocsf: dict[str, Any], now: float) -> list
     return out
 
 
-def _from_process_activity(tenant_id: str, ocsf: dict[str, Any], now: float) -> list[_Sighting]:
-    """EDR and osquery process telemetry: the device and the binary.
+def _from_endpoint(tenant_id: str, ocsf: dict[str, Any], now: float) -> list[_Sighting]:
+    """EDR, syscall and osquery telemetry: the device, the binary, the files.
 
-    Depth 6.2 supplies the osquery half and widens the match tables; this
-    reads whatever an EDR connector already normalizes to class 1007.
+    Depth plan 6.2, and the rule the whole branch rests on: every field here
+    is read out of the **connector's** namespace through `_connector_fields`,
+    not off the OCSF event. The canonical profile maps `title`, `external_id`
+    and the identity aliases and nothing else, so an earlier version of this
+    function reading `process.name` found `None` for `fleetdm`, `osctrl`,
+    `auditd` and `windows_event` alike — every endpoint source this product
+    has — and endpoint discovery could never have produced a single row.
+
+    Three kinds of evidence, in order, because the first match wins and a
+    process path is also a file path:
+
+    1. A known coding-agent binary.
+    2. A local MCP server process.
+    3. A file: an MCP client's configuration, or an AI IDE extension.
+
+    One deliberate restraint: nothing here sets a model or a provider.
+    Endpoint telemetry cannot see either, and filling them in from a default
+    would make the inventory assert something no source observed.
     """
-    name = _text(_nested(ocsf, "process", "name")) or _text(_nested(ocsf, "actor", "process", "name"))
-    cmdline = _text(_nested(ocsf, "process", "cmd_line")) or ""
-    device = _text(_nested(ocsf, "device", "name")) or _text(_nested(ocsf, "src_endpoint", "hostname"))
-    principal = _text(_nested(ocsf, "actor", "user", "name"))
-    if not name:
-        return []
+    fields = _connector_fields(ocsf)
+    device = _first(fields, DEVICE_FIELDS) or _text(_nested(ocsf, "device", "name")) or _text(_nested(ocsf, "src_endpoint", "hostname"))
+    principal = _first(fields, PRINCIPAL_FIELDS) or _text(_nested(ocsf, "actor", "user", "name"))
+    cmdline = _first(fields, COMMAND_LINE_FIELDS) or ""
+
+    # The connector namespace first, then OCSF's own nested slots. Both
+    # exist: the four endpoint connectors populate only the former, while a
+    # producer posting OCSF directly through `/alerts/submit` populates only
+    # the latter, and reading one of the two is how this branch came to find
+    # nothing on every real source.
+    process = (
+        _first(fields, PROCESS_FIELDS)
+        or _text(_nested(ocsf, "process", "name"))
+        or _text(_nested(ocsf, "actor", "process", "name"))
+    )
+    cmdline = cmdline or _text(_nested(ocsf, "process", "cmd_line")) or ""
+    if process:
+        sighting = _process_sighting(tenant_id, process, cmdline, device, principal, now)
+        if sighting is not None:
+            return [sighting]
+
+    for candidate in (_first(fields, FILE_PATH_FIELDS), _text(fields.get("directory"))):
+        if not candidate:
+            continue
+        sighting = _file_sighting(tenant_id, candidate, device, principal, now)
+        if sighting is not None:
+            return [sighting]
+    return []
+
+
+def _process_sighting(
+    tenant_id: str, name: str, cmdline: str, device: str | None, principal: str | None, now: float
+) -> _Sighting | None:
     base = _basename(name)
+    lowered = cmdline.lower()
 
     if base in CODING_AGENT_PROCESSES:
         attributes: dict[str, Any] = {"process": base}
         # The flag an agent is started with to stop asking. Read from the
-        # command line because that is the only place it appears; an agent
-        # running this way takes no human confirmation before acting.
-        lowered = cmdline.lower()
-        if any(flag in lowered for flag in ("--dangerously-skip-permissions", "--yolo", "--auto-approve", "--no-confirm")):
+        # command line because that is the only place it ever appears.
+        if any(flag in lowered for flag in NO_PROMPT_FLAGS):
             attributes["permission_prompts_disabled"] = True
-        return [
-            _Sighting(
-                tenant_id=tenant_id,
-                kind=KIND_CODING_AGENT,
-                external_id=base,
-                device=device,
-                display_name=name,
-                vendor=CODING_AGENT_PROCESSES[base],
-                discovery_source="endpoint",
-                principal=principal,
-                attributes=attributes,
-                count=1,
-                first_seen=now,
-                last_seen=now,
-            )
-        ]
+        if cmdline:
+            attributes["cmd_line"] = cmdline[:255]
+        return _Sighting(
+            tenant_id=tenant_id,
+            kind=KIND_CODING_AGENT,
+            external_id=base,
+            device=device,
+            display_name=name,
+            vendor=CODING_AGENT_PROCESSES[base],
+            discovery_source="endpoint",
+            principal=principal,
+            attributes=attributes,
+            count=1,
+            first_seen=now,
+            last_seen=now,
+        )
 
-    if any(token in base for token in MCP_SERVER_PROCESSES):
-        return [
-            _Sighting(
+    # Prefix, not substring. `mcp` as a substring matches `mcpelauncher`, and
+    # a false positive here puts a game launcher on a security review.
+    if any(base.startswith(token) for token in MCP_SERVER_PROCESSES):
+        attributes = {"process": base}
+        if cmdline:
+            attributes["cmd_line"] = cmdline[:255]
+        return _Sighting(
+            tenant_id=tenant_id,
+            kind=KIND_MCP_SERVER,
+            external_id=base,
+            device=device,
+            display_name=name,
+            discovery_source="endpoint",
+            principal=principal,
+            attributes=attributes,
+            count=1,
+            first_seen=now,
+            last_seen=now,
+        )
+    return None
+
+
+def _file_sighting(tenant_id: str, path: str, device: str | None, principal: str | None, now: float) -> _Sighting | None:
+    """An MCP client configuration file, or an AI IDE extension directory.
+
+    A file is a different kind of evidence from a process: it says a server
+    or an extension is *wired in*, which survives a reboot and survives a
+    process listing that happened to miss the window.
+    """
+    lowered = path.replace("\\", "/").lower()
+
+    for suffix, client in MCP_CLIENT_CONFIGS:
+        if lowered.endswith(suffix):
+            return _Sighting(
                 tenant_id=tenant_id,
                 kind=KIND_MCP_SERVER,
-                external_id=base,
+                # Keyed on the client, not the file: two laptops with Cursor
+                # configured are two assets, and the same laptop's file moving
+                # between releases is still one.
+                external_id=f"{client} MCP configuration",
                 device=device,
-                display_name=name,
+                display_name=f"{client} MCP configuration",
                 discovery_source="endpoint",
                 principal=principal,
-                attributes={"process": base, "cmd_line": cmdline[:255]} if cmdline else {"process": base},
+                attributes={"mcp_client": client, "config_path": path[:255]},
                 count=1,
                 first_seen=now,
                 last_seen=now,
             )
-        ]
-    return []
+
+    for directory in IDE_EXTENSION_DIRS:
+        if directory not in lowered:
+            continue
+        remainder = lowered.split(directory, 1)[1]
+        folder = remainder.split("/", 1)[0]
+        identifier, version = _split_extension_folder(folder)
+        vendor = AI_IDE_EXTENSIONS.get(identifier)
+        # An editor has hundreds of extensions and a handful are AI. Listing
+        # all of them would turn this into a package manifest and make the
+        # column that matters unreadable.
+        if vendor is None:
+            return None
+        attributes = {"extension": identifier}
+        if version:
+            attributes["version"] = version
+        return _Sighting(
+            tenant_id=tenant_id,
+            kind=KIND_IDE_EXTENSION,
+            external_id=identifier,
+            device=device,
+            display_name=identifier,
+            vendor=vendor,
+            discovery_source="endpoint",
+            principal=principal,
+            attributes=attributes,
+            count=1,
+            first_seen=now,
+            last_seen=now,
+        )
+    return None
+
+
+def _split_extension_folder(folder: str) -> tuple[str, str | None]:
+    """`publisher.name-1.2.3` -> `("publisher.name", "1.2.3")`.
+
+    Split on the last hyphen followed by a digit, because a publisher or an
+    extension name may itself contain hyphens (`sourcegraph.cody-ai`) and
+    splitting on the first would truncate the identifier.
+    """
+    match = re.search(r"^(.*?)-(\d[\w.+-]*)$", folder)
+    if match:
+        return match.group(1), match.group(2)
+    return folder, None
 
 
 def _from_provider_audit(tenant_id: str, ocsf: dict[str, Any], now: float) -> list[_Sighting]:
