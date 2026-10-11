@@ -425,9 +425,15 @@ def main(argv: list[str] | None = None) -> int:
         "writes_intercepted": total_intercepted,
         "writes_intercepted_by_sink": writes_intercepted,
         "limits": [
-            "Measures triage's judgement on given evidence. The corpus authors each item as the "
-            "facts the agent is handed, so no connector mapping is exercised and this says nothing "
-            "about any vendor's field mapping.",
+            # Parenthesised so the three fragments are visibly one element.
+            # Bare adjacent literals inside a list are how a missing comma
+            # silently merges two entries, which is exactly what the reader
+            # of a limits list cannot afford to have happen.
+            (
+                "Measures triage's judgement on given evidence. The corpus authors each item as the "
+                "facts the agent is handed, so no connector mapping is exercised and this says nothing "
+                "about any vendor's field mapping."
+            ),
             "Every item is hand-authored and synthetic. No recorded customer telemetry is involved.",
             "Latency is reported and never graded: it measures the host this ran on.",
         ],
