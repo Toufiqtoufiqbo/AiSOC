@@ -68,18 +68,25 @@ def capture(monkeypatch: pytest.MonkeyPatch) -> _Capture:
     without this the test would fail inside the credential path and never
     reach the branding assertion it exists to make.
     """
-    import app.security.credential_vault as vault_mod
-    import app.services.chatops_prompt as mod
     from cryptography.fernet import Fernet
 
     monkeypatch.setenv("AISOC_CREDENTIAL_KEY", Fernet.generate_key().decode())
-    # A module-level singleton, not an lru_cache: reset it through
-    # monkeypatch so the key set above is the one the vault is built from,
-    # and so the next test in the session does not inherit this one.
-    monkeypatch.setattr(vault_mod, "_vault_singleton", None)
+
+    # Both targets are named as strings rather than imported. The module is
+    # already imported at the top of this file with a from-import, and
+    # importing it a second time as `import app.services.chatops_prompt as
+    # mod` is two import styles for one module -- which CodeQL reports as
+    # py/import-and-import-from, and which leaves a reader unsure which
+    # binding a later edit should patch.
+    #
+    # `_vault_singleton` is a module-level singleton, not an lru_cache, so
+    # it is reset through monkeypatch: the key set above is then the one the
+    # vault is built from, and the next test in the session does not inherit
+    # this one.
+    monkeypatch.setattr("app.security.credential_vault._vault_singleton", None)
 
     cap = _Capture()
-    monkeypatch.setattr(mod.httpx, "AsyncClient", lambda *a, **k: cap)
+    monkeypatch.setattr("app.services.chatops_prompt.httpx.AsyncClient", lambda *a, **k: cap)
     return cap
 
 
