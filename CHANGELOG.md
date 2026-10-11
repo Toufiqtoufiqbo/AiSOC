@@ -191,6 +191,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A reported message's headers, URLs and attachments are analysed once and
+  cited where an auditor looks (depth 7.2).** Nothing in the tree read an
+  `Authentication-Results` header before this — `grep -rl
+  "authentication-results" services/` returned no match — so a message whose
+  SPF and DMARC had both failed at the receiving boundary produced a verdict
+  that had never looked. The analysis is three components in one pass, and
+  the rule it turns on is that **an unanalysed artefact must never read as a
+  clean one**, which is the same rule the submit path already applied to
+  attachments and which `services/api/app/services/phishing/headers.py` now
+  applies to authentication. SPF, DKIM and DMARC each carry three values, and
+  the third is the point: `not_evaluated` is published rather than folded
+  into either of the others, and `neutral`, `none`, `permerror` and
+  `temperror` are **not** passes — treating them as passes is how a domain
+  with a broken SPF record reads as authenticated. A URL on a deployment with
+  no provider configured says so per URL rather than vanishing from the
+  output, and that specific defect was found by a negative control that at
+  first failed to fail, because the tests built their own result list instead
+  of driving the producer. `analysed` and `unanalysed` are counted separately
+  and never summed — in the dataclass, the response model and migration
+  `105`'s column comment — because the sum is the number this product must
+  not publish: five artefacts nothing examined, rendered as "5 artefacts, 0
+  findings", says the opposite of what happened. The verdict is only ever
+  raised, and SPF **and** DMARC must both fail to raise it, because a
+  forwarded message routinely breaks SPF and flagging that would alert on
+  every mailing list in the estate. Citations go into the investigation
+  ledger as `evidence_cited` rows, one per component, written even when a
+  component found nothing — a ledger with no row for the URL check cannot be
+  told from one where the check passed. The ledger suite has no teardown by
+  design: deleting a run cascades to its events, migration `008`'s trigger
+  refuses, and defeating an append-only control to tidy a test fixture would
+  be the wrong fix.
 - **Reported phish now goes from intake to purge (depth 7.1).** The gap was
   not that phishing was unhandled — `POST /phishing/submit` has triaged
   artefacts since migration 015 — but that nothing in the product could

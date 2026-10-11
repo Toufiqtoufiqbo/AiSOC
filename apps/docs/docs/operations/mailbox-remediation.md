@@ -108,6 +108,68 @@ digits and long opaque tokens, so `Invoice 10452 overdue` and
 and why the basis is published. You are entitled to know which kind of claim
 you are about to act on across forty mailboxes.
 
+## What the analysis says, and what it refuses to say
+
+Every reported message is analysed on intake and again on retriage: the
+headers, up to five URLs, and every attachment digest the reporter supplied.
+
+### Sender authentication has three values, not two
+
+| Value | Means |
+|---|---|
+| `pass` | A receiving boundary evaluated the check and it passed |
+| `fail` | A receiving boundary evaluated the check and it failed |
+| `not_evaluated` | **Nobody checked** |
+
+The third is the one that matters. A message with no `Authentication-Results`
+header has not passed SPF — it has not been evaluated, usually because it
+never crossed a boundary that evaluates. AiSOC publishes that as
+`not_evaluated` and never folds it into either of the other two. The RFC 8601
+tokens `none`, `neutral`, `policy`, `permerror` and `temperror` are also
+`not_evaluated`, because each one means the check did not reach a verdict,
+and reading them as passes is how a domain with a broken SPF record comes to
+look authenticated.
+
+Every method gets an entry even when no clause mentions it, so a console
+cannot show "SPF fail" and silently omit DMARC.
+
+### The verdict is only ever raised
+
+A malicious artefact raises the verdict to `malware`. **SPF and DMARC both
+failing** raises it to `phishing` — both, not either, because a forwarded
+message routinely breaks SPF and a DMARC pass on DKIM alignment is the normal
+outcome; flagging one failure alone would alert on every mailing list in the
+estate. `not_evaluated` raises nothing and lowers nothing.
+
+### Counts are never summed
+
+The analysis reports `artefacts_analysed` and `artefacts_unanalysed`
+separately and the API does not add them up. Five artefacts on a deployment
+with no sandbox configured is an analysis that examined nothing, and a
+surface rendering "5 artefacts, 0 findings" has said the opposite of what
+happened. A URL that could not be submitted appears in the output saying so;
+it does not vanish from it.
+
+Attachments are **hash lookup only** on this path, never an upload. Intake
+runs unattended on whatever arrives, and an unattended path that can upload is
+one misconfiguration away from disclosing every attachment a tenant receives.
+To have a file analysed, post it to `/sandbox/files`, where the tenant's
+upload policy is enforced.
+
+### Where the evidence goes
+
+Each analysis writes one investigation-ledger run and one `evidence_cited`
+event per component — headers, URLs, attachments — **including** components
+that found nothing. A ledger with no row for the URL check cannot be told
+from one where the check passed. The run id comes back on the response as
+`analysis_run_id`, and `None` means the ledger write failed, which is
+reported rather than hidden.
+
+The headers are stored on the submission (migration `105`), so a retriage
+replays them instead of re-fetching the message. That ordering is not
+incidental: by the time anybody asks why a message was purged, the purge has
+usually removed it.
+
 ## The purge, and what it will ask of you
 
 ```bash
