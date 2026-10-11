@@ -290,40 +290,53 @@ invented fields on the first run of the gate.
 - [x] **1.5** `make replay-eval` design-partner kit
 - [x] **1.6** Published "Verdict quality" table with a `--check` drift gate
 
-### 1.4 -- measured, and the answer was "do not move"
+### 1.4 -- five local models measured; the winner is generation, not size
 
-Both rows graded the same corpus digest through the production triage path,
-72 model calls each, zero provider errors:
+All five graded the same corpus digest through the production triage path,
+72 model calls each, zero provider errors.
 
-| Model | Balanced acc. | MCC | Malicious recall | Auto-close precision |
-|---|---|---|---|---|
-| `llama3.2:3b-instruct-q4_K_M` (shipped) | 0.285 | 0.047 | 0.250 / 36 | 0.571 |
-| `llama3:8b` (candidate) | 0.279 | 0.113 | 0.639 / 36 | 0.091 |
+| Model | Balanced acc. | MCC | Malicious recall | Malicious prec. | ECE | Auto-close prec. |
+|---|---|---|---|---|---|---|
+| `llama3.1:8b-instruct-q4_K_M` | **0.357** | **0.209** | 0.583 / 36 | **0.724** | **0.349** | 0.111 (9) |
+| `llama3.2:3b-instruct-q4_K_M` (CPU default) | 0.285 | 0.047 | 0.250 / 36 | 0.500 | 0.442 | 0.571 (7) |
+| `llama3:8b` | 0.279 | 0.113 | **0.639** / 36 | 0.657 | 0.421 | 0.091 (11) |
+| `qwen2.5:7b-instruct-q4_K_M` | 0.260 | 0.032 | 0.083 / 36 | 0.750 | 0.594 | 0.243 (37) |
+| `mistral:7b-instruct-v0.3-q4_K_M` | 0.210 | 0.202 | **0.639** / 36 | 0.657 | 0.366 | 0.143 (14) |
 
-Four classes, so a constant answer scores **0.250** balanced accuracy and
-**0.500** plain accuracy. Both models sit just above the first and below the
-second. Chosen strictly by score as the plan requires, the incumbent 3B
-stays: the 8B loses on balanced accuracy and its auto-close precision
-collapses. The compose defaults are therefore **unchanged**, which is a
-decision the measurement made rather than work left undone.
+Four classes: a constant answer scores **0.250** balanced accuracy, and
+always guessing the majority class scores **0.500** plain accuracy.
 
-The real finding is that neither model is good at this task, so the next
-move belongs to the verdict path and the prompt, not to a larger model.
+**Decision, strictly by balanced accuracy:** `llama3.1:8b-instruct-q4_K_M`
+becomes the default on `docker-compose.gpu.yml` and
+`docker-compose.host-llm.yml`. It also leads on MCC, malicious precision and
+calibration, and is the only row with ECE below 0.40. The 3B stays the
+default for CPU `make up`, where a ~5 GB model does not fit the 8 GB CORE
+budget -- a deployment constraint, not a score.
 
-Two caveats published rather than smoothed over:
+**Size is the wrong unit.** The previous-generation `llama3:8b` scores
+*below* the 3B it would replace, so "upgrade to an 8B" is not advice that
+survives measurement. An earlier revision of this file recorded exactly that
+conclusion from `llama3:8b` alone and was wrong; the LiteLLM config's hint
+now carries all five numbers instead.
+
+**Two findings outrank the ranking.** Every model measured is far closer to
+chance than to useful -- the best is 0.357 against a 0.250 floor, and three
+of five fall below the 0.500 plain accuracy of guessing the majority class.
+And auto-close precision is poor across the board (0.091-0.571 on 7-37
+candidates), so **nothing measured here supports autonomous closure**. That
+is a finding about the auto-close gate, not about which model to pick.
+
+Caveats published rather than smoothed over:
 
 - **Latency is excluded from the comparison.** The 3B ran CPU-bound inside
-  the stack container and the 8B GPU-accelerated on the host, so the two
-  figures measure different machines. Both are still printed.
+  the stack container and the four 7--8B rows GPU-accelerated on the host,
+  so the figures measure different machines. All are still printed.
 - **Per-decision model attribution is unverified.** Every call was placed
   and answered -- each decision carries reasoning specific to its alert --
-  but `resolved_models` came back empty, so the scorecard can show that 72
-  calls happened and not which model served each. Worth closing separately.
-
-Not done here: a candidate beyond `llama3:8b`. `qwen2.5:7b` could not be
-fetched -- the Ollama CDN stalled at 63 MB of 2.0 GB on this host and never
-recovered -- so it is **not measured and not listed**, rather than listed
-with a zero.
+  but `resolved_models` came back empty on every run, so the scorecard shows
+  that 72 calls happened and not which model served each.
+- **Auto-close precision rests on 7 to 37 candidates.** Small denominators;
+  read the column as a warning sign, not a ranking.
 
 ### 1.5 -- run end to end against a live stack, not a mock
 

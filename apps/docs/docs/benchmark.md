@@ -122,12 +122,15 @@ Corpus: **72 items** in **36 twin pairs** (`verdict_corpus_v1`, digest `sha256:e
 | Model | Mode | Balanced accuracy | MCC | Malicious recall | Abstention | Hallucination rate | Calls placed |
 |---|---|---|---|---|---|---|---|
 | `llama3.2:3b-instruct-q4_K_M` | live | 0.285 | 0.047 | 0.250 / 36 | 0.000 | 0.000 | 72 |
+| `llama3.1:8b-instruct-q4_K_M` | live | 0.357 | 0.209 | 0.583 / 36 | 0.000 | 0.000 | 72 |
 | `llama3:8b` | live | 0.279 | 0.113 | 0.639 / 36 | 0.000 | 0.000 | 72 |
+| `qwen2.5:7b-instruct-q4_K_M` | live | 0.260 | 0.032 | 0.083 / 36 | 0.097 | 0.000 | 72 |
+| `mistral:7b-instruct-v0.3-q4_K_M` | live | 0.210 | 0.202 | 0.639 / 36 | 0.306 | 0.000 | 72 |
 | `any hosted provider (GPT-4o class)` | – | not measured — no funded key exists in this repository, and no hosted provider has ever been exercised | – | – | – | – | 0 |
 
 Malicious recall prints the count behind it: a rate over 36 cases is a different claim from the same rate over four, and the figure alone cannot say which. Every measured row placed the model calls shown in the last column; a row that placed none is refused rather than published, because triage answers from a deterministic scorer when a provider fails and the resulting scorecard looks entirely normal.
 
-**Shipped default: `llama3.2:3b-instruct-q4_K_M`.** Chosen strictly by score, and the score says do not move. The 8B candidate loses on balanced accuracy (0.279 against 0.285), which is the metric this corpus was built to make meaningful, and its auto-close precision falls to 0.091 -- a model that wrongly closes nine alerts in ten it chooses to close is more dangerous in this product than one that catches fewer. It does halve false negatives, which is a real gain and is why the row stays published rather than deleted. The honest reading is that neither model is good at this: both sit barely above the 0.250 a constant answer scores and below the 0.500 plain accuracy of always guessing the majority class, so the next move is the verdict path and the prompt, not a larger model.
+**Shipped default: `llama3.2:3b-instruct-q4_K_M (CPU) / llama3.1:8b-instruct-q4_K_M (GPU, host-LLM)`.** Chosen strictly by balanced accuracy, the metric this corpus was built to make meaningful. llama3.1:8b-instruct-q4_K_M leads at 0.357 against the 3B's 0.285 and a 0.250 constant-answer floor, and also leads on MCC (0.209), malicious precision (0.724) and calibration (ECE 0.349, the only row below 0.40). It therefore becomes the default on the GPU and host-LLM overlays. The 3B stays the default for CPU `make up`, where a ~5 GB model does not fit the 8 GB CORE budget -- a deployment constraint, not a score. Two findings outrank the ranking. First, every model measured is far closer to chance than to useful: the best balanced accuracy is 0.357 against a 0.250 floor, and three of five score below the 0.500 plain accuracy of always guessing the majority class. Second, auto-close precision is poor across the board -- 0.571 on seven candidates at best, 0.091 to 0.243 elsewhere -- so nothing measured here supports autonomous closure, and that is a finding about the auto-close gate rather than about which model to pick.
 
 <!-- END:verdict-quality -->
 
