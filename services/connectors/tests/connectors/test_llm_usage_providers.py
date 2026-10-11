@@ -40,6 +40,7 @@ from app.connectors.llm_usage import PROVIDER_STREAM, PROVIDERS, LlmUsageConnect
 
 _LADDER = {"info", "low", "medium", "high", "critical"}
 
+
 def _google_creds() -> dict[str, str]:
     """A service account with a **real** RSA key.
 
