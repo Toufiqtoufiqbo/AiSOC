@@ -207,7 +207,7 @@ async def run_once() -> SweepReport:
     """One sweep across every tenant with a nominated report mailbox."""
     report = SweepReport()
     async with AsyncSessionLocal() as db:
-        assert_cross_tenant_session(db, reason="phishing report intake sweeps every tenant's nominated report mailbox")
+        await assert_cross_tenant_session(db, "phishing report intake sweeps every tenant's nominated report mailbox")
         connectors = await _mailbox_connectors(db)
         report.tenants_considered = len({str(c.tenant_id) for c in connectors})
 
@@ -272,8 +272,15 @@ async def run_once() -> SweepReport:
             # arrived during the outage.
             config[WATERMARK_CONFIG_KEY] = polled_at.isoformat().replace("+00:00", "Z")
             await db.execute(
-                text("UPDATE connectors SET connector_config = CAST(:cfg AS jsonb) WHERE id = :id").bindparams(
-                    cfg=json.dumps(config), id=connector.id
+                # Keyed by id *and* tenant. The id alone is unique and would
+                # work; the predicate is here because `connectors` is a
+                # tenant-scoped table and a cross-tenant sweep writing to one
+                # without naming the tenant is the shape
+                # `check_tenant_query_predicates.py` exists to refuse --
+                # "how the row was addressed is irrelevant; naming another
+                # tenant's id reaches it".
+                text("UPDATE connectors SET connector_config = CAST(:cfg AS jsonb) WHERE id = :id AND tenant_id = :tenant_id").bindparams(
+                    cfg=json.dumps(config), id=connector.id, tenant_id=connector.tenant_id
                 )
             )
 

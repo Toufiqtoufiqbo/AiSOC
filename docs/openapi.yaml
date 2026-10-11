@@ -15599,6 +15599,225 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
       - HTTPBearer: []
+  /api/v1/phishing/reports:
+    post:
+      tags:
+      - phishing
+      summary: Intake a reported phishing message
+      description: 'Take a reported message from one of the three intake doors.
+
+
+        Distinct from ``/submit``, which takes an artefact an analyst typed. This
+
+        takes a *message somebody received*, so it carries the two fields the
+
+        response turns on and ``/submit`` has never had: the internet message id
+
+        that finds the copies, and the recipients that bound the purge.'
+      operationId: report_api_v1_phishing_reports_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/v1/phishing/campaigns:
+    get:
+      tags:
+      - phishing
+      summary: List phishing campaigns
+      operationId: list_campaigns_api_v1_phishing_campaigns_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                title: Response List Campaigns Api V1 Phishing Campaigns Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/phishing/campaigns/{campaign_id}:
+    get:
+      tags:
+      - phishing
+      summary: Get a phishing campaign and its recipients
+      operationId: get_campaign_api_v1_phishing_campaigns__campaign_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: campaign_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Campaign Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Campaign Api V1 Phishing Campaigns  Campaign Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/phishing/campaigns/{campaign_id}/purge:
+    post:
+      tags:
+      - phishing
+      summary: Propose or run a purge across a campaign's recipients
+      description: 'One proposal, one dispatch per mailbox, each graded on its own.
+
+
+        ``actions:execute`` rather than ``cases:write``: this reaches out of the
+
+        platform and removes mail, so it is gated like every other action
+
+        surface in this service rather than like a case note.
+
+
+        Deliberately **not** ``actions:contain``, which is what the capability
+
+        contract declares. That string is held by no role in ``ROLE_PERMISSIONS``
+
+        except the two wildcards, so gating the route on it would ship a route
+
+        only an administrator could reach while reading as though analysts
+
+        could. The contract''s permission is enforced at the dispatcher, where a
+
+        principal exists; here the question is who may *ask*, and
+
+        ``actions:execute`` is the permission this service already means by
+
+        that — its own comment says it "gates the dry-run preview only; a live
+
+        containment goes through the approval path", which is exactly the split
+
+        between ``execute: false`` and ``execute: true`` below.'
+      operationId: purge_campaign_api_v1_phishing_campaigns__campaign_id__purge_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: campaign_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Campaign Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurgeRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Purge Campaign Api V1 Phishing Campaigns  Campaign
+                  Id  Purge Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/phishing/campaigns/{campaign_id}/restore:
+    post:
+      tags:
+      - phishing
+      summary: Restore a purged campaign's messages
+      description: 'The reverse of the purge, over the mailboxes it actually executed
+        on.
+
+
+        Only rows the purge executed on are restored. Attempting a restore on a
+
+        mailbox that was previewed, failed, or never held the message would
+
+        report work that did not happen.'
+      operationId: restore_campaign_api_v1_phishing_campaigns__campaign_id__restore_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: campaign_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Campaign Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Restore Campaign Api V1 Phishing Campaigns  Campaign
+                  Id  Restore Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/phishing/submissions:
     get:
       tags:
@@ -32428,6 +32647,24 @@ components:
       - label
       - publisher_id
       title: PublisherKeyOut
+    PurgeRequest:
+      properties:
+        execute:
+          type: boolean
+          title: Execute
+          description: 'False previews: every mailbox is graded and reported, nothing
+            is removed, and no row reads ''purged''. Preview is the default because
+            this is the most disruptive verb the product offers.'
+          default: false
+        confidence:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Confidence
+      type: object
+      title: PurgeRequest
     QueryRequest:
       properties:
         question:
@@ -33025,6 +33262,64 @@ components:
       required:
       - name
       title: ReportDefinitionBody
+    ReportRequest:
+      properties:
+        source:
+          type: string
+          enum:
+          - m365_graph
+          - google_workspace
+          - email_inbox
+          title: Source
+        payload:
+          additionalProperties: true
+          type: object
+          title: Payload
+          description: 'The vendor''s own payload, unmodified: a Microsoft Graph message
+            resource, a Gmail Message, or the event the email_inbox connector emits.
+            Normalised server-side by app.services.phishing.intake, which is the only
+            place that knows the three shapes.'
+        reported_by:
+          type: string
+          title: Reported By
+          description: Who reported it, when the payload does not say.
+          default: ''
+      type: object
+      required:
+      - source
+      - payload
+      title: ReportRequest
+    ReportResponse:
+      properties:
+        submission:
+          $ref: '#/components/schemas/SubmissionResponse'
+        campaign_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Campaign Id
+        campaign_created:
+          type: boolean
+          title: Campaign Created
+        grouping_basis:
+          type: string
+          title: Grouping Basis
+          default: ''
+        grouping_is_factual:
+          type: boolean
+          title: Grouping Is Factual
+          default: false
+        recipient_count:
+          type: integer
+          title: Recipient Count
+          default: 0
+      type: object
+      required:
+      - submission
+      - campaign_id
+      - campaign_created
+      title: ReportResponse
     ResetRequest:
       properties:
         reason:

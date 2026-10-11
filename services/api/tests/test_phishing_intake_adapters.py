@@ -124,8 +124,15 @@ class TestTheGraphAdapterReadsThroughTheForward:
     def test_repeated_headers_keep_every_hop(self) -> None:
         """Received appears once per hop and the chain is the whole of its value."""
         message = from_graph_message(GRAPH_FORWARDED)
-        assert message.headers["received"].count("\n") == 1
-        assert "relay.phish.example.net" in message.headers["received"]
+        # Compared as whole hop lines rather than by substring. A
+        # substring test on a hostname is the `py/incomplete-url-substring-
+        # sanitization` shape, and it is a weaker assertion here anyway:
+        # "relay.phish.example.net" is in the joined value whether the hop
+        # survived as its own line or was folded into the other one.
+        assert message.headers["received"].split("\n") == [
+            "from mx1.phish.example.net by example.com",
+            "from relay.phish.example.net by mx1.phish.example.net",
+        ]
 
     def test_attachment_metadata_without_a_digest_yields_no_hash(self) -> None:
         """Graph computes no digest, and inventing one would be a fabricated indicator."""
@@ -150,8 +157,11 @@ class TestTheGmailAdapter:
 
     def test_the_snippet_is_the_body_when_metadata_format_was_used(self) -> None:
         message = from_gmail_message(GMAIL_REPORT)
-        assert "pay.phish.example.net" in message.body_text
-        assert message.urls and message.urls[0].startswith("https://pay.phish.example.net")
+        assert message.body_text == GMAIL_REPORT["snippet"]
+        # The exact URL, not a prefix. A prefix match on a URL is the
+        # `py/incomplete-url-substring-sanitization` shape, and
+        # `https://pay.phish.example.net.attacker.example/` satisfies it.
+        assert message.urls == ("https://pay.phish.example.net/invoice/98113",)
 
     def test_a_part_with_a_filename_is_an_attachment_and_one_without_is_not(self) -> None:
         message = from_gmail_message(GMAIL_REPORT)

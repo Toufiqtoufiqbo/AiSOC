@@ -213,6 +213,7 @@ class TestADryRunNeverReportsAVendorCall:
     @pytest.mark.parametrize("vendor", VENDORS)
     async def test_dry_run_is_simulated_and_executed_is_false(self, vendor: str, _enabled) -> None:
         executor = registry.get_executor(vendor, "purge_email")
+        assert executor is not None
         result = await executor.execute(
             LiveActionRequest(
                 capability="purge_email",
@@ -235,6 +236,7 @@ class TestADryRunNeverReportsAVendorCall:
         """
         tripwire = respx.route().mock(side_effect=AssertionError("a dry run made an HTTP call"))
         executor = registry.get_executor("m365", "purge_email")
+        assert executor is not None
         result = await executor.execute(
             LiveActionRequest(
                 capability="purge_email",
@@ -533,6 +535,7 @@ class TestVendorSelection:
         for vendor in VENDORS:
             for capability in STATE_CHANGING_VERBS:
                 executor = registry.get_executor(vendor, capability)
+                assert executor is not None
                 assert executor._vendor_pin == vendor  # noqa: SLF001
 
     def test_each_adapters_strip_list_is_its_factorys_key_set(self) -> None:
@@ -544,6 +547,7 @@ class TestVendorSelection:
         for vendor in VENDORS:
             for capability in STATE_CHANGING_VERBS:
                 executor = registry.get_executor(vendor, capability)
+                assert executor is not None
                 assert set(executor._credential_keys) == expected[vendor]  # noqa: SLF001
 
     @pytest.mark.parametrize(
