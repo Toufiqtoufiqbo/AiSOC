@@ -112,7 +112,7 @@ rule is harder to find than a missing one: of the 2,005 Splunk rules bundled her
 ## How it works
 
 Ingest normalizes to a common shape and stamps an **activity projection** on every event — actor, action, resource, location, outcome, with `actor.kind` read from each vendor's own documented field rather than inferred — then Kafka carries it.
-Then fusion runs 2511 executable detection rules, of 6991 on disk, plus 72 sliding-window rules (70 count across events; 2 match a sequence), applies **your tenant's own tuning** on top — the disables, floors and suppressions the console writes, so a rule you turned off actually stops firing — and decides what becomes an alert.
+Then fusion runs 2535 executable detection rules, of 6991 on disk, plus 72 sliding-window rules (70 count across events; 2 match a sequence), applies **your tenant's own tuning** on top — the disables, floors and suppressions the console writes, so a rule you turned off actually stops firing — and decides what becomes an alert.
 Correlation groups related alerts, an agent investigates and writes its reasoning to the Investigation Ledger, and a playbook may start from the result. Separately, new threat intelligence sweeps the lake for sightings you already collected, and a hypothesis becomes a hunt without anyone writing a query — the model fills a closed schema and every value is bound as a parameter, so it cannot express a query at all.
 
 **A playbook triggered by an alert previews before it acts.** Three switches must agree — the
@@ -191,7 +191,7 @@ Agents triage alerts and investigate incidents. What they can and cannot do:
 | Capability | Status | Tested | Production ready |
 |---|---|---|---|
 | Ingest → detect → correlate → alert | Stable | E2E + unit | Yes |
-| Detection engine (2511 executable rules) of 6991 | Stable | Replay proof | Yes |
+| Detection engine (2535 executable rules) of 6991 | Stable | Replay proof | Yes |
 | Alert correlation into incidents | Stable | Unit | Yes |
 | REST API + web console | Stable | Unit + integration | Yes |
 | AI triage + Investigation Ledger | Stable | Live Postgres ledger + a PR-gated local-model agent run. No hosted provider has been exercised | Yes, copilot mode |

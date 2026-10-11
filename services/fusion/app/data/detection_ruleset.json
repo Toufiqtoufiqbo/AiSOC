@@ -1,5 +1,5 @@
 {
-  "count": 741,
+  "count": 765,
   "rules": [
     {
       "category": "application",
@@ -13296,6 +13296,430 @@
       "service": "stp",
       "severity": "medium",
       "slug": "net-stp-topology-change-from-edge"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-001",
+      "match_when": {
+        "baseline_client_family_rarity_gte": 0.95,
+        "eventName": "CreateAccessKey"
+      },
+      "mitre": [
+        "T1098.001",
+        "T1078.004"
+      ],
+      "name": "AWS Access Key Created From a Client This Principal Has Never Used",
+      "product": "aws",
+      "service": "iam",
+      "severity": "high",
+      "slug": "ta-aws-access-key-created-from-rare-client"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-002",
+      "match_when": {
+        "baseline_action_rarity_gte": 0.95,
+        "eventName_in": [
+          "AttachUserPolicy",
+          "AttachRolePolicy",
+          "AttachGroupPolicy"
+        ]
+      },
+      "mitre": [
+        "T1098.003"
+      ],
+      "name": "AWS Policy Attached by a Principal Who Does Not Normally Attach Policies",
+      "product": "aws",
+      "service": "iam",
+      "severity": "high",
+      "slug": "ta-aws-policy-attached-by-rare-actor-action"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-003",
+      "match_when": {
+        "baseline_location_rarity_gte": 0.95,
+        "eventSource": "iam.amazonaws.com"
+      },
+      "mitre": [
+        "T1078.004"
+      ],
+      "name": "AWS Control-Plane Call From a Country This Principal Has Never Used",
+      "product": "aws",
+      "service": "cloudtrail",
+      "severity": "medium",
+      "slug": "ta-aws-api-call-from-rare-country"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-004",
+      "match_when": {
+        "baseline_principal_volume_z_gte": 3.0,
+        "eventSource": "s3.amazonaws.com"
+      },
+      "mitre": [
+        "T1530"
+      ],
+      "name": "AWS S3 Read Volume Far Above This Principal's Normal",
+      "product": "aws",
+      "service": "s3",
+      "severity": "high",
+      "slug": "ta-aws-volume-spike-on-s3-reads"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-005",
+      "match_when": {
+        "baseline_resource_rarity_gte": 0.95,
+        "eventName_startswith_any": [
+          "Delete",
+          "Put",
+          "Modify"
+        ]
+      },
+      "mitre": [
+        "T1580"
+      ],
+      "name": "AWS Resource This Principal Has Never Touched",
+      "product": "aws",
+      "service": "cloudtrail",
+      "severity": "medium",
+      "slug": "ta-aws-rare-resource-touched-by-principal"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-006",
+      "match_when": {
+        "baseline_peer_deviation_gte": 3.0,
+        "eventSource": "iam.amazonaws.com"
+      },
+      "mitre": [
+        "T1078.004"
+      ],
+      "name": "AWS Privileged Call Volume Far Above This Principal's Peer Group",
+      "product": "aws",
+      "service": "iam",
+      "severity": "medium",
+      "slug": "ta-aws-peer-deviation-on-privileged-call"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-007",
+      "match_when": {
+        "baseline_location_rarity_gte": 0.95,
+        "event_type_in": [
+          "user.mfa.factor.reset_all",
+          "user.mfa.factor.deactivate"
+        ]
+      },
+      "mitre": [
+        "T1556.006",
+        "T1098.005"
+      ],
+      "name": "MFA Factor Reset From a Country This Principal Has Never Used",
+      "product": "okta",
+      "service": "identity",
+      "severity": "critical",
+      "slug": "ta-okta-mfa-reset-from-rare-country"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-008",
+      "match_when": {
+        "baseline_action_rarity_gte": 0.95,
+        "event_type_in": [
+          "user.account.privilege.grant",
+          "group.privilege.grant"
+        ]
+      },
+      "mitre": [
+        "T1098.003"
+      ],
+      "name": "Admin Role Granted by a Principal Who Does Not Normally Grant Roles",
+      "product": "okta",
+      "service": "identity",
+      "severity": "critical",
+      "slug": "ta-okta-admin-role-granted-rare-action"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-009",
+      "match_when": {
+        "baseline_client_family_rarity_gte": 0.95,
+        "event_type": "user.session.start"
+      },
+      "mitre": [
+        "T1078.004",
+        "T1550"
+      ],
+      "name": "Sign-In From a Client Family This Principal Has Never Used",
+      "product": "okta",
+      "service": "identity",
+      "severity": "medium",
+      "slug": "ta-okta-login-from-rare-client-family"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-010",
+      "match_when": {
+        "baseline_action_rarity_gte": 0.95,
+        "event_type_startswith": "system.idp"
+      },
+      "mitre": [
+        "T1556.007"
+      ],
+      "name": "Identity-Provider Change by a Principal Who Does Not Normally Make Them",
+      "product": "okta",
+      "service": "identity",
+      "severity": "critical",
+      "slug": "ta-okta-rare-action-on-identity-provider"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-011",
+      "match_when": {
+        "baseline_action_rarity_gte": 0.95,
+        "operation_contains": "conditional access policy"
+      },
+      "mitre": [
+        "T1556.009",
+        "T1484.002"
+      ],
+      "name": "Conditional Access Policy Changed by a Rare Actor",
+      "product": "azure",
+      "service": "entra",
+      "severity": "critical",
+      "slug": "ta-entra-conditional-access-change-rare-action"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-012",
+      "match_when": {
+        "baseline_principal_volume_z_gte": 3.0,
+        "event_type": "signin"
+      },
+      "mitre": [
+        "T1110.003"
+      ],
+      "name": "Entra Sign-In Volume Far Above This Principal's Normal",
+      "product": "azure",
+      "service": "entra",
+      "severity": "high",
+      "slug": "ta-entra-signin-volume-spike"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-013",
+      "match_when": {
+        "baseline_peer_deviation_gte": 3.0,
+        "event_type_contains": "group.user_membership"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "Group Membership Changes Far Above the Principal's Peer Group",
+      "product": "identity",
+      "service": "directory",
+      "severity": "medium",
+      "slug": "ta-identity-peer-deviation-on-group-change"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-014",
+      "match_when": {
+        "baseline_oauth_app_volume_z_gte": 3.0,
+        "event_type": "oauth_token_event"
+      },
+      "mitre": [
+        "T1550.001",
+        "T1530"
+      ],
+      "name": "OAuth Application Activity Far Above Its Own Normal",
+      "product": "google-workspace",
+      "service": "oauth",
+      "severity": "high",
+      "slug": "ta-saas-oauth-app-volume-spike"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-015",
+      "match_when": {
+        "baseline_action_rarity_gte": 0.95,
+        "event_type": "admin"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "Workspace Admin Action This Principal Has Never Performed",
+      "product": "google-workspace",
+      "service": "admin",
+      "severity": "high",
+      "slug": "ta-workspace-rare-admin-action"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-016",
+      "match_when": {
+        "baseline_principal_volume_z_gte": 3.0,
+        "event_type": "drive"
+      },
+      "mitre": [
+        "T1530"
+      ],
+      "name": "Drive Download Volume Far Above This Principal's Normal",
+      "product": "google-workspace",
+      "service": "drive",
+      "severity": "high",
+      "slug": "ta-workspace-drive-download-volume-spike"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-017",
+      "match_when": {
+        "baseline_client_family_rarity_gte": 0.95,
+        "operation_in": [
+          "New-InboxRule",
+          "Set-InboxRule"
+        ]
+      },
+      "mitre": [
+        "T1114.003",
+        "T1564.008"
+      ],
+      "name": "Mailbox Rule Created From a Client This Principal Has Never Used",
+      "product": "m365",
+      "service": "exchange",
+      "severity": "high",
+      "slug": "ta-m365-mailbox-rule-from-rare-client"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-018",
+      "match_when": {
+        "action_startswith_any": [
+          "workspace_",
+          "organization_",
+          "app_"
+        ],
+        "baseline_action_rarity_gte": 0.95
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "Slack Workspace Admin Action This Principal Has Never Performed",
+      "product": "slack",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "ta-slack-rare-admin-action"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-019",
+      "match_when": {
+        "baseline_principal_volume_z_gte": 3.0,
+        "event_type_in": [
+          "ReportExport",
+          "BulkApi"
+        ]
+      },
+      "mitre": [
+        "T1530"
+      ],
+      "name": "Salesforce Export Volume Far Above This Principal's Normal",
+      "product": "salesforce",
+      "service": "audit",
+      "severity": "high",
+      "slug": "ta-salesforce-report-export-volume-spike"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-020",
+      "match_when": {
+        "action_startswith": "org.",
+        "baseline_action_rarity_gte": 0.95
+      },
+      "mitre": [
+        "T1098",
+        "T1195.001"
+      ],
+      "name": "GitHub Organisation Setting Changed by a Rare Actor",
+      "product": "github",
+      "service": "audit",
+      "severity": "high",
+      "slug": "ta-github-rare-action-on-org-settings"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-021",
+      "match_when": {
+        "action_in": [
+          "git.clone",
+          "repo.download_zip"
+        ],
+        "baseline_principal_volume_z_gte": 3.0
+      },
+      "mitre": [
+        "T1213.003"
+      ],
+      "name": "Repository Clone Volume Far Above This Principal's Normal",
+      "product": "github",
+      "service": "audit",
+      "severity": "high",
+      "slug": "ta-github-clone-volume-spike"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-022",
+      "match_when": {
+        "baseline_location_rarity_gte": 0.95,
+        "event_type_contains": "token"
+      },
+      "mitre": [
+        "T1098.001"
+      ],
+      "name": "GitLab Token Action From a Country This Principal Has Never Used",
+      "product": "gitlab",
+      "service": "audit",
+      "severity": "high",
+      "slug": "ta-gitlab-token-action-from-rare-country"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-023",
+      "match_when": {
+        "action_in": [
+          "create",
+          "delete",
+          "patch"
+        ],
+        "baseline_action_rarity_gte": 0.95,
+        "resource_contains": "clusterrolebinding"
+      },
+      "mitre": [
+        "T1609",
+        "T1078.003"
+      ],
+      "name": "Kubernetes Verb This Service Account Has Never Used",
+      "product": "kubernetes",
+      "service": "audit",
+      "severity": "high",
+      "slug": "ta-k8s-rare-verb-by-service-account"
+    },
+    {
+      "category": "threat-anomaly",
+      "id": "det-threat-anomaly-024",
+      "match_when": {
+        "baseline_principal_volume_z_gte": 3.0,
+        "resource_contains": "pods/exec"
+      },
+      "mitre": [
+        "T1609"
+      ],
+      "name": "Pod Exec Volume Far Above This Principal's Normal",
+      "product": "kubernetes",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "ta-k8s-exec-volume-spike"
     }
   ],
   "version": 1
