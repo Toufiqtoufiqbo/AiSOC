@@ -63,6 +63,18 @@ services:
       # unset rather than forced, because a hardcoded layer count is wrong
       # on every card except the one it was measured on.
       OLLAMA_NUM_PARALLEL: "${OLLAMA_NUM_PARALLEL:-1}"
+    # The reservation belongs to the service that runs the model. Ollama is
+    # the only one here that does any inference: litellm proxies and
+    # ollama-pull downloads, so a device reserved on either of those is a
+    # GPU held by something that cannot use it while generation runs on the
+    # CPU -- the overlay reporting success having done nothing.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: ${AISOC_GPU_COUNT:-1}
+              capabilities: [gpu]
 
   ollama-pull:
     entrypoint: ["ollama", "pull", "${AISOC_LLM_LOCAL_MODEL:-llama3.1:8b-instruct-q4_K_M}"]
@@ -71,10 +83,3 @@ services:
     environment:
       AISOC_LLM_MODEL_FAST: ${AISOC_LLM_MODEL_FAST:-ollama_chat/llama3.1:8b-instruct-q4_K_M}
       AISOC_LLM_MODEL_DEEP: ${AISOC_LLM_MODEL_DEEP:-ollama_chat/llama3.1:8b-instruct-q4_K_M}
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: ${AISOC_GPU_COUNT:-1}
-              capabilities: [gpu]
