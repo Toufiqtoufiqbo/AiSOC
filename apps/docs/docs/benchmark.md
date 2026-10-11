@@ -138,23 +138,33 @@ Malicious recall prints the count behind it: a rate over 36 cases is a different
 
 The two baselines are the point. With four classes, **a constant answer
 scores 0.250 balanced accuracy**, and **always guessing the majority class
-scores 0.500 plain accuracy**. Both measured models sit just above the first
-and *below* the second. The useful conclusion is not that one model beats
-the other — on balanced accuracy they are inside noise of each other — it is
-that **neither model is good at this task yet**, and that the next thing to
-change is the verdict path and the prompt rather than the size of the model.
+scores 0.500 plain accuracy**. The best model measured reaches 0.357, and
+three of the five fall below 0.500 on plain accuracy. So the honest
+headline is not which model wins — it is that **every one of them is far
+closer to chance than to useful**, and that the next thing to change is the
+verdict path and the prompt rather than the size of the model.
 
-The 8B candidate is published rather than discarded because it is not a
-uniform loss: it roughly doubles malicious recall and halves false
-negatives. It is not shipped because its auto-close precision falls to
-0.091, and a model that wrongly closes nine of every ten alerts it chooses
-to close is more dangerous in this product than one that catches fewer.
+**Size is the wrong unit.** `llama3.1:8b` leads the table, and the
+previous-generation `llama3:8b` scores *below* the 3B it would replace.
+"Upgrade to an 8B" is not advice that survives measurement; the generation
+mattered more than the parameter count here.
+
+**`mistral:7b` is why balanced accuracy is the headline metric.** It posts
+the highest plain accuracy of any row (0.500) and the lowest balanced
+accuracy (0.210), because it abstains on 31% of items. Plain accuracy
+rewards that and balanced accuracy sees through it, which is the entire
+reason the corpus was built in twin pairs.
+
+**Nothing here supports autonomous closure.** Auto-close precision ranges
+from 0.091 to 0.571 across the five, on denominators of 7 to 37 candidates.
+Even the best of those means closing seven alerts to get four right. That
+is a finding about the auto-close gate rather than about model choice, and
+it is the reason the shipped posture stays human-approval.
 
 **Latency is excluded from the comparison and is published per row anyway.**
-The 3B ran CPU-bound inside the stack container and the 8B ran
-GPU-accelerated on the host, so the two latency figures measure different
-machines. Dropping the column would have hidden that asymmetry instead of
-naming it.
+The 3B ran CPU-bound inside the stack container and the four 7–8B rows ran
+GPU-accelerated on the host, so the figures measure different machines.
+Dropping the column would have hidden that asymmetry instead of naming it.
 
 **Per-decision model attribution is unverified.** Every run placed the model
 calls shown and every call was answered — the reasoning in each decision is
