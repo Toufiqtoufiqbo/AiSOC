@@ -22,6 +22,12 @@ const swrKeys = vi.hoisted(() => [] as unknown[]);
 
 vi.mock('swr', () => ({
   __esModule: true,
+  // `AlertsTable` revalidates through `useSWRConfig().mutate` after a
+  // bulk triage. A module mock replaces the whole module, so a named
+  // export the component imports has to exist here or the render dies
+  // with "useSWRConfig is not a function" — which reads as a broken
+  // component rather than an incomplete double.
+  useSWRConfig: () => ({ mutate: vi.fn() }),
   default: (key: unknown) => {
     swrKeys.push(key);
     return { data: undefined, error: undefined, isLoading: false, mutate: vi.fn() };
