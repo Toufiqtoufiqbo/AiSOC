@@ -416,6 +416,25 @@ All three are restored here verbatim from the merge commit rather than
 rewritten from memory, which is why D11 keeps its original number and this
 phase's own new deviations take D12 and D13.
 
+### D14 -- A rule of this lane's own was a bare anomaly, and its own gate caught it
+
+Depth plan 3.5 is explicit that an anomaly is *"a typed signal, not an alert
+on its own"*. `ta-saas-oauth-app-volume-spike` was written with
+`baseline_oauth_app_volume_z_gte` as its entire clause -- an alert on an
+anomaly, which is the one thing the item says not to build. It passed
+`generate_detections --check`, the truth table, the reachability gate and
+the generic fixture replay, because every one of those asks whether a rule
+is well-formed and can fire, and it was and it could.
+
+What caught it was the family's own gate asserting that each rule reads a
+threat condition *as well as* a baseline. The rule now also requires
+`event_type: oauth_token_event`.
+
+The reusable half is that the generic gates could not have caught it. A
+corpus-wide gate checks the properties every rule shares; a property that
+belongs to one family has to be asserted by that family, and writing that
+assertion is part of adding the family rather than a later tidy-up.
+
 ## Phase 1: Verdict quality you can publish
 
 - [x] **1.1** Balanced, labelled verdict corpus
@@ -482,7 +501,25 @@ phase's own new deviations take D12 and D13.
   lookup and reported both as blocked on a baseline that would never have
   helped either (D12). `MAX_UNREACHABLE` stays at 2, now with accurate
   reasons.
-- [ ] **3.5** Threat-and-anomaly condition rules
+- [x] **3.5** Threat-and-anomaly condition rules — 24 in a new
+  `threat-anomaly` category (`scripts/detection_specs_part4_threat_anomaly.py`),
+  each pairing a threat condition with a 3.4 baseline score, across AWS 6,
+  Okta 4, Workspace 3, Azure/Entra 2, GitHub 2, Kubernetes 2 and one each
+  of M365, Slack, Salesforce, GitLab and generic identity. Executable
+  2,511 → **2,535** (`generate_corpus_stats.py --check`), on disk 6,991 →
+  7,015, counted as its own `make stats` line because the claim differs: a
+  rule here also needs a warmed baseline, so a day-one install has the
+  rule before it has the signal. **Every fixture is hand-authored** and
+  every negative is the benign twin of its positive — the same threat
+  action by a principal for whom it is routine — so the pair differs only
+  in the clause the rule is about. `test_threat_anomaly_replay.py` (147
+  assertions) drives the real `DetectionEngine` and holds four properties
+  a synthesised fixture cannot: the twin moves a baseline field, no
+  negative uses the `not-` sentinel, stripping the baseline from a
+  positive silences the rule, and one rule fires **end to end in CORE on a
+  baseline earned from replayed traffic** with no `full` service running —
+  the phase's second "Done when", as an assertion. The decorative-clause
+  control caught a rule of this lane's own that was a bare anomaly (D14).
 - [ ] **3.6** 395 → at least 800 cloud, identity, SaaS and code conditions
 - [ ] **3.7** Detection engineering agent (gap-closure Phase 9 / parity 6.2)
 

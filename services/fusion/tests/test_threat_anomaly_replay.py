@@ -185,6 +185,57 @@ def test_the_threat_half_alone_does_not_fire(rule: dict[str, Any]) -> None:
     )
 
 
+@pytest.mark.asyncio
+async def test_core_fires_one_end_to_end_with_no_full_service() -> None:
+    """The Phase 3 "Done when", as an assertion rather than a claim.
+
+    *"a CORE install fires a threat-and-anomaly rule on a replayed fixture
+    with no `full` service running."*
+
+    So this drives the whole CORE path and nothing else: the baseline store
+    on a Redis, warmed by ordinary traffic, then the real engine's
+    `evaluate_async` computing the baseline field itself rather than
+    reading one planted in a fixture. Nothing imports `services/ueba`, and
+    no `ueba.anomalies` message exists.
+
+    The warm-up matters. The principal does `GetObject` forty times and
+    `CreateAccessKey` once, which is what makes the key-creation rare — the
+    rarity is *earned from the traffic*, not asserted.
+    """
+    from app.services.baselines import BaselineStore  # noqa: PLC0415
+    from tests.test_baselines import _FakeRedis  # noqa: PLC0415
+
+    rule = next(r for r in FAMILY if r["slug"] == "ta-aws-access-key-created-from-rare-client")
+    engine = DetectionEngine(rules=[rule])
+    store = BaselineStore(_FakeRedis(), min_observations=20)
+
+    routine = {
+        "eventName": "GetObject",
+        "eventSource": "s3.amazonaws.com",
+        "user": "dana.k@example.com",
+        "user_agent": "aws-cli/2.15.17 Python/3.11.6 Darwin/23.4.0",
+    }
+    for _ in range(40):
+        await store.derived_fields(TENANT, routine)
+
+    # The same engineer, the same account, over a client they have never
+    # used, minting a credential.
+    suspicious = {
+        "eventName": "CreateAccessKey",
+        "eventSource": "iam.amazonaws.com",
+        "user": "dana.k@example.com",
+        "user_agent": "python-requests/2.31.0",
+    }
+    hits = await engine.evaluate_async(_msg(suspicious, "aws"), None, None, store)
+    assert any(h.rule_id == rule["id"] for h in hits), "CORE did not fire the rule on an earned baseline"
+
+    # The control: the same call over the client they always use. The
+    # baseline is the only thing that differs, and it must be enough.
+    familiar = dict(suspicious, user_agent=routine["user_agent"])
+    quiet = await engine.evaluate_async(_msg(familiar, "aws"), None, None, store)
+    assert all(h.rule_id != rule["id"] for h in quiet), "CORE fired on the principal's routine client"
+
+
 def test_the_family_covers_cloud_identity_saas_and_code() -> None:
     """The plan scopes 3.5 to the same surfaces as the rest of Phase 3."""
     products = {_product(r) for r in FAMILY}
