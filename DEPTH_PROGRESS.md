@@ -64,6 +64,10 @@ is written. Next free at capture: migration `095`, ADR `0010`
 | migration `107` | 9.4 — `107_case_war_rooms.sql` | claimed |
 | migration `108` | 9.5 — `108_hunt_reports.sql` | claimed |
 | migration `109` | 9.6 — `109_push_devices.sql` | claimed |
+| migration `110` | 8.1 — `110_console_webauthn.sql` | claimed |
+| migration `111` | 8.1 — `111_audit_retention.sql` | claimed |
+| migration `112` | 8.1 — `112_entitlement_enforcement.sql` | claimed |
+| ADR `0011` | 8.1 — truncating a hash-chained audit log | claimed |
 
 Highest migration on `main` at claim time was `101_audit_immutable_nullify.sql`,
 so `095`--`101` were taken by sibling lanes between the capture above and this
@@ -74,6 +78,13 @@ Phase 9 re-read `services/api/migrations/` on 2026-10-11 before claiming:
 and `103` were already spoken for in the table above, so Phase 9 takes `104`
 through `109`, one per item. A number left unused at the end of the phase is
 released by striking its row rather than by silently leaving a gap.
+
+Item 8.1 re-read `services/api/migrations/` on 2026-10-11 before claiming:
+`105_semantic_memory.sql` was the highest on `main`, and `102`--`109` were
+already spoken for above, so 8.1 takes `110`--`112` and ADR `0011`. The three
+sub-items that need no schema — the containerised-IdP CI leg,
+internationalisation and accessibility — claim no number. The same release
+rule applies: an unused number is struck, not silently skipped.
 
 ## Phase 0: Kickoff
 
