@@ -128,6 +128,13 @@ model_list:
   #   a bigger local     AISOC_LLM_MODEL_DEEP=ollama_chat/llama3.1:8b
   #                      (pull it first: docker compose exec ollama ollama pull llama3.1:8b)
   #
+  # On "a bigger local": do not assume it is an upgrade for triage. Graded on
+  # the balanced verdict corpus, an 8B scored *below* the bundled 3B on
+  # balanced accuracy and its auto-close precision fell from 0.571 to 0.091,
+  # while roughly doubling malicious recall. Both rows and the reasoning are
+  # published on the benchmark page under "Verdict quality"; re-grade with
+  # `scripts/run_verdict_eval.py` before moving a deployment onto a model.
+  #
   # Per-alias divergence — a different model for one workload only — is the case
   # that does need an edit: replace that alias's `os.environ/...` with a literal.
 
