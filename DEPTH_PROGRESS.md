@@ -66,7 +66,8 @@ is written. Next free at capture: migration `095`, ADR `0010`
 | migration `109` | 9.6 — `109_push_devices.sql` | claimed |
 | migration `110` | 8.1 — `110_console_webauthn.sql` | claimed |
 | migration `111` | 8.1 — `111_audit_retention.sql` | claimed |
-| migration `112` | 8.1 — `112_entitlement_enforcement.sql` | claimed |
+| migration `112` | 8.1 — released, taken by another lane (D12) | **struck** |
+| migration `113` | 8.1 — `113_entitlement_enforcement.sql` | claimed |
 | ADR `0011` | 8.1 — truncating a hash-chained audit log | claimed |
 
 Highest migration on `main` at claim time was `101_audit_immutable_nullify.sql`,
@@ -324,6 +325,65 @@ Three things follow, and all three are in the tree rather than in this note:
    retrieval delta above is the part that can be measured honestly today,
    and it is the part that is actually about what 9.2 builds.
 
+### D12 -- Migration `112` was claimed here and taken by another lane first
+
+The claim table above reserved `110`--`112` for 8.1 after re-reading
+`services/api/migrations/` against `main`, which is the documented procedure
+and was not enough. Sequentially-numbered migrations are a **first-come
+namespace across branches, not across `main`**: by the time 8.1 came to write
+its third file, `112_scheduler_leases.sql` existed on another lane's pushed
+branch. `110` and `111` had three and three other claimants respectively and
+survived only because this item pushed first.
+
+Re-derived immediately before committing by scanning the migration directory
+of **all 259 remote branches**, not just `main`, which put the first free
+number at `113`. The `112` row is struck rather than silently reused, per the
+release rule at the top of that table.
+
+The general lesson is that "re-read `main` before claiming" understates the
+problem. `main` is the one place a number cannot yet be taken.
+
+### D13 -- Two honest gates disagreed about the claim matrix, and the older one was wrong
+
+`scripts/check_claim_gate_matrix.py` read the matrix as 300 GATED / 2 PARTIAL
+while `readme_gates._matrix_counts` read 299 / 3, so the summary block was
+reported as stale against a table that was correct.
+
+`readme_gates` classified a row by scanning the **whole line** for `NO GATE`,
+then `PARTIAL`, then `GATED`. A row's Notes cell is prose, so the first GATED
+row to record *why* it had been PARTIAL -- which is exactly what a row should
+say when a gate is built and the status earned -- counted as PARTIAL.
+
+The cheap fix was to reword the row and lose the history. It now reads the
+cell the column header names, refuses a table whose Status column cannot be
+located rather than counting it as empty, and both properties are pinned by
+tests that fail against the previous parser.
+
+### D14 -- 4.6 is not started, and 4.5 is half done. Neither is claimed
+
+Stated plainly rather than folded into a tick.
+
+**4.6 internationalisation** (gap-closure 13.4) is **not started**. It asks
+for a Next.js i18n library, externalised strings on five surfaces, a locale
+switcher, RTL, locale-aware dates and numbers, a pilot locale and a CI gate
+for missing and unused keys. Nothing of it exists: there is no `i18n`
+directory, no message catalogue and no i18n dependency in `apps/web`. It is
+the one sub-item of 8.1 with no code behind it, and the honest record is a
+`[ ]`, not a partial credit for the parts that are easy.
+
+**4.5** asks for two things. The opt-in limit enforcement the depth plan
+names by file is built, wired to two routes and gated (#1332). The **six
+console pages** -- branding, SCIM tokens, retention, organisation members and
+grants, rule packs, delegations -- are not. Its claim row says so in the row
+itself rather than relying on this note, because a reader of the matrix does
+not read this file.
+
+Neither is blocking 8.1's stated "Done when": a CI test signs in through OIDC
+and SAML with MFA enforced for the role, an elevation expires on schedule
+(8.2, merged), and the security pack passes the competitor-name and
+comment-path gates. All three hold. The item is `[~]` rather than `[x]`
+because the spec lists more than its own done-when.
+
 ### D8 -- No upstream Sigma correlation rule exists in this tree to import
 
 `detections/sigma-imports/` holds 3,132 rule documents and **not one carries
@@ -466,7 +526,21 @@ invented fields on the first run of the gate.
 
 ## Phase 8: Enterprise gates
 
-- [ ] **8.1** Identity and administration
+- [~] **8.1** Identity and administration. Five of six sub-items done, each
+  in its own pull request; the shortfall is itemised in D14 below.
+  - [x] parity 4.1 — a containerised Keycloak signs somebody in over **OIDC**
+    and **SAML**, both legs **observed to pass** (#1327). The SSO claim row
+    moves PARTIAL → GATED on that evidence, not on a relabel.
+  - [x] 4.2 — WebAuthn as a console second factor and MFA enforced **per
+    role** (#1328), on top of the TOTP, recovery codes and per-tenant
+    enforcement fix pass 4.2 already shipped.
+  - [x] 4.4 — the audit retention window is enforced and a truncated chain
+    still verifies (#1329). Export already existed on `AuditLogView.tsx`.
+  - [~] 4.5 — opt-in limit enforcement in `entitlements.py` (#1332). The
+    **six console pages** 4.5 also names are not built: see D14.
+  - [ ] 4.6 — internationalisation. Not started: see D14.
+  - [x] 4.7 — axe covers the case list and case workspace, the two views
+    4.7 left out, and the four defects it found are fixed (#1331).
 - [x] **8.2** ABAC, elevation and workload identities
 - [x] **8.3** Buyer security pack
 
@@ -549,3 +623,9 @@ invented fields on the first run of the gate.
 | 2026-10-09 | 3.2 | Ordered and unordered sequences in the windowed engine; all four translatable Sigma correlation types compile, seven refusal reasons recorded. No upstream correlation rule exists in this tree to import (D8), so the corpus is first-party and labelled as such. |
 | 2026-10-09 | 4.1 | Reproduced: `check_cloud_native_collection.py` on the unmodified tree reported all three collection paths absent. Implemented `aws_cloudtrail_s3` (SQS-notified S3 objects; management events, data events and VPC flow logs; delete-after-emit), `gcp_pubsub` (REST pull on a log-sink subscription; ack-after-read) and `azure_event_hubs` (Capture blobs over the Data Lake Gen2 JSON API, with a focused Avro OCF reader). Negative controls recorded in the PR: deleting the SQS message before the object is read, acknowledging the Pub/Sub batch before it is built, ignoring the Avro union branch index, and ignoring the flow-log header line each fail a named test, and all were restored. Connectors suite 1014 -> 1098 passed. |
 | 2026-10-09 | 3.1 | All 74 decided. 50 translated into `wd-*` rules derived from each original's own clauses and replayed through the real engine (162 assertions); 24 refused with a reason across five kinds. `MAX_UNREACHABLE` 119 → 45, published executable 2,603 → 2,529, windowed 18 → 68. Three findings recorded as D4–D6 below. |
+| 2026-10-11 | 8.1 | parity 4.1's containerised-IdP leg **observed to pass**, both halves: `keycloak-oidc` verifies a real `id_token` against Keycloak's published JWKS with an audience-mismatch negative control, and `keycloak-saml` walks the whole SP-initiated flow to the real ACS and signs `alice@example.com` in as `infosec`, with an untrusted-key control answering 400. Run `38124780886`, as `ENVIRONMENT=test` against the DML-only `aisoc_app` role. The SSO claim row moves PARTIAL → GATED on that evidence. Building it found two shipped defects no self-authored provider could expose: `resolve_saml_connection` bound `:i` untyped so `:i IS NULL` raised on asyncpg, and Keycloak's default role-list mapper emits one `<Attribute Name="Role">` per role, which python3-saml refuses. |
+| 2026-10-11 | 8.1 | WebAuthn as a console second factor and MFA enforced per role. Fixing the branch's own gates found three `passkey_credentials` reads scoped by user id alone on a tenant-scoped table, and a permission-model violation where the MFA policy route imported `ROLE_PERMISSIONS` directly; the role *vocabulary* now has one owner in `role_grants.known_roles()`. 23 of 23 live cases pass against real Postgres, and deleting the login integration fails 14 of them — measured, where the workflow had said eight. |
+| 2026-10-11 | 8.1 | An enforced audit retention window with a re-anchored checkpoint, ADR-0011, and 12 live cases. Writing them found that migration `111` declared `ON DELETE CASCADE` on the checkpoint table and then made the cascade impossible; and, separately, that `audit_log`'s own trigger from migration `101` blocks `DELETE FROM tenants` for every tenant that has written a row, so tenant deletion is impossible on `main`. Reproduced and filed as #1330 rather than fixed here. |
+| 2026-10-11 | 8.1 | Opt-in per-tenant limit enforcement (migration `113`, D12), wired to `POST /connectors` and `POST /tenants/me/users` through one helper, with `GET`/`PUT /usage/enforcement` as the operator surface. Nine live cases, half of them positive controls: a guard that never refuses fails 1, a guard stuck closed fails 4. |
+| 2026-10-11 | 8.1 | axe extended to the case list and case workspace, the two of parity 4.7's five views that were left out. Four real defects found and fixed: two `<select>` controls with no accessible name (one of them the control that writes a case's status), two indistinguishable `<aside>` landmarks, and panel headings at `h3` directly under the page's `h1`. |
+
