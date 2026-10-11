@@ -275,6 +275,38 @@ async def merge_cases(
 # ---------------------------------------------------------------------------
 
 
+#: One static statement rather than a SET list assembled in Python.
+#:
+#: The assembled form was correct — every fragment came from a literal in
+#: this module and nothing from a caller — and it still read as dynamic SQL
+#: to every scanner that looks at it, which is a cost paid forever by every
+#: reviewer. `COALESCE(:p, column)` says "leave it alone when the parameter
+#: is NULL" in the database instead, and the assignment pair needs a CASE
+#: because "set it to NULL" and "do not touch it" are different intentions
+#: that COALESCE alone cannot tell apart.
+#:
+#: Every parameter carries an explicit cast: inside a COALESCE or a CASE a
+#: bare parameter has no inferable type and asyncpg refuses the whole
+#: statement with `could not determine data type of parameter $n`.
+_BULK_TRIAGE_SQL = """
+UPDATE alerts SET
+    status         = COALESCE(CAST(:status AS text), status),
+    severity       = COALESCE(CAST(:severity AS text), severity),
+    assigned_to_id = CASE
+                       WHEN CAST(:unassign AS boolean) THEN NULL
+                       WHEN CAST(:assignee AS uuid) IS NOT NULL THEN CAST(:assignee AS uuid)
+                       ELSE assigned_to_id
+                     END,
+    assigned_at    = CASE
+                       WHEN CAST(:unassign AS boolean) THEN NULL
+                       WHEN CAST(:assignee AS uuid) IS NOT NULL THEN :now
+                       ELSE assigned_at
+                     END,
+    updated_at     = :now
+WHERE tenant_id = :tenant_id AND id = ANY(CAST(:ids AS uuid[]))
+"""
+
+
 @dataclass(frozen=True)
 class BulkTriageResult:
     matched_count: int
@@ -340,32 +372,26 @@ async def bulk_triage(
         )
 
     now = datetime.now(UTC)
-    sets = ["updated_at = :now"]
-    params: dict[str, Any] = {"now": now, "tenant_id": tenant_id, "ids": [str(i) for i in unique]}
     changes: dict[str, Any] = {}
     if set_status is not None:
-        sets.append("status = :status")
-        params["status"] = set_status
         changes["status"] = set_status
     if set_severity is not None:
-        sets.append("severity = :severity")
-        params["severity"] = set_severity
         changes["severity"] = set_severity
     if assign_to is not None:
-        sets.append("assigned_to_id = :assignee")
-        sets.append("assigned_at = :now")
-        params["assignee"] = assign_to
         changes["assigned_to_id"] = str(assign_to)
     if unassign:
-        sets.append("assigned_to_id = NULL")
-        sets.append("assigned_at = NULL")
         changes["assigned_to_id"] = None
 
     result = await db.execute(
-        text(
-            f"UPDATE alerts SET {', '.join(sets)} "  # noqa: S608 - `sets` is built from the literals above, never from caller text
-            "WHERE tenant_id = :tenant_id AND id = ANY(CAST(:ids AS uuid[]))"
-        ).bindparams(**params)
+        text(_BULK_TRIAGE_SQL).bindparams(
+            status=set_status,
+            severity=set_severity,
+            assignee=str(assign_to) if assign_to is not None else None,
+            unassign=unassign,
+            now=now,
+            tenant_id=tenant_id,
+            ids=[str(i) for i in unique],
+        )
     )
     return BulkTriageResult(matched_count=int(matched), updated_count=int(result.rowcount or 0), changes=changes)
 

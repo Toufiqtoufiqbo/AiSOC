@@ -40,6 +40,7 @@ import os
 import socket
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from urllib.parse import urlparse
 
 import pytest
@@ -239,7 +240,11 @@ async def _post(token: str, path: str, body: dict) -> tuple[int, dict]:
         return res.status_code, {"raw": res.text}
 
 
-async def _get(token: str, path: str) -> tuple[int, object]:
+async def _get(token: str, path: str) -> tuple[int, Any]:
+    """``Any`` rather than ``object``: this returns a decoded JSON document,
+    which is a list for the list routes and a mapping for the rest, and
+    every caller below indexes into it. Typing it ``object`` made eight
+    honest assertions type errors."""
     from app.main import app
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:

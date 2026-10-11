@@ -293,6 +293,25 @@ async def bulk_triage_route(
 # ---------------------------------------------------------------------------
 
 
+#: Every column COALESCEd against itself, so an absent field in the PATCH
+#: body leaves the column alone without the statement changing shape. Each
+#: parameter carries an explicit cast: inside a COALESCE a bare parameter
+#: has no inferable type and asyncpg refuses the statement with
+#: `could not determine data type of parameter $n`.
+_UPDATE_FIELD_SQL = """
+UPDATE aisoc_tenant_custom_fields SET
+    label      = COALESCE(CAST(:label AS text), label),
+    help_text  = COALESCE(CAST(:help_text AS text), help_text),
+    required   = COALESCE(CAST(:required AS boolean), required),
+    position   = COALESCE(CAST(:position AS integer), position),
+    active     = COALESCE(CAST(:active AS boolean), active),
+    choices    = COALESCE(CAST(:choices AS text[]), choices),
+    updated_at = NOW()
+WHERE id = :id AND tenant_id = :tenant_id
+RETURNING *
+"""
+
+
 def _field_out(row: Any) -> CustomFieldOut:
     return CustomFieldOut(
         id=str(row["id"]),
@@ -314,14 +333,17 @@ async def list_custom_fields(
     _: Annotated[None, Depends(require_permission("cases:read"))],
     include_inactive: bool = Query(default=False),
 ) -> list[CustomFieldOut]:
-    clause = "" if include_inactive else " AND active"
+    # A parameter, not a clause spliced into the statement. Both forms were
+    # correct and only this one stops reading as dynamic SQL to every
+    # scanner and every reviewer that looks at it.
     rows = (
         (
             await db.execute(
                 text(
-                    "SELECT * FROM aisoc_tenant_custom_fields WHERE tenant_id = :tenant_id"  # noqa: S608 - `clause` is one of two literals above
-                    f"{clause} ORDER BY position, key"
-                ).bindparams(tenant_id=current_user.tenant_id)
+                    "SELECT * FROM aisoc_tenant_custom_fields "
+                    "WHERE tenant_id = :tenant_id AND (active OR CAST(:include_inactive AS boolean)) "
+                    "ORDER BY position, key"
+                ).bindparams(tenant_id=current_user.tenant_id, include_inactive=include_inactive)
             )
         )
         .mappings()
@@ -411,24 +433,23 @@ async def update_custom_field(
     current_user: AuthUser,
     _: Annotated[None, Depends(require_permission("settings:write"))],
 ) -> CustomFieldOut:
-    sets: list[str] = ["updated_at = NOW()"]
-    params: dict[str, Any] = {"id": field_id, "tenant_id": current_user.tenant_id}
-    for name in ("label", "help_text", "required", "position", "active"):
-        value = getattr(body, name)
-        if value is not None:
-            sets.append(f"{name} = :{name}")
-            params[name] = value
-    if body.choices is not None:
-        sets.append("choices = CAST(:choices AS text[])")
-        params["choices"] = body.choices
-
+    # One static statement with COALESCE per column, rather than a SET list
+    # assembled in Python. The assembled form was correct -- every fragment
+    # came from the literal tuple above -- and it still read as dynamic SQL
+    # to every scanner and every reviewer, forever.
     row = (
         (
             await db.execute(
-                text(
-                    f"UPDATE aisoc_tenant_custom_fields SET {', '.join(sets)} "  # noqa: S608 - names come from the literal tuple above
-                    "WHERE id = :id AND tenant_id = :tenant_id RETURNING *"
-                ).bindparams(**params)
+                text(_UPDATE_FIELD_SQL).bindparams(
+                    id=field_id,
+                    tenant_id=current_user.tenant_id,
+                    label=body.label,
+                    help_text=body.help_text,
+                    required=body.required,
+                    position=body.position,
+                    active=body.active,
+                    choices=body.choices,
+                )
             )
         )
         .mappings()
