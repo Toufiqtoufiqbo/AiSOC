@@ -435,6 +435,73 @@ corpus-wide gate checks the properties every rule shares; a property that
 belongs to one family has to be asserted by that family, and writing that
 assertion is part of adding the family rather than a later tidy-up.
 
+### D15 -- 1,770 executable rules indexed with no log source, 83 of them in scope
+
+`build_marketplace.py` read AiSOC's `log_source:` and nothing else.
+Imported Sigma rules carry Sigma's own `logsource:` -- one word, a
+different schema -- so **70% of the executable corpus indexed with no log
+source at all**, invisible to anything that groups by it.
+
+Most of that is harmless: 1,687 are Windows rules that no cloud, identity
+or SaaS figure wants. But 83 were exactly what depth plan 3.6 measures --
+39 AWS, 28 Azure, 16 Okta -- and the undercount's real cost is not a small
+headline. A gap that reads as missing content invites authoring 83 rules
+the repository already ships, and the duplicates would have passed every
+gate.
+
+The fix reads both spellings and is one-directional by construction: a
+native rule's own `log_source` always wins, so the recovery can only fill
+a blank and can never relabel a rule whose author stated its source. No
+rule was written, moved or edited, and the in-scope figure rose by 83.
+
+This also resolves the 461-against-395 discrepancy Phase 0 recorded. The
+plan's captured **461** was not wrong; the later re-derivation of 395 used
+an incomplete grouping over an index that was itself incomplete. The
+grouping now lives in one place in code, which is what stops a third
+number appearing.
+
+### D16 -- 3.6's content target is not met, and this is what is missing
+
+The gate, the grouping and the log-source recovery are done. The content
+is **521 of 800**. Thirteen of the sixteen per-source minimums the plan
+states are still unmet, and they are listed here rather than left to be
+read off a failing gate:
+
+| source | have | need | gap |
+|---|---|---|---|
+| azure (incl. Entra) | 74 | 150 | 76 |
+| gcp | 35 | 120 | 85 |
+| kubernetes | 37 | 60 | 23 |
+| okta | 49 | 60 | 11 |
+| aws | 112 | 120 | 8 |
+| github + gitlab | 14 | 40 | 26 |
+| saas: servicenow | 0 | 20 | 20 |
+| saas: snowflake | 1 | 20 | 19 |
+| saas: salesforce | 2 | 20 | 18 |
+| saas: atlassian | 3 | 20 | 17 |
+| saas: slack | 7 | 20 | 13 |
+| saas: m365 | 8 | 20 | 12 |
+| saas: google-workspace | 10 | 20 | 10 |
+
+Three are **closed**: Box, Dropbox and 1Password went from zero to 20
+each, chosen first because a source with no rules behind a working
+connector is the sharpest version of this gap -- the product looks
+attached and detects nothing.
+
+One named source is **refused with a reason rather than counted as a
+gap**. The plan lists Zoom among the SaaS sources needing 20, qualified by
+*"with a connector"*. There is no Zoom connector in
+`services/connectors/app/connectors/`, so rules for it would match on
+fields nothing emits -- which is worse than no rule, because it raises the
+published figure while making the product no better. Zoom is excluded from
+`SAAS_SOURCES` with that reason in the gate, and a test re-derives the
+connector list from the tree so the exclusion cannot outlive the fact.
+
+The remaining 279 are ordinary authoring against vendors whose connectors
+and field namespaces already exist. Nothing blocks them; this lane ran out
+of room, and saying so is more useful than a number that implies
+otherwise.
+
 ## Phase 1: Verdict quality you can publish
 
 - [x] **1.1** Balanced, labelled verdict corpus
@@ -520,7 +587,26 @@ assertion is part of adding the family rather than a later tidy-up.
   baseline earned from replayed traffic** with no `full` service running —
   the phase's second "Done when", as an assertion. The decorative-clause
   control caught a rule of this lane's own that was a bare anomaly (D14).
-- [ ] **3.6** 395 → at least 800 cloud, identity, SaaS and code conditions
+- [~] **3.6** 395 → at least 800 cloud, identity, SaaS and code conditions.
+  **The measurement and the gate are done; the content target is not.**
+  `scripts/check_content_depth.py` now owns the grouping, is wired into
+  `validate-detections.yml` and `make stats`, refuses a vacuous pass, and
+  fails on a `log_source` in neither its in-scope nor its out-of-scope
+  table. Running it found why the figure was re-derivable two ways:
+  **1,770 of 2,535 executable rules indexed with no log source at all**,
+  because imported Sigma rules spell it `logsource:` and the indexer read
+  only `log_source:`. 1,687 are Windows and correctly out of scope — but
+  83 were in scope (39 AWS, 28 Azure, 16 Okta), so the figure was
+  undercounting content the repository already had, which invites
+  authoring it twice (D15). Measured on `origin/main` under this grouping:
+  **354**. Here: **521** — `+83` recovered, `+24` from the 3.5 family,
+  `+60` newly authored. Box, Dropbox and 1Password each had **zero**
+  executable rules behind a working connector and now have 20 each, on
+  the vendors' own event vocabularies with hand-authored fixtures.
+  **Short of the 800 target by 279**, with 13 of 16 per-source minimums
+  still unmet — itemised in D16 rather than left to be inferred, because
+  a partial item that does not say what is missing is indistinguishable
+  from a finished one.
 - [ ] **3.7** Detection engineering agent (gap-closure Phase 9 / parity 6.2)
 
 ## Phase 4: Collection and scale
