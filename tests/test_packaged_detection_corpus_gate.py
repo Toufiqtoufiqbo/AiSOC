@@ -76,7 +76,10 @@ class TestThePositiveControl:
     def test_a_synced_tree_is_clean(self, tmp_path: pathlib.Path) -> None:
         result = _check(_tree(tmp_path))
         assert result.returncode == 0, result.stderr
-        assert "2586 rules" in result.stdout
+        # The corpus total, pinned so a silent shrink is a failure rather
+        # than a quieter log line. Depth 6.5 added four stateless and three
+        # windowed AI rules, taking it from 2,586 to 2,593.
+        assert "2593 rules" in result.stdout
 
 
 class TestTheGateCatchesItsOwnAbsence:
