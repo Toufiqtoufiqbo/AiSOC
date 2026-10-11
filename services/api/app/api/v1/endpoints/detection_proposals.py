@@ -54,6 +54,8 @@ from app.models.detection_proposal import (
 )
 from app.models.detection_rule import DetectionRule
 from app.services.backtest import backtest_rule, fetch_lake_events
+from app.services.detection_coverage import as_dict as coverage_as_dict
+from app.services.detection_coverage import coverage_report
 from app.services.detection_eval import evaluate_candidate_rule
 from app.services.github import create_detection_pr
 
@@ -433,6 +435,35 @@ async def list_proposals(
     )
     return [ProposalResponse.model_validate(p) for p in result.scalars().all()]
 
+
+
+@router.get("/coverage")
+async def tenant_coverage(
+    current_user: Annotated[AuthUser, Depends(require_permission("rules:read"))],
+    db: DBSession,
+    state: str | None = Query(default=None, description="covered | gap | no_telemetry"),
+    limit: int = Query(default=100, ge=1, le=500),
+) -> dict[str, Any]:
+    """This tenant's ATT&CK coverage, ranked by what it has actually seen.
+
+    Depth plan 3.7 / gap-closure 9.1. Deliberately **not** the global
+    "techniques tagged" figure the console already publishes: that number is
+    the same for every tenant and gives a tenant running only Okta and
+    Workspace credit for 1,687 Windows rules they can never fire.
+
+    Coverage here means an executable rule exists *and* its log source is one
+    this tenant ingests. The three states are separated because a gap you can
+    close and one you cannot need different answers — `no_telemetry` rows
+    carry the connector that would fix them, which is an onboarding answer
+    rather than a content one.
+    """
+    _ensure_dac_enabled()
+    report = await coverage_report(db, current_user.tenant_id)
+    payload = coverage_as_dict(report)
+    if state:
+        payload["techniques"] = [t for t in payload["techniques"] if t["state"] == state]
+    payload["techniques"] = payload["techniques"][:limit]
+    return payload
 
 @router.post("", response_model=ProposalResponse, status_code=status.HTTP_201_CREATED)
 async def create_proposal(
