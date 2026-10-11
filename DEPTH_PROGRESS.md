@@ -483,7 +483,47 @@ invented fields on the first run of the gate.
   assume their EDR covers it. Separately, no osquery agent runs in CI: the
   pack is asserted to load and to select the columns the recorder reads, but
   no test has watched a real `osqueryd` execute one of its queries.
-- [ ] **6.3** Provider coverage beyond OpenAI and Anthropic
+- [x] **6.3** Provider coverage beyond OpenAI and Anthropic. Reproduced:
+  `check_ai_provider_coverage.py` on the pre-change tree reported five of the
+  seven providers absent from `PROVIDERS`, from the console's select and from
+  the documentation. `llm_usage` accepted exactly two values and raised
+  `ValueError` on anything else.
+
+  Built: `google_workspace_gemini`, `google_workspace_oauth`, `m365_copilot`,
+  `entra_consent` and `github_copilot`, each with its own credential shape,
+  its own request parameters and its own normalisation. **Every endpoint was
+  fetched from the vendor's current published reference before it was used**
+  — the Workspace Gemini and token appendices, the Purview Copilot audit
+  record reference, the Office 365 Management Activity API reference, the
+  Graph `directoryAudits` reference and the GitHub Copilot user-management
+  reference. 15 new tests (connectors suite 1,126 -> 1,141), each driving the
+  real HTTP path and asserting the **recorded request** as well as the parsed
+  result.
+
+  Three findings that only came from reading the references: the Microsoft
+  content endpoint returns blob references rather than records, so a reader
+  that normalised the reference list would report "no Copilot activity" on a
+  busy tenant; `AIAppInteraction` is Microsoft's own term for a third-party AI
+  app the organisation has *not* deployed, which is the most interesting row
+  in the stream and the one a `RecordType == "CopilotInteraction"` filter
+  would drop; and `app_name` means the third-party application on the
+  Workspace token stream but the Workspace *surface* (gmail, docs) on the
+  Gemini stream, so folding them loses one.
+
+  **The claim this item must not make, and the gate that stops it.** No hosted
+  provider has ever been exercised from this repository and that is still
+  true. `check_ai_provider_coverage.py`'s HONESTY rule requires every provider
+  to carry `not measured` **on its own documentation table row** — a single
+  footnote covering seven lets one quietly become "verified" — and fails on a
+  `0.000` anywhere in that table, because a zero reads as graded-and-failed
+  where nobody ran it at all. The claim row is PARTIAL for exactly that
+  reason and returns to GATED one provider at a time.
+
+  Writing the gate found two defects in the gate itself, both the same class:
+  `ast.unparse` renders string literals with single quotes whatever the source
+  used, so a double-quoted-only check reported all seven providers missing from
+  a schema that listed them; and a denial is not a claim, so the overclaim
+  check flagged the page's own caution title. Both are covered by injections.
 - [ ] **6.4** Agent identity and baselines (parity 6.7)
 - [ ] **6.5** AI rule pack
 - [ ] **6.6** AI containment and kill-switch
@@ -526,6 +566,7 @@ invented fields on the first run of the gate.
 | 2026-10-09 | 3.3 | Identity privilege (18 rules) and a per-tenant first-seen store (2) built; 5 rules were never unreachable (gate operator drift, D9); 18 retired with a reason (D10). `MAX_UNREACHABLE` 45 → 2, the two remaining both needing the 3.4 baseline. Two matcher operators three shipped rules already used were implemented. |
 | 2026-10-09 | 3.2 | Ordered and unordered sequences in the windowed engine; all four translatable Sigma correlation types compile, seven refusal reasons recorded. No upstream correlation rule exists in this tree to import (D8), so the corpus is first-party and labelled as such. |
 | 2026-10-09 | 4.1 | Reproduced: `check_cloud_native_collection.py` on the unmodified tree reported all three collection paths absent. Implemented `aws_cloudtrail_s3` (SQS-notified S3 objects; management events, data events and VPC flow logs; delete-after-emit), `gcp_pubsub` (REST pull on a log-sink subscription; ack-after-read) and `azure_event_hubs` (Capture blobs over the Data Lake Gen2 JSON API, with a focused Avro OCF reader). Negative controls recorded in the PR: deleting the SQS message before the object is read, acknowledging the Pub/Sub batch before it is built, ignoring the Avro union branch index, and ignoring the flow-log header line each fail a named test, and all were restored. Connectors suite 1014 -> 1098 passed. |
+| 2026-10-11 | 6.3 | Reproduced: five of seven providers absent. Added Gemini in Workspace, Workspace OAuth grants, M365 Copilot, Entra consent and GitHub Copilot, every endpoint fetched from the vendor's current reference first. 15 new tests asserting the request shape as well as the result; connectors suite 1,126 -> 1,141. Three findings from reading the references (blob references not records; `AIAppInteraction` is Microsoft's own word for undeployed third-party AI; `app_name` means two things across the two Google streams). PARTIAL: no funded account exists with any of the seven, recorded per provider as `not measured` rather than as a zero. |
 | 2026-10-11 | 6.2 | Reproduced: 13 of 16 new cases failed, driving the shapes the four endpoint connectors actually emit. Root cause was 6.1's endpoint branch reading `process.name` off OCSF, which the canonical profile never populates — it found `None` on every real source while its own tests passed. Fixed by reconstructing the connector namespace. Shipped the osquery pack (5 queries, packs 5 -> 6), the source-capability table, the operator doc and a 6-rule gate. Fusion suite 683 -> 700. Claim row is PARTIAL: no osquery agent runs in CI, and the EDR connectors return vendor detections rather than process telemetry, so the plan's "CrowdStrike, Defender, SentinelOne" wording is not satisfiable with these connectors. |
 | 2026-10-11 | 6.2 | Reproduced: 13 of 16 new cases failed, driving the shapes the four endpoint connectors actually emit. Root cause was 6.1's endpoint branch reading `process.name` off OCSF, which the canonical profile never populates — it found `None` on every real source while its own tests passed. Fixed by reconstructing the connector namespace. Shipped the osquery pack (5 queries, packs 5 -> 6), the source-capability table, the operator doc and a 6-rule gate. Fusion suite 683 -> 700. Claim row is PARTIAL: no osquery agent runs in CI, and the EDR connectors return vendor detections rather than process telemetry, so the plan's "CrowdStrike, Defender, SentinelOne" wording is not satisfiable with these connectors. |
 | 2026-10-11 | 6.1 | Reproduced: the new gate reported nine problems across five of eight rules on the unmodified tree. Built `aisoc_ai_assets` (migration 105), its routes behind a new `ai_estate:*` permission pair, the fusion recorder that writes it on the default profile, the `AIAsset` graph label with `OPERATES`/`HOSTS` edges, and the `/ai-estate` page. Two negative controls against a real PostgreSQL: reverting `NULLS NOT DISTINCT` turns one provider-key row into three, and a `USING (true)` policy leaks across tenants. Claim matrix 302 -> 303 rows, 300 GATED. Writing the gate found two blind spots in the gate itself. |

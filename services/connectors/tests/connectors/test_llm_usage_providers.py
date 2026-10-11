@@ -30,13 +30,11 @@ from __future__ import annotations
 
 import json
 
-import httpx
 import pytest
 import respx
+from app.connectors.llm_usage import PROVIDER_STREAM, PROVIDERS, LlmUsageConnector
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from app.connectors.llm_usage import PROVIDER_STREAM, PROVIDERS, LlmUsageConnector
-
 
 _LADDER = {"info", "low", "medium", "high", "critical"}
 
