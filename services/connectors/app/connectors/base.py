@@ -173,6 +173,15 @@ class Capability(str, Enum):
     # could not perform at the point where evidence matters most.
     CAPTURE_FORENSICS = "capture_forensics"
 
+    # AI-ESTATE CONTAINMENT — depth plan 6.6. Four verbs, not three: a
+    # declared reverse that is not in the vocabulary cannot be dispatched
+    # under governance, which is how `unisolate_host` — the rollback for the
+    # most disruptive action in the product — once resolved to nothing.
+    REVOKE_PROVIDER_KEY = "revoke_provider_key"
+    REVOKE_OAUTH_GRANT = "revoke_oauth_grant"
+    BLOCK_AI_KEY_AT_GATEWAY = "block_ai_key_at_gateway"
+    UNBLOCK_AI_KEY_AT_GATEWAY = "unblock_ai_key_at_gateway"
+
     # HUMAN-IN-THE-LOOP — ask the affected person a question and route the
     # answer back onto the case. Distinct from NOTIFY: notify tells a SOC
     # channel something, this asks an end user to confirm or deny, and the
