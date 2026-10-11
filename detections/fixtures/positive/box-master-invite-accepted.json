@@ -1,0 +1,7 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "MASTER_INVITE_ACCEPT",
+  "source": "box",
+  "src_ip": "198.51.100.17",
+  "target": "subsidiary-tenant"
+}

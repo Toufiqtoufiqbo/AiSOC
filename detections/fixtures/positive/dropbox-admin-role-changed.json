@@ -1,0 +1,6 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "member_change_admin_role",
+  "source": "dropbox",
+  "src_ip": "198.51.100.17"
+}

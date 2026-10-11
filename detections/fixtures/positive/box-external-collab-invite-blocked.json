@@ -1,0 +1,7 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "SHIELD_EXTERNAL_COLLAB_INVITE_BLOCKED",
+  "source": "box",
+  "src_ip": "198.51.100.17",
+  "target": "Customer-PII"
+}

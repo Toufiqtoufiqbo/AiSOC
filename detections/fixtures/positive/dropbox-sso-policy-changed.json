@@ -1,0 +1,6 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "sso_change_policy",
+  "source": "dropbox",
+  "src_ip": "198.51.100.17"
+}
