@@ -438,7 +438,51 @@ invented fields on the first run of the gate.
   provider audit log never carries either — so `discovery_source` is stored
   per row and the page prints what each source can and cannot see, because
   an unlinked device and an unlinkable one are different facts.
-- [ ] **6.2** Endpoint discovery with no new agent
+- [x] **6.2** Endpoint discovery with no new agent. Reproduced:
+  `services/fusion/tests/test_ai_endpoint_discovery.py` was written first and
+  **13 of its 16 cases failed** on the tree as 6.1 left it, driving payloads
+  in the shapes `windows_event`, `auditd`, `fleetdm` and `osctrl` actually
+  emit — read out of each connector's own `normalize()` rather than invented.
+
+  **The root cause is the one this repository keeps paying for, in its second
+  form.** 6.1's endpoint branch read `process.name` off the OCSF event. The
+  canonical OCSF profile maps `title`, `external_id` and the identity aliases
+  and *nothing else*; all four endpoint connectors put their process fields in
+  the connector payload, which `services/ingest` stores as a JSON string under
+  `raw_data`. So the branch resolved `None` on every real source and could
+  never have produced one row — and its own unit tests passed throughout,
+  because they built events in the shape the module expected. The recorder now
+  reconstructs the same flat namespace `DetectionEngine._raw_fields` does, and
+  `PROCESS_FIELDS` / `COMMAND_LINE_FIELDS` name each connector's own spelling.
+
+  Built: `packs/aisoc-ai-estate.yaml` (5 queries — coding-agent processes, MCP
+  server processes, MCP client configuration files, AI IDE extensions,
+  provider key files; loaded through the real `pack_loader`, 5 packs -> 6),
+  `SOURCE_CAPABILITIES` declaring what each of the five discovery sources sees
+  *and* cannot see, `apps/docs/docs/concepts/ai-estate-discovery.md`, and
+  `scripts/check_ai_endpoint_discovery.py` (6 rules, self-test injects one
+  violation each). Fusion suite 683 -> 700.
+
+  Negative controls: an ordinary process (`falcon-sensor`, `osqueryd`,
+  `nginx`, `chrome`, `MsMpEng.exe`, `node`), an unrelated IDE extension
+  (`esbenp.prettier-vscode`) and an unrelated `package.json` each produce no
+  asset, and an endpoint sighting is asserted to carry no model or provider —
+  because filling those from a default would make the inventory assert
+  something no source observed. The gate's own self-test re-injects the
+  original defect (`fields = _connector_fields(ocsf)` -> `fields = dict(ocsf)`)
+  and requires NAMESPACE to catch it; writing it found the same
+  read-your-own-docstring blind spot a second time, now fixed by stripping the
+  docstring before matching.
+
+  **Honest limit, and the reason the claim row is PARTIAL:** `crowdstrike`,
+  `sentinelone` and `azure_defender` poll the vendor's own **detections**, not
+  process telemetry — `crowdstrike.py` reads `/detects/queries/detects/v1` —
+  so they cannot supply a process start, and the plan's wording that endpoint
+  discovery comes from them is not satisfiable with the connectors this tree
+  has. The documentation says so in a callout rather than leaving a reader to
+  assume their EDR covers it. Separately, no osquery agent runs in CI: the
+  pack is asserted to load and to select the columns the recorder reads, but
+  no test has watched a real `osqueryd` execute one of its queries.
 - [ ] **6.3** Provider coverage beyond OpenAI and Anthropic
 - [ ] **6.4** Agent identity and baselines (parity 6.7)
 - [ ] **6.5** AI rule pack
@@ -482,5 +526,6 @@ invented fields on the first run of the gate.
 | 2026-10-09 | 3.3 | Identity privilege (18 rules) and a per-tenant first-seen store (2) built; 5 rules were never unreachable (gate operator drift, D9); 18 retired with a reason (D10). `MAX_UNREACHABLE` 45 → 2, the two remaining both needing the 3.4 baseline. Two matcher operators three shipped rules already used were implemented. |
 | 2026-10-09 | 3.2 | Ordered and unordered sequences in the windowed engine; all four translatable Sigma correlation types compile, seven refusal reasons recorded. No upstream correlation rule exists in this tree to import (D8), so the corpus is first-party and labelled as such. |
 | 2026-10-09 | 4.1 | Reproduced: `check_cloud_native_collection.py` on the unmodified tree reported all three collection paths absent. Implemented `aws_cloudtrail_s3` (SQS-notified S3 objects; management events, data events and VPC flow logs; delete-after-emit), `gcp_pubsub` (REST pull on a log-sink subscription; ack-after-read) and `azure_event_hubs` (Capture blobs over the Data Lake Gen2 JSON API, with a focused Avro OCF reader). Negative controls recorded in the PR: deleting the SQS message before the object is read, acknowledging the Pub/Sub batch before it is built, ignoring the Avro union branch index, and ignoring the flow-log header line each fail a named test, and all were restored. Connectors suite 1014 -> 1098 passed. |
+| 2026-10-11 | 6.2 | Reproduced: 13 of 16 new cases failed, driving the shapes the four endpoint connectors actually emit. Root cause was 6.1's endpoint branch reading `process.name` off OCSF, which the canonical profile never populates — it found `None` on every real source while its own tests passed. Fixed by reconstructing the connector namespace. Shipped the osquery pack (5 queries, packs 5 -> 6), the source-capability table, the operator doc and a 6-rule gate. Fusion suite 683 -> 700. Claim row is PARTIAL: no osquery agent runs in CI, and the EDR connectors return vendor detections rather than process telemetry, so the plan's "CrowdStrike, Defender, SentinelOne" wording is not satisfiable with these connectors. |
 | 2026-10-11 | 6.1 | Reproduced: the new gate reported nine problems across five of eight rules on the unmodified tree. Built `aisoc_ai_assets` (migration 105), its routes behind a new `ai_estate:*` permission pair, the fusion recorder that writes it on the default profile, the `AIAsset` graph label with `OPERATES`/`HOSTS` edges, and the `/ai-estate` page. Two negative controls against a real PostgreSQL: reverting `NULLS NOT DISTINCT` turns one provider-key row into three, and a `USING (true)` policy leaks across tenants. Claim matrix 302 -> 303 rows, 300 GATED. Writing the gate found two blind spots in the gate itself. |
 | 2026-10-09 | 3.1 | All 74 decided. 50 translated into `wd-*` rules derived from each original's own clauses and replayed through the real engine (162 assertions); 24 refused with a reason across five kinds. `MAX_UNREACHABLE` 119 → 45, published executable 2,603 → 2,529, windowed 18 → 68. Three findings recorded as D4–D6 below. |

@@ -191,6 +191,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Endpoint discovery of the AI estate, with no new agent** (depth plan 6.2).
+  `packs/aisoc-ai-estate.yaml` finds coding agents and MCP server processes,
+  the configuration files the popular MCP clients read, AI IDE extensions and
+  model-provider credential files, through the osquery agent a fleet already
+  runs. `apps/docs/docs/concepts/ai-estate-discovery.md` records what each
+  source can **and cannot** see, which is the half that makes an empty column
+  readable: a device missing from a provider-audit row is not a finding,
+  because no provider audit log has ever carried one.
+
+  The finding that made this a fix as well as a feature: the endpoint branch
+  of the recorder read `process.name` off the OCSF event, and the canonical
+  OCSF profile carries `title`, `external_id` and the identity aliases and
+  nothing else. `fleetdm`, `osctrl`, `auditd` and `windows_event` all put
+  their process fields in the connector payload under `raw_data`, so that
+  branch found `None` on every endpoint source this product has and could
+  never have produced one row — while its own tests passed, because they
+  built events in the shape the module expected. It now reconstructs the same
+  flat namespace `DetectionEngine._raw_fields` does, and
+  `scripts/check_ai_endpoint_discovery.py` makes reading it a rule.
+
+  Recorded rather than implied: `crowdstrike`, `sentinelone` and
+  `azure_defender` poll the vendor's own **detections**, not raw process
+  telemetry, so they cannot supply a process start. An operator running an
+  EDR and nothing else has a coverage gap here, not a quiet estate, and the
+  documentation says so in a callout.
+
 - **An AI-estate inventory built from observation rather than registration**
   (depth plan 6.1). `aisoc_ai_assets` (migration `105`, tenant-scoped with
   forced row-level security) holds every AI app, coding agent, MCP server,

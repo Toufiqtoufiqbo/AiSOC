@@ -539,11 +539,7 @@ def _from_endpoint(tenant_id: str, ocsf: dict[str, Any], now: float) -> list[_Si
     # producer posting OCSF directly through `/alerts/submit` populates only
     # the latter, and reading one of the two is how this branch came to find
     # nothing on every real source.
-    process = (
-        _first(fields, PROCESS_FIELDS)
-        or _text(_nested(ocsf, "process", "name"))
-        or _text(_nested(ocsf, "actor", "process", "name"))
-    )
+    process = _first(fields, PROCESS_FIELDS) or _text(_nested(ocsf, "process", "name")) or _text(_nested(ocsf, "actor", "process", "name"))
     cmdline = cmdline or _text(_nested(ocsf, "process", "cmd_line")) or ""
     if process:
         sighting = _process_sighting(tenant_id, process, cmdline, device, principal, now)
@@ -559,9 +555,7 @@ def _from_endpoint(tenant_id: str, ocsf: dict[str, Any], now: float) -> list[_Si
     return []
 
 
-def _process_sighting(
-    tenant_id: str, name: str, cmdline: str, device: str | None, principal: str | None, now: float
-) -> _Sighting | None:
+def _process_sighting(tenant_id: str, name: str, cmdline: str, device: str | None, principal: str | None, now: float) -> _Sighting | None:
     base = _basename(name)
     lowered = cmdline.lower()
 
