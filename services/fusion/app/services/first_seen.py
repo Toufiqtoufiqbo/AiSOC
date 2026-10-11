@@ -64,6 +64,30 @@ TTL_SECONDS = int(os.getenv("AISOC_FIRST_SEEN_TTL_SECONDS", str(90 * 86400)))
 SEEN_BEFORE_FIELDS: dict[str, str] = {
     "publisher_ip_seen_before": "publisher_ip",
     "device_fingerprint_seen_before": "device_fingerprint",
+    # Depth 6.5. "Has this tenant ever seen an AI control-plane event from
+    # this address before?" The subject is an observation, which is the test
+    # the module docstring sets; it is deliberately **not** ASN novelty,
+    # which the plan asks for and this namespace cannot answer — the activity
+    # projection computes `location.asn` onto the OCSF event, and the match
+    # namespace is the connector payload. Recorded as a deviation rather than
+    # closed with a plausible-looking substitute.
+    "source_ip_seen_before": "src_ip",
+}
+
+#: Composite subjects: a first-seen question about a *pair*.
+#:
+#: "Has this agent called this tool before" is one observation about two
+#: fields, and keying it on either alone answers a different question — the
+#: tool having been called by somebody, or the agent having called something.
+#: Joined with a separator no field value contains, so two different pairs
+#: cannot collide into one key.
+COMPOSITE_SUBJECTS: dict[str, tuple[str, ...]] = {
+    "agent_tool": ("agent_id", "tool_name"),
+}
+
+#: Composite first-seen booleans, same shape as `SEEN_BEFORE_FIELDS`.
+COMPOSITE_SEEN_BEFORE_FIELDS: dict[str, str] = {
+    "agent_tool_seen_before": "agent_tool",
 }
 
 #: `<age field a rule reads>` → (event field holding its subject, divisor).
@@ -79,6 +103,8 @@ AGE_FIELDS: dict[str, tuple[str, int]] = {
 #: cannot quietly become aspirational.
 TRACKED_ATTRIBUTES: tuple[str, ...] = (
     "publisher_ip",
+    "src_ip",
+    "agent_tool",
     "device_fingerprint",
     "session_id",
     "src_country",
@@ -154,6 +180,19 @@ class FirstSeenStore:
             if value is None or value == "":
                 continue
             first = await self.observe(tenant, source, str(value), now=when)
+            if first is None:
+                continue
+            out[boolean] = first < when
+
+        for boolean, subject in COMPOSITE_SEEN_BEFORE_FIELDS.items():
+            parts = [event.get(field) for field in COMPOSITE_SUBJECTS[subject]]
+            # Every part must be present. A pair with one half missing is a
+            # different subject, and treating it as the pair would report
+            # "never seen" for every event a source left a field off.
+            if any(part is None or part == "" for part in parts):
+                continue
+            composite = "\x1f".join(str(part) for part in parts)
+            first = await self.observe(tenant, subject, composite, now=when)
             if first is None:
                 continue
             out[boolean] = first < when

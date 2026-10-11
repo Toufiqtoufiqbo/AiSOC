@@ -101,6 +101,72 @@ WINDOWED_RULES: list[dict] = [
         # a look, neither is worth a critical.
     },
     {
+        "id": "wd-ai-guardrail-violation-rise",
+        "name": "Guardrail violations rising for one AI agent",
+        "severity": "high",
+        "category": "application",
+        "mitre": ["T1059"],
+        "match_when": {
+            "finding_type_in": [
+                "prompt_injection",
+                "sensitive_data_egress",
+                "excessive_agency",
+                "tool_escalation",
+            ]
+        },
+        "group_by": "agent_id",
+        "threshold": 5,
+        "window_seconds": 600,
+        # One guardrail violation is already an alert in its own right — the
+        # `ai-*` stateless rules fire on each. This is the different question:
+        # five in ten minutes against one agent is a guardrail being *probed*
+        # rather than tripped, which is what an attacker iterating on a
+        # payload looks like from the outside. Five rather than two, because a
+        # single malformed document can trip a scanner twice on retry.
+    },
+    {
+        "id": "wd-ai-token-spend-burst",
+        "name": "AI agent burning tokens at an unusual rate",
+        "severity": "medium",
+        "category": "application",
+        "mitre": ["T1496"],
+        "match_when": {"prompt_tokens_gte": 50000},
+        "group_by": "agent_id",
+        "threshold": 20,
+        "window_seconds": 600,
+        # Token spend is the only cost signal an AI call carries, and two very
+        # different things look like this: a runaway loop, and somebody using
+        # a stolen key for their own workload. Both are worth a look and
+        # neither is worth a critical, so this is medium.
+        #
+        # A count of *large* calls rather than a sum of tokens, deliberately:
+        # the windowed engine counts events within a window and does not sum a
+        # field, and faking a sum by counting small calls would make a chatty
+        # agent indistinguishable from an expensive one. Twenty 50k-token
+        # calls in ten minutes is roughly a million tokens, which no ordinary
+        # triage workload reaches.
+    },
+    {
+        "id": "wd-ai-oauth-app-bulk-access",
+        "name": "OAuth AI application reading at volume",
+        "severity": "high",
+        "category": "saas",
+        "mitre": ["T1530"],
+        "match_when": {"event_type": "google_workspace_oauth.activity", "oauth_app_not_in_allowlist": True},
+        "group_by": "application",
+        "threshold": 500,
+        "window_seconds": 600,
+        # The Workspace token stream emits one `activity` record per API call
+        # an OAuth application makes on a user's behalf. Five hundred in ten
+        # minutes from an application nobody approved is the shape of a
+        # third-party AI tool enumerating a drive or a mailbox — the grant was
+        # consented to once, by one user, and the reading is continuous.
+        #
+        # Gated on the tenant's own allowlist so an approved note-taker doing
+        # exactly its job does not page anybody; the clause contributes no key
+        # until a tenant configures one, so this stays silent by default.
+    },
+    {
         "id": "wd-mfa-fatigue",
         "name": "MFA fatigue: repeated push denials for one account",
         "severity": "high",

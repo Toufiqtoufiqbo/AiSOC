@@ -1,0 +1,27 @@
+id: det-application-090
+name: Coding Agent Started With Its Permission Prompts Disabled
+description: A coding agent was started with the flag that stops it asking. Every subsequent file write,
+  shell command and network call it makes is unreviewed, so this is the single highest-signal attribute
+  endpoint telemetry can supply about an AI asset — and it appears nowhere except the command line. Collected
+  by the `aisoc-ai-estate` osquery pack through FleetDM or osctrl.
+version: 1.0.0
+severity: high
+tags:
+- mitre.attack.t1059
+- tlp.white
+category: application
+log_source:
+  product: osquery
+  service: processes
+detection:
+  condition: |
+    name IN ["claude", "codex", "aider", "goose", "gemini", "cline", "opencode"]
+    AND cmdline CONTAINS_ANY ["--dangerously-skip-permissions", "--yolo", "--auto-approve", "--no-confirm", "--yes-always", "--full-auto"]
+false_positives:
+- A sandboxed container where the agent is deliberately unattended, with a ticket
+- An automated evaluation harness run against a disposable checkout
+playbook: tpl-triage
+enabled: true
+author: AiSOC
+created: '2026-05-03'
+modified: '2026-05-03'

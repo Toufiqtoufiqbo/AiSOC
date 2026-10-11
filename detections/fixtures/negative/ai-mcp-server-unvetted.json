@@ -1,0 +1,8 @@
+{
+  "agent_id": "agent-7f2",
+  "mcp_server_not_in_allowlist": false,
+  "outcome": "success",
+  "server_name": "github-mcp",
+  "source": "ai_gateway",
+  "tool_name": "fetch_url"
+}

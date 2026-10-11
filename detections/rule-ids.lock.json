@@ -1,8 +1,12 @@
 {
   "application/ai-agent-excessive-agency": "det-application-080",
+  "application/ai-agent-new-high-risk-tool": "det-application-088",
   "application/ai-agent-tool-call-failed-repeatedly": "det-application-086",
+  "application/ai-coding-agent-prompts-disabled": "det-application-090",
+  "application/ai-mcp-server-unvetted": "det-application-089",
   "application/ai-prompt-contained-credential": "det-application-085",
   "application/ai-prompt-injection-detected": "det-application-079",
+  "application/ai-provider-key-from-new-source": "det-application-087",
   "application/ai-sensitive-data-egress": "det-application-081",
   "application/ai-shadow-agent-discovered": "det-application-084",
   "application/ai-tool-escalation": "det-application-083",

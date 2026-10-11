@@ -269,6 +269,11 @@ _FIRST_SEEN_DERIVED_FIELDS = frozenset(
         "publisher_ip_seen_before",
         "device_fingerprint_seen_before",
         "session_age_hours",
+        # Depth 6.5. Both are observation-shaped subjects the store keys:
+        # an address this tenant has not seen before, and an (agent, tool)
+        # pair this tenant has not seen before.
+        "source_ip_seen_before",
+        "agent_tool_seen_before",
     }
 )
 

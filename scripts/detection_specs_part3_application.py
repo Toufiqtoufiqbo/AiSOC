@@ -722,6 +722,204 @@ AI_RUNTIME_RULES: list[dict] = [
             "capture mode."
         ),
     ),
+    # ------------------------------------------------------------------
+    # Depth plan 6.5 — the AI rule pack.
+    #
+    # Every fixture below is **hand-authored**, positive and negative, which
+    # is a deliberate departure from the generator's default. `build_negative`
+    # inverts a clause by prefixing the literal `not-` to the expected value,
+    # and 423 of the corpus's 878 negatives are that shape: a rule passes its
+    # negative by failing to match a value no log source would ever emit,
+    # which measures nothing about false positives. The negatives here are
+    # events a real AI estate produces every day and that must stay silent.
+    # ------------------------------------------------------------------
+    S(
+        slug="ai-provider-key-from-new-source",
+        name="Model-Provider Key Minted or Used From an Unfamiliar Address",
+        severity="high",
+        mitre=["t1078.004"],
+        product="llm_usage",
+        service="audit",
+        when={"event_type_contains": "api_key", "source_ip_seen_before": False},
+        fp=[
+            "An administrator working from home or a new office for the first time",
+            "A CI runner whose egress address rotates",
+        ],
+        playbook="tpl-account-compromise",
+        description=(
+            "An API-key action on a model provider arrived from an address this tenant has "
+            "never been seen to use. A provider key is a bearer credential with no device "
+            "binding and no MFA, so where it is used from is most of what is knowable about "
+            "who is holding it."
+        ),
+        positive={
+            "source": "llm_usage",
+            "provider": "openai",
+            "stream": "control_plane",
+            "event_type": "openai.api_key.created",
+            "actor": "ada@example.com",
+            "src_ip": "203.0.113.77",
+            "source_ip_seen_before": False,
+        },
+        # Hand-authored: the same action from an address the tenant uses every
+        # day. This is the event an administrator generates on a Tuesday, and
+        # it is the one the rule must stay silent on.
+        negative={
+            "source": "llm_usage",
+            "provider": "openai",
+            "stream": "control_plane",
+            "event_type": "openai.api_key.created",
+            "actor": "ada@example.com",
+            "src_ip": "198.51.100.4",
+            "source_ip_seen_before": True,
+        },
+    ),
+    S(
+        slug="ai-agent-new-high-risk-tool",
+        name="AI Agent Called a State-Changing Tool for the First Time",
+        severity="high",
+        mitre=["t1059"],
+        product="ai_runtime",
+        service="runtime",
+        when={
+            "agent_tool_seen_before": False,
+            "tool_name_in": [
+                "execute_command",
+                "run_shell",
+                "write_file",
+                "delete_file",
+                "send_email",
+                "create_user",
+                "grant_permission",
+                "deploy",
+                "terraform_apply",
+                "database_write",
+            ],
+        },
+        fp=[
+            "A newly deployed agent whose tool set legitimately widened in the same release",
+            "An engineer testing a new capability in a development tenant",
+        ],
+        playbook="tpl-privilege-escalation",
+        description=(
+            "An agent invoked a tool that changes an estate, and this tenant has never seen "
+            "that agent call that tool before. The pair is the subject, not either half: a "
+            "tool somebody else has called, or an agent that has called something, are "
+            "different and much weaker questions."
+        ),
+        positive={
+            "source": "ai_gateway",
+            "agent_id": "agent-7f2",
+            "agent_name": "claude",
+            "tool_name": "execute_command",
+            "outcome": "success",
+            "agent_tool_seen_before": False,
+        },
+        # Hand-authored: the same agent calling the same state-changing tool
+        # it calls every hour. Novelty is the signal; the tool alone is not,
+        # and a negative that flipped the tool name would prove the opposite.
+        negative={
+            "source": "ai_gateway",
+            "agent_id": "agent-7f2",
+            "agent_name": "claude",
+            "tool_name": "execute_command",
+            "outcome": "success",
+            "agent_tool_seen_before": True,
+        },
+    ),
+    S(
+        slug="ai-mcp-server-unvetted",
+        name="AI Agent Reached an MCP Server the Tenant Has Not Approved",
+        severity="high",
+        mitre=["t1195"],
+        product="ai_runtime",
+        service="runtime",
+        when={"mcp_server_not_in_allowlist": True},
+        fp=[
+            "A server approved in a change ticket but not yet added to the allowlist",
+            "A rename of an already-approved server",
+        ],
+        playbook="tpl-supply-chain",
+        description=(
+            "An MCP server outside this tenant's approved set answered an agent. An MCP "
+            "server is somebody else's code whose replies land in the prompt that decides "
+            "what the agent does next, so an unreviewed one is an unreviewed input to every "
+            "decision the agent makes. Approval is per tenant and the clause contributes no "
+            "key until a tenant has configured one, so this stays silent rather than firing "
+            "on everything."
+        ),
+        positive={
+            "source": "ai_gateway",
+            "agent_id": "agent-7f2",
+            "server_name": "community-scraper-mcp",
+            "tool_name": "fetch_url",
+            "outcome": "success",
+            "mcp_server_not_in_allowlist": True,
+        },
+        # Hand-authored: the approved server, same agent, same tool. The pair
+        # differs only in which server answered and the allowlist verdict that
+        # follows from it — which are one fact, not two. Changing the tool as
+        # well would make a pass unattributable, which the pack's own
+        # attributability test refuses.
+        negative={
+            "source": "ai_gateway",
+            "agent_id": "agent-7f2",
+            "server_name": "github-mcp",
+            "tool_name": "fetch_url",
+            "outcome": "success",
+            "mcp_server_not_in_allowlist": False,
+        },
+    ),
+    S(
+        slug="ai-coding-agent-prompts-disabled",
+        name="Coding Agent Started With Its Permission Prompts Disabled",
+        severity="high",
+        mitre=["t1059"],
+        product="osquery",
+        service="processes",
+        when={
+            "name_in": ["claude", "codex", "aider", "goose", "gemini", "cline", "opencode"],
+            "cmdline_contains_any": [
+                "--dangerously-skip-permissions",
+                "--yolo",
+                "--auto-approve",
+                "--no-confirm",
+                "--yes-always",
+                "--full-auto",
+            ],
+        },
+        fp=[
+            "A sandboxed container where the agent is deliberately unattended, with a ticket",
+            "An automated evaluation harness run against a disposable checkout",
+        ],
+        playbook="tpl-triage",
+        description=(
+            "A coding agent was started with the flag that stops it asking. Every subsequent "
+            "file write, shell command and network call it makes is unreviewed, so this is "
+            "the single highest-signal attribute endpoint telemetry can supply about an AI "
+            "asset — and it appears nowhere except the command line. Collected by the "
+            "`aisoc-ai-estate` osquery pack through FleetDM or osctrl."
+        ),
+        positive={
+            "source": "fleetdm",
+            "event_type": "osquery_query_row",
+            "hostname": "ada-mbp",
+            "name": "claude",
+            "path": "/usr/local/bin/claude",
+            "cmdline": "claude --dangerously-skip-permissions -p 'refactor the parser'",
+        },
+        # Hand-authored: the same agent, same host, started normally. This is
+        # what the pack returns on nearly every row, and the rule must be
+        # silent on all of them.
+        negative={
+            "source": "fleetdm",
+            "event_type": "osquery_query_row",
+            "hostname": "ada-mbp",
+            "name": "claude",
+            "path": "/usr/local/bin/claude",
+            "cmdline": "claude --resume",
+        },
+    ),
     S(
         slug="ai-agent-tool-call-failed-repeatedly",
         name="AI Agent Tool Call Denied",

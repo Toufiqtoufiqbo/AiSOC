@@ -1,5 +1,5 @@
 {
-  "count": 72,
+  "count": 75,
   "rules": [
     {
       "category": "application",
@@ -30,6 +30,57 @@
       "severity": "medium",
       "threshold": 50,
       "window_seconds": 300
+    },
+    {
+      "category": "application",
+      "group_by": "agent_id",
+      "id": "wd-ai-guardrail-violation-rise",
+      "match_when": {
+        "finding_type_in": [
+          "prompt_injection",
+          "sensitive_data_egress",
+          "excessive_agency",
+          "tool_escalation"
+        ]
+      },
+      "mitre": [
+        "T1059"
+      ],
+      "name": "Guardrail violations rising for one AI agent",
+      "severity": "high",
+      "threshold": 5,
+      "window_seconds": 600
+    },
+    {
+      "category": "application",
+      "group_by": "agent_id",
+      "id": "wd-ai-token-spend-burst",
+      "match_when": {
+        "prompt_tokens_gte": 50000
+      },
+      "mitre": [
+        "T1496"
+      ],
+      "name": "AI agent burning tokens at an unusual rate",
+      "severity": "medium",
+      "threshold": 20,
+      "window_seconds": 600
+    },
+    {
+      "category": "saas",
+      "group_by": "application",
+      "id": "wd-ai-oauth-app-bulk-access",
+      "match_when": {
+        "event_type": "google_workspace_oauth.activity",
+        "oauth_app_not_in_allowlist": true
+      },
+      "mitre": [
+        "T1530"
+      ],
+      "name": "OAuth AI application reading at volume",
+      "severity": "high",
+      "threshold": 500,
+      "window_seconds": 600
     },
     {
       "category": "identity",

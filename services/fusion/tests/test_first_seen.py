@@ -18,7 +18,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from app.services.first_seen import AGE_FIELDS, SEEN_BEFORE_FIELDS, TRACKED_ATTRIBUTES, FirstSeenStore
+from app.services.first_seen import (
+    AGE_FIELDS,
+    COMPOSITE_SEEN_BEFORE_FIELDS,
+    SEEN_BEFORE_FIELDS,
+    TRACKED_ATTRIBUTES,
+    FirstSeenStore,
+)
 
 _REPO = Path(__file__).resolve().parents[3]
 
@@ -126,7 +132,12 @@ def test_the_reachability_gate_mirrors_this_module() -> None:
     assert spec and spec.loader
     gate = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(gate)
-    assert gate._FIRST_SEEN_DERIVED_FIELDS == frozenset(SEEN_BEFORE_FIELDS) | frozenset(AGE_FIELDS)
+    # Composites count too: a boolean the engine can produce and the gate
+    # does not know about is a rule the gate calls unreachable while it fires,
+    # and the reverse is a rule it calls reachable while it cannot.
+    assert gate._FIRST_SEEN_DERIVED_FIELDS == (
+        frozenset(SEEN_BEFORE_FIELDS) | frozenset(AGE_FIELDS) | frozenset(COMPOSITE_SEEN_BEFORE_FIELDS)
+    )
 
 
 def test_the_tracked_attributes_the_plan_names_are_all_keyed() -> None:

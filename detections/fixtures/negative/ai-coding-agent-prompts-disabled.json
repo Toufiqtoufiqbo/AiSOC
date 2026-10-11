@@ -1,0 +1,8 @@
+{
+  "cmdline": "claude --resume",
+  "event_type": "osquery_query_row",
+  "hostname": "ada-mbp",
+  "name": "claude",
+  "path": "/usr/local/bin/claude",
+  "source": "fleetdm"
+}
