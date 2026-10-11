@@ -250,7 +250,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   first failed to fail, because the tests built their own result list instead
   of driving the producer. `analysed` and `unanalysed` are counted separately
   and never summed — in the dataclass, the response model and migration
-  `105`'s column comment — because the sum is the number this product must
+  `111`'s column comment — because the sum is the number this product must
   not publish: five artefacts nothing examined, rendered as "5 artefacts, 0
   findings", says the opposite of what happened. The verdict is only ever
   raised, and SPF **and** DMARC must both fail to raise it, because a

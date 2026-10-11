@@ -742,7 +742,7 @@ async def retriage(
     # exists because something changed, and that is as true of a sandbox that
     # has since seen the URL as of one that has since seen the file. The
     # headers come from the row rather than from a mailbox, which is the
-    # reason migration 105 stores them -- by the time anybody asks why, the
+    # reason migration 111 stores them -- by the time anybody asks why, the
     # purge has usually removed the message.
     prior_hashes = [
         str(i.get("value")) for i in (existing.indicators or []) if isinstance(i, dict) and i.get("kind") == "hash" and i.get("value")

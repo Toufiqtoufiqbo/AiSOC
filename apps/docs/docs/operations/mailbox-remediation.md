@@ -165,7 +165,7 @@ from one where the check passed. The run id comes back on the response as
 `analysis_run_id`, and `None` means the ledger write failed, which is
 reported rather than hidden.
 
-The headers are stored on the submission (migration `105`), so a retriage
+The headers are stored on the submission (migration `111`), so a retriage
 replays them instead of re-fetching the message. That ordering is not
 incidental: by the time anybody asks why a message was purged, the purge has
 usually removed it.

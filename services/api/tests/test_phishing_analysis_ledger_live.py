@@ -180,7 +180,7 @@ async def test_an_unwritable_ledger_returns_none_rather_than_raising(db) -> None
 
 
 @pytest.mark.asyncio
-async def test_the_submission_columns_migration_105_added_accept_the_analysis(db) -> None:
+async def test_the_submission_columns_migration_111_added_accept_the_analysis(db) -> None:
     """The second half of 'which code path writes this': the columns have a writer."""
     submission_id = uuid.uuid4()
     await db.execute(

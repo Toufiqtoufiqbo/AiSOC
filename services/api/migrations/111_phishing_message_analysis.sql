@@ -1,4 +1,4 @@
--- 105_phishing_message_analysis.sql — the headers a reported message carried,
+-- 111_phishing_message_analysis.sql — the headers a reported message carried,
 -- and whether anything actually examined it.
 --
 -- Depth plan 7.2. The submissions table has held an `indicators` JSONB array
