@@ -454,7 +454,6 @@ async def _probe_suppress_alert(target: str, params: dict[str, Any]) -> bool | N
     return await _read_back_finding_state(target, params, expect_closed=True)
 
 
-
 # ---------------------------------------------------------------------------
 # AI-estate containment probes (depth plan 6.6)
 # ---------------------------------------------------------------------------

@@ -53,7 +53,12 @@ export type StepType =
   | "run_av_scan"
   | "run_script"
   | "search_siem"
-  | "create_notable_event";
+  | "create_notable_event"
+  // AI-estate containment (depth 6.6).
+  | "revoke_provider_key"
+  | "revoke_oauth_grant"
+  | "block_ai_key_at_gateway"
+  | "unblock_ai_key_at_gateway";
 
 /**
  * What happens when a step of a given type runs.

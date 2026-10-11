@@ -1,0 +1,155 @@
+{
+  "id": "ai-agent-kill-switch-v1",
+  "name": "AI Agent Kill Switch",
+  "description": "Stop a compromised or runaway AI agent. Ordered least-destructive first: block its key at the gateway (reversible), kill the process on its device, then — only after a human has approved — revoke the provider key and the application's OAuth grant, neither of which can be undone. Every step is graded on its own capability contract at dispatch; approving this playbook does not authorise what its steps contain.",
+  "version": "1.0.0",
+  "author": "AiSOC maintainers",
+  "tags": [
+    "ai-estate",
+    "ai-agent",
+    "containment",
+    "kill-switch",
+    "mitre.t1059",
+    "mitre.t1078"
+  ],
+  "trigger": {
+    "on": "alert",
+    "severity": ["high", "critical"],
+    "tags": ["ai-estate", "ai-agent", "prompt-injection", "excessive-agency", "shadow-ai"]
+  },
+  "enabled": false,
+  "dry_run_support": true,
+  "created_at": "2026-10-11T00:00:00+00:00",
+  "updated_at": "2026-10-11T00:00:00+00:00",
+  "inputs": {
+    "agent_id": {
+      "description": "The agent to stop, as the AI estate inventory records it",
+      "field": "alert.agent_id",
+      "required": true
+    },
+    "gateway_key": {
+      "description": "Virtual key the agent calls through, if it routes via a gateway",
+      "field": "alert.gateway_key",
+      "required": false
+    },
+    "device": {
+      "description": "Device the agent process runs on, from the inventory's HOSTS edge",
+      "field": "alert.hostname",
+      "required": false
+    },
+    "key_id": {
+      "description": "Model-provider key id. Not the secret: the secret never reaches AiSOC",
+      "field": "alert.provider_key_id",
+      "required": false
+    },
+    "client_id": {
+      "description": "OAuth client id of the AI application, where one is involved",
+      "field": "alert.oauth_client_id",
+      "required": false
+    }
+  },
+  "steps": [
+    {
+      "id": "context",
+      "name": "Pull the agent's inventory record: person, device, permissions",
+      "type": "investigate",
+      "params": {
+        "focus": "ai_agent",
+        "agent_id": "{{inputs.agent_id}}"
+      },
+      "on_failure": "continue",
+      "retry_max": 1,
+      "timeout_seconds": 120
+    },
+    {
+      "id": "block_gateway_key",
+      "name": "Block the agent's key at the gateway (reversible)",
+      "type": "block_ai_key_at_gateway",
+      "params": {
+        "gateway_key": "{{inputs.gateway_key}}",
+        "dry_run": "{{dry_run}}"
+      },
+      "condition": "inputs.gateway_key != null",
+      "on_failure": "continue",
+      "retry_max": 1,
+      "timeout_seconds": 30
+    },
+    {
+      "id": "kill_agent_process",
+      "name": "Kill the agent process on its device",
+      "type": "kill_process",
+      "params": {
+        "host": "{{inputs.device}}",
+        "process_name": "{{inputs.agent_id}}",
+        "dry_run": "{{dry_run}}"
+      },
+      "condition": "inputs.device != null",
+      "on_failure": "continue",
+      "retry_max": 0,
+      "timeout_seconds": 60
+    },
+    {
+      "id": "notify_owner",
+      "name": "Tell the SOC channel what has been contained so far",
+      "type": "notify",
+      "params": {
+        "channel": "slack",
+        "message_template": "AI kill switch engaged for agent {{inputs.agent_id}}. Gateway key blocked and process killed. Awaiting approval for the irreversible half."
+      },
+      "on_failure": "continue",
+      "retry_max": 1,
+      "timeout_seconds": 20
+    },
+    {
+      "id": "approve_irreversible",
+      "name": "Human approval before anything irreversible",
+      "type": "approval",
+      "params": {
+        "prompt": "Revoke the provider key and the application's OAuth grant? Neither can be undone by AiSOC: a revoked key has no un-delete, and a re-granted OAuth consent is the user consenting again in their own browser. Everything reversible has already been done.",
+        "timeout_seconds": 3600
+      },
+      "on_failure": "abort",
+      "retry_max": 0,
+      "timeout_seconds": 3600
+    },
+    {
+      "id": "revoke_provider_key",
+      "name": "Revoke the model-provider key (irreversible)",
+      "type": "revoke_provider_key",
+      "params": {
+        "key_id": "{{inputs.key_id}}",
+        "dry_run": "{{dry_run}}"
+      },
+      "condition": "inputs.key_id != null",
+      "on_failure": "continue",
+      "retry_max": 0,
+      "timeout_seconds": 30
+    },
+    {
+      "id": "revoke_oauth_grant",
+      "name": "Revoke the AI application's OAuth grant (irreversible)",
+      "type": "revoke_oauth_grant",
+      "params": {
+        "client_id": "{{inputs.client_id}}",
+        "dry_run": "{{dry_run}}"
+      },
+      "condition": "inputs.client_id != null",
+      "on_failure": "continue",
+      "retry_max": 0,
+      "timeout_seconds": 30
+    },
+    {
+      "id": "record",
+      "name": "Record what was contained, and what was not",
+      "type": "create_ticket",
+      "params": {
+        "title": "AI agent kill switch: {{inputs.agent_id}}",
+        "description": "Gateway key blocked, process killed, provider key and OAuth grant revoked where present. A step whose condition was false did not run and nothing here should be read as it having succeeded.",
+        "priority": "high"
+      },
+      "on_failure": "continue",
+      "retry_max": 1,
+      "timeout_seconds": 30
+    }
+  ]
+}

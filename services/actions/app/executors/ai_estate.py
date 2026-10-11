@@ -61,8 +61,7 @@ logger = structlog.get_logger()
 ENABLE_FLAG = "AISOC_AI_CONTAINMENT_ENABLED"
 
 _SIM_NOTE = (
-    "Simulation mode — provide the provider or gateway credentials in the "
-    "action parameters to enable live execution." + _SIM_FUNNEL_CTA
+    "Simulation mode — provide the provider or gateway credentials in the action parameters to enable live execution." + _SIM_FUNNEL_CTA
 )
 
 

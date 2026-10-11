@@ -61,6 +61,10 @@ const VALID_PARAMS: Record<StepType, Record<string, unknown>> = {
   run_script: { host: 'web-prod-04', script_name: 'collect-persistence' },
   search_siem: { query: 'index=proxy dest_ip=203.0.113.10' },
   create_notable_event: { title: 'Credential access on web-prod-04' },
+  revoke_provider_key: { key_id: 'key_abc123' },
+  revoke_oauth_grant: { client_id: '9988.apps.googleusercontent.com' },
+  block_ai_key_at_gateway: { gateway_key: 'sk-litellm-abc' },
+  unblock_ai_key_at_gateway: { gateway_key: 'sk-litellm-abc' },
   wait: { until: 'timer', seconds: 300 },
   parallel: { join: 'all' },
   loop: { over: 'sessions' },
@@ -106,6 +110,10 @@ const TARGET_KEY: Record<StepType, string | null> = {
   force_mfa: 'user',
   search_siem: 'query',
   create_notable_event: 'title',
+  revoke_provider_key: 'key_id',
+  revoke_oauth_grant: 'client_id',
+  block_ai_key_at_gateway: 'gateway_key',
+  unblock_ai_key_at_gateway: 'gateway_key',
   // Control flow acts on child steps, not on a host or a principal, so
   // there is no scalar target for `_resolve_target` to look for.
   wait: null,
