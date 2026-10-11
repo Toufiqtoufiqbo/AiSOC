@@ -40,13 +40,13 @@ from uuid import uuid4
 import structlog
 
 from app.executors import siem
-from app.executors.base import BaseExecutor
 from app.executors.ai_estate import (
     BlockAIKeyAtGatewayExecutor,
     RevokeOAuthGrantExecutor,
     RevokeProviderKeyExecutor,
     UnblockAIKeyAtGatewayExecutor,
 )
+from app.executors.base import BaseExecutor
 from app.executors.chatops import ChatOpsVerifyExecutor
 from app.executors.endpoint import (
     CaptureForensicsExecutor,

@@ -29,7 +29,6 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-import httpx
 import pytest
 import respx
 from app.clients.ai_estate_client import AIEstateError, AIGatewayKeyClient, AIOAuthGrantClient, AIProviderKeyClient

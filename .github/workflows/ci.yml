@@ -732,6 +732,17 @@ jobs:
         run: python3 scripts/check_ai_provider_coverage.py --self-test
       - name: AI provider coverage gate
         run: python3 scripts/check_ai_provider_coverage.py
+      # Depth 6.6. These are the first response verbs that reach a customer's
+      # model-provider account rather than a security product they connected
+      # for the purpose, and two of them cannot be undone by anybody. OFF is
+      # the rule that earns the gate: a disabled containment must *refuse*,
+      # not report a simulated success — NotifySlackExecutor reported
+      # message_sent: true on a send that never happened, and the same shape
+      # behind an irreversible verb is an operator who stops looking.
+      - name: AI containment gate — self-test
+        run: python3 scripts/check_ai_containment.py --self-test
+      - name: AI containment gate
+        run: python3 scripts/check_ai_containment.py
       # One layer in from the name: the profile gate asks whether a connector
       # reaches a normalization path, this asks which OCSF class it reaches
       # when it gets there. The class uid divided by a thousand is the
