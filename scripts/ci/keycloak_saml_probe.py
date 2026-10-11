@@ -85,6 +85,14 @@ UNTRUSTED_REALM = "aisoc-ci-untrusted"
 # landed is only meaningful for a role that is not the default.
 MAPPED_ROLE = "infosec"
 
+# Written into `display_name` so a re-run can find and clear the row it
+# left behind, whatever issuer that run used.
+CONNECTION_MARKER = "Containerised Keycloak"
+
+# Every tenant this probe creates is slugged with it, so a re-run can
+# remove its own leftovers and nothing else.
+TENANT_SLUG_PREFIX = "kc-probe-"
+
 
 def _dsn() -> str:
     value = (os.environ.get("ISOLATION_SSO_DSN") or os.environ.get("DATABASE_URL") or "").strip()
@@ -148,29 +156,89 @@ def _hidden_field(html: str, name: str) -> str | None:
     return unescape(match.group(1)) if match else None
 
 
+class _Cookies:
+    """The hop's own cookie store, because the stock one cannot do this.
+
+    Keycloak sets `AUTH_SESSION_ID`, `KC_RESTART` and
+    `KC_AUTH_SESSION_HASH` with `SameSite=None` — SAML's POST binding is
+    cross-site by design — and the cookie specification requires
+    `SameSite=None` to be paired with `Secure`. It does so whatever the
+    realm's `sslRequired` says, so there is no Keycloak setting that
+    turns it off.
+
+    Python's `http.cookiejar` then refuses to return a `Secure` cookie
+    over `http://`. Browsers make an exception for loopback, which they
+    treat as a trustworthy origin, and that exception is the only reason
+    anybody can run Keycloak's dev mode at all. `httpx` offers no way to
+    supply that rule: `Client._merge_cookies` rebuilds the jar with the
+    default policy on every outgoing request, so a custom
+    `CookiePolicy` is silently discarded and the symptom is Keycloak's
+    "cookies are disabled in your browser".
+
+    Carrying the cookies explicitly is not a more capable fake — it is
+    the browser behaviour Keycloak is relying on, written out. Nothing
+    about AiSOC is stubbed by it.
+    """
+
+    def __init__(self) -> None:
+        self._jar: dict[str, str] = {}
+
+    def absorb(self, response: httpx.Response) -> None:
+        for raw in response.headers.get_list("set-cookie"):
+            name, _, rest = raw.partition("=")
+            value = rest.split(";", 1)[0]
+            self._jar[name.strip()] = value
+
+    def header(self) -> dict[str, str]:
+        if not self._jar:
+            return {}
+        return {"Cookie": "; ".join(f"{k}={v}" for k, v in self._jar.items())}
+
+
+def _follow(client: httpx.Client, cookies: _Cookies, response: httpx.Response, *, limit: int = 10) -> httpx.Response:
+    """Walk redirects by hand, absorbing cookies at every hop.
+
+    `follow_redirects=True` would hide the intermediate `Set-Cookie`
+    headers from the store above, which is where Keycloak puts the
+    session it then asks for back.
+    """
+    for _ in range(limit):
+        cookies.absorb(response)
+        if response.status_code not in (301, 302, 303, 307, 308):
+            return response
+        location = response.headers.get("location", "")
+        if not location:
+            return response
+        response = client.get(str(response.url.join(location)), headers=cookies.header())
+    raise KeycloakError("Keycloak redirected more times than a sign-in should need")
+
+
 def browser_hop(sso_redirect_url: str) -> tuple[str, str]:
     """Walk Keycloak's login page the way a browser would.
 
     Returns `(SAMLResponse, RelayState)` exactly as the auto-submitting
     form Keycloak answers with carries them.
     """
-    with httpx.Client(timeout=30, follow_redirects=True) as browser:
-        page = browser.get(sso_redirect_url)
+    cookies = _Cookies()
+    with httpx.Client(timeout=30, follow_redirects=False) as browser:
+        page = _follow(browser, cookies, browser.get(sso_redirect_url))
         if page.status_code != 200:
             raise KeycloakError(f"Keycloak did not render a login page: {page.status_code} {page.text[:300]}")
 
         action = _form_action(page.text, needle="kc-form-login")
-        posted = browser.post(
-            action,
-            data={"username": USERNAME, "password": PASSWORD, "credentialId": ""},
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        posted = _follow(
+            browser,
+            cookies,
+            browser.post(
+                action,
+                data={"username": USERNAME, "password": PASSWORD, "credentialId": ""},
+                headers={**cookies.header(), "Content-Type": "application/x-www-form-urlencoded"},
+            ),
         )
 
         saml_response = _hidden_field(posted.text, "SAMLResponse")
         if not saml_response:
-            raise KeycloakError(
-                "Keycloak did not answer the login with a SAMLResponse. Its reply began: " + posted.text[:400]
-            )
+            raise KeycloakError("Keycloak did not answer the login with a SAMLResponse. Its reply began: " + posted.text[:400])
         return saml_response, (_hidden_field(posted.text, "RelayState") or "")
 
 
@@ -181,6 +249,11 @@ async def _seed_connection(dsn: str, *, issuer: str, metadata_xml: str) -> uuid.
     because that route needs an authenticated administrator, and minting
     one here would make the probe depend on the very login it is proving.
     The row's shape is the route's shape, pinned by the route's own tests.
+
+    Idempotent for the same reason the Keycloak bootstrap is: a retried
+    step, or a second run against a database that is not fresh, must not
+    fail on the deployment-wide unique index over `issuer`. A failure here
+    reads as "SAML is broken" when it only means "this ran twice".
     """
     import sqlalchemy
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -190,9 +263,29 @@ async def _seed_connection(dsn: str, *, issuer: str, metadata_xml: str) -> uuid.
     tenant_id = uuid.uuid4()
     try:
         async with maker() as session:
+            # `users.email` is unique across the whole deployment, so the
+            # account a previous run provisioned would make
+            # `complete_sso_login` fail on its insert — a collision
+            # between two runs, reported as a broken sign-in.
+            #
+            # The *user* is removed and the tenant is left behind, on
+            # purpose. Deleting the tenant cascades into `audit_log`,
+            # whose trigger refuses a DELETE outright (migration `101`),
+            # so a probe that tidied up properly would be refused by the
+            # immutability control — correctly. `audit_log.actor_id` is
+            # `ON DELETE SET NULL`, which is why removing the user is
+            # allowed where removing the tenant is not.
+            await session.execute(
+                sqlalchemy.text("DELETE FROM users WHERE email = :e"),
+                {"e": EMAIL},
+            )
             await session.execute(
                 sqlalchemy.text("INSERT INTO tenants (id, name, slug) VALUES (:i, :n, :s)"),
-                {"i": tenant_id, "n": f"kc-{tenant_id.hex[:8]}", "s": f"kc-{tenant_id.hex[:8]}"},
+                {
+                    "i": tenant_id,
+                    "n": f"{TENANT_SLUG_PREFIX}{tenant_id.hex[:8]}",
+                    "s": f"{TENANT_SLUG_PREFIX}{tenant_id.hex[:8]}",
+                },
             )
             # The table's `WITH CHECK` has no null escape: a tenant
             # configures its own connection, so this write binds the
@@ -203,18 +296,39 @@ async def _seed_connection(dsn: str, *, issuer: str, metadata_xml: str) -> uuid.
                 sqlalchemy.text("SELECT set_config('app.current_tenant_id', :t, FALSE)"),
                 {"t": str(tenant_id)},
             )
+            # The delete is unbound on purpose: a leftover row from an
+            # earlier run belongs to a tenant this session is not bound
+            # to, so a bound delete would match nothing and the insert
+            # below would still collide.
+            #
+            # Matched on the marker as well as the issuer. A previous run
+            # against a different `KEYCLOAK_URL` left a row under a
+            # *different* issuer, and `resolve_saml_connection` then
+            # correctly refuses to guess between two providers — so the
+            # probe would fail with "no connection configured" for a
+            # reason that is not a defect.
+            await session.execute(sqlalchemy.text("SELECT set_config('app.current_tenant_id', '', FALSE)"))
+            await session.execute(
+                sqlalchemy.text("DELETE FROM aisoc_sso_connections WHERE issuer = :i OR display_name = :marker"),
+                {"i": issuer, "marker": CONNECTION_MARKER},
+            )
+            await session.execute(
+                sqlalchemy.text("SELECT set_config('app.current_tenant_id', :t, FALSE)"),
+                {"t": str(tenant_id)},
+            )
             await session.execute(
                 sqlalchemy.text("""
                     INSERT INTO aisoc_sso_connections
                         (tenant_id, provider, issuer, display_name, enabled,
                          group_role_mapping, default_role, metadata_xml)
-                    VALUES (:t, 'saml', :iss, 'Containerised Keycloak', TRUE,
+                    VALUES (:t, 'saml', :iss, :marker, TRUE,
                             CAST(:map AS jsonb), 'viewer', :xml)
                 """),
                 {
                     "t": tenant_id,
                     "iss": issuer,
                     "map": f'{{"{GROUP}": "{MAPPED_ROLE}"}}',
+                    "marker": CONNECTION_MARKER,
                     "xml": metadata_xml,
                 },
             )
