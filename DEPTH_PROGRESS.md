@@ -462,7 +462,30 @@ invented fields on the first run of the gate.
 ## Phase 9: Analyst surfaces
 
 - [ ] **9.1** MCP over streamable HTTP (parity 6.6)
-- [ ] **9.2** Semantic memory (parity 6.5)
+- [x] **9.2** Semantic memory (parity 6.5). All three bullets of parity 6.5
+  closed, and the third one — "replay shows the accuracy delta" — produced a
+  result that changed the design rather than confirming it. `aisoc_memory_items`
+  (migration `105`) is the store of record for past cases, runbooks and
+  institutional memory; Qdrant is an index over it, reached through its REST
+  API so this service gains no dependency and its lockfile does not move.
+  Every item carries an author, a source, a scope, an expiry and a state, and
+  the author is the **authenticated principal**, never the body — provenance a
+  caller can set is not provenance. Two claims about one subject suspend
+  **both** sides and recall returns neither until an analyst settles it;
+  preferring the newer one silently restores a bad entry the next time the job
+  that wrote it runs, which is the case the feature exists for. Recall is
+  tenant-scoped in the Qdrant filter itself and `search()` **raises** rather
+  than offering an unscoped branch. With no embedding backend recall is 503
+  with the reason, never an empty list. `kind='case'` is written automatically
+  by the case-closure path, so the half of the "exists unwired" family that
+  reachability analysis cannot see — a table every surface reads and nothing
+  writes — does not apply. Measured by
+  `scripts/score_memory_recall.py` (12 hand-authored low-overlap probes,
+  mean lexical overlap 0.166, `is_synthetic: true`); its self-test is wired
+  into `ci.yml :: python-lint`. 17 new tests, api suite +17. Live end to end
+  against real Postgres 16, real Qdrant v1.7.0 and a real embedding backend,
+  recorded in the PR. **The measurement is published as it came out, and it is
+  unflattering:** see D11.
 - [x] **9.3** Case depth (parity 5.6 remainder). All four open bullets.
   **Alert merge needed no schema at all**: `is_merged`, `parent_alert_id` and
   `child_alert_ids` have been on `alerts` since migration 001 with the ORM
@@ -491,31 +514,6 @@ invented fields on the first run of the gate.
   web). The live suite earned its keep immediately: it caught that
   `aisoc_cases.alert_ids` is `uuid[]` while the two columns beside it are
   JSONB, which a stand-in would have accepted.
-- [x] **9.2** Semantic memory (parity 6.5). All three bullets of parity 6.5
-  closed, and the third one — "replay shows the accuracy delta" — produced a
-  result that changed the design rather than confirming it. `aisoc_memory_items`
-  (migration `105`) is the store of record for past cases, runbooks and
-  institutional memory; Qdrant is an index over it, reached through its REST
-  API so this service gains no dependency and its lockfile does not move.
-  Every item carries an author, a source, a scope, an expiry and a state, and
-  the author is the **authenticated principal**, never the body — provenance a
-  caller can set is not provenance. Two claims about one subject suspend
-  **both** sides and recall returns neither until an analyst settles it;
-  preferring the newer one silently restores a bad entry the next time the job
-  that wrote it runs, which is the case the feature exists for. Recall is
-  tenant-scoped in the Qdrant filter itself and `search()` **raises** rather
-  than offering an unscoped branch. With no embedding backend recall is 503
-  with the reason, never an empty list. `kind='case'` is written automatically
-  by the case-closure path, so the half of the "exists unwired" family that
-  reachability analysis cannot see — a table every surface reads and nothing
-  writes — does not apply. Measured by
-  `scripts/score_memory_recall.py` (12 hand-authored low-overlap probes,
-  mean lexical overlap 0.166, `is_synthetic: true`); its self-test is wired
-  into `ci.yml :: python-lint`. 17 new tests, api suite +17. Live end to end
-  against real Postgres 16, real Qdrant v1.7.0 and a real embedding backend,
-  recorded in the PR. **The measurement is published as it came out, and it is
-  unflattering:** see D11.
-- [ ] **9.3** Case depth (parity 5.6 remainder)
 - [ ] **9.4** War rooms
 - [ ] **9.5** Hunt to report
 - [ ] **9.6** Native responder
