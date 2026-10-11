@@ -1,4 +1,4 @@
--- 104_phishing_campaigns.sql — reported-message intake, campaign grouping and
+-- 110_phishing_campaigns.sql — reported-message intake, campaign grouping and
 -- the per-recipient purge ledger.
 --
 -- Depth plan 7.1 (gap-closure Phase 10, parity 6.4). Phishing submissions have

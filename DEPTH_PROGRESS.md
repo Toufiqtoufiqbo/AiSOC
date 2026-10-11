@@ -58,17 +58,34 @@ is written. Next free at capture: migration `095`, ADR `0010`
 | ADR `0010` | 2.7 — entity and session context in CORE | **landed**, `docs/decisions/0010-entity-and-session-context-in-core.md`, accepted |
 | migration `102` | 2.4 — `102_sessions.sql` | claimed |
 | migration `103` | 2.5 — `103_posture_snapshots.sql` | claimed |
-| migration `104` | 7.1 — `104_phishing_campaigns.sql` | claimed |
-| migration `105` | 7.2 — `105_phishing_message_analysis.sql` | claimed |
+| migration `104` | 9.1 — `104_mcp_access.sql` | claimed |
+| migration `105` | 9.2 — `105_semantic_memory.sql` | claimed |
+| migration `106` | 9.3 — `106_case_depth.sql` | claimed |
+| migration `107` | 9.4 — `107_case_war_rooms.sql` | claimed |
+| migration `108` | 9.5 — `108_hunt_reports.sql` | claimed |
+| migration `109` | 9.6 — `109_push_devices.sql` | claimed |
+| migration `110` | 7.1 — `110_phishing_campaigns.sql` | claimed |
+| migration `111` | 7.2 — `111_phishing_message_analysis.sql` | claimed |
 
 Highest migration on `main` at claim time was `101_audit_immutable_nullify.sql`,
 so `095`--`101` were taken by sibling lanes between the capture above and this
 claim; re-read `services/api/migrations/` rather than trusting the capture row.
 
-Phase 7 re-read `services/api/migrations/` on 2026-10-11 before claiming: the
-highest on `main` was still `101_audit_immutable_nullify.sql`, and `102`/`103`
-were held by the rows above, so `104` and `105` were the first free pair. 7.3
-is detection content and claims no number.
+Phase 9 re-read `services/api/migrations/` on 2026-10-11 before claiming:
+`101_audit_immutable_nullify.sql` was still the highest on `main`, and `102`
+and `103` were already spoken for in the table above, so Phase 9 takes `104`
+through `109`, one per item. A number left unused at the end of the phase is
+released by striking its row rather than by silently leaving a gap.
+
+Phase 7 claimed `104` and `105` on the same day and **lost the race**: Phase 9
+merged to `main` first, so Phase 7 renumbered to `110` and `111` rather than
+leaving two files with one number each. Both lanes re-read the directory
+before claiming and both read `101`, which is the shape a claim table cannot
+prevent on its own — the table is the tiebreak, and whoever lands second
+moves. Recorded because the next lane will hit it too: re-read
+`DEPTH_PROGRESS.md` on `origin/main`, not only the migrations directory, and
+expect to renumber if a sibling merged between the claim and the pull
+request.
 
 ## Phase 0: Kickoff
 
