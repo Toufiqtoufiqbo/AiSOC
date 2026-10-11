@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.core.logging import configure_logging, logger
 from app.memory.provider import MemoryPriorProvider
 from app.services import ioc_match
+from app.services.agent_baseline import AgentBaselineRecorder
 from app.services.ai_asset_recorder import AiAssetRecorder
 from app.services.alert_enricher import AlertEnricher
 from app.services.alert_sink import AlertSink
@@ -144,6 +145,10 @@ async def lifespan(app: FastAPI):
     # capturing `sink._pool` eagerly would capture None and silently drop
     # every sighting for the life of the process.
     ai_assets = AiAssetRecorder(lambda: sink._pool) if sink is not None else None
+    # Depth 6.4 — per-agent baselines, sharing the same pool for the same
+    # reason and constructed here so the consumer's reference is not None on
+    # every deployment.
+    agent_baselines = AgentBaselineRecorder(lambda: sink._pool) if sink is not None else None
 
     worker = FusionWorker(
         engine,
@@ -160,6 +165,7 @@ async def lifespan(app: FastAPI):
         overlays=OverlayCache(_overlay_pool()),
         ueba_cache=ueba_cache,
         ai_assets=ai_assets,
+        agent_baselines=agent_baselines,
     )
     set_worker(worker)
 

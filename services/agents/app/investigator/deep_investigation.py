@@ -46,7 +46,7 @@ from app.prompting.envelope import system_rule
 from app.prompting.tool_results import unverified_tool_claims
 from app.tools.customer_tools import scoped_customer_tools
 from app.tools.investigation import investigation_tools
-from app.tools.registry import default_registry
+from app.tools.registry import scoped_registry
 
 from .limits import max_completion_tokens
 
@@ -463,7 +463,13 @@ async def run_deep_investigation(
     try:
         model = llm if llm is not None else make_chat_model("investigation", max_tokens=max_completion_tokens())
 
-        registry = default_registry(tenant_id)
+        # Depth 6.4. The investigation agent's own identity bounds which of
+        # the shared built-in tools it may call. Tools registered below are
+        # resolved for this run — a vendor tool for a connector this tenant
+        # connected, an MCP tool from this tenant's own allowlist — and are
+        # granted as they are registered, because each is already governed
+        # where it is resolved.
+        registry = scoped_registry("investigation", tenant_id)
         for tool in investigation_tools(tenant_id):
             registry.register(tool)
 

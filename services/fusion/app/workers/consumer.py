@@ -15,6 +15,7 @@ from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from app.core.config import settings
 from app.core.kafka_security import kafka_client_kwargs
 from app.models.alert import FusionDecision, RawAlert
+from app.services.agent_baseline import AgentBaselineRecorder
 from app.services.ai_asset_recorder import AiAssetRecorder
 from app.services.alert_sink import AlertSink, PersistOutcome, PersistResult
 from app.services.detection_engine import DetectionEngine
@@ -44,6 +45,7 @@ _METRICS = {
     "dead_lettered": 0,
     "errors": 0,
     "ai_assets_observed": 0,
+    "agent_observations": 0,
 }
 
 
@@ -62,6 +64,7 @@ class FusionWorker:
         ueba_cache: UebaSignalCache | None = None,
         overlays: OverlayCache | None = None,
         ai_assets: AiAssetRecorder | None = None,
+        agent_baselines: AgentBaselineRecorder | None = None,
     ) -> None:
         self._engine = engine
         self._sink = sink
@@ -74,6 +77,10 @@ class FusionWorker:
         #: lake writer is: a deployment that passes nothing behaves exactly
         #: as before, and `main.py` passes one on every profile.
         self._ai_assets = ai_assets
+        #: Depth 6.4 — per-agent behavioural baselines, on the same branch and
+        #: for the same reason: a baseline a worker CORE does not start would
+        #: never be written on the deployment most likely to need it.
+        self._agent_baselines = agent_baselines
         #: Per-tenant detection tuning (parity 5.4). Optional, so a
         #: deployment that passes nothing behaves exactly as before.
         self._overlays = overlays
@@ -158,6 +165,8 @@ class FusionWorker:
                     await self._lake.flush_if_stale()
                 if self._ai_assets is not None:
                     await self._ai_assets.flush_if_stale()
+                if self._agent_baselines is not None:
+                    await self._agent_baselines.flush_if_stale()
         except asyncio.CancelledError:  # pragma: no cover — shutdown path
             pass
 
@@ -180,6 +189,8 @@ class FusionWorker:
         # not discard up to 30 seconds of sightings.
         if self._ai_assets is not None:
             await self._ai_assets.flush()
+        if self._agent_baselines is not None:
+            await self._agent_baselines.flush()
         logger.info("Fusion worker stopped", metrics=_METRICS)
 
     async def _consume_loop(self) -> None:
@@ -312,6 +323,9 @@ class FusionWorker:
             # deployment most likely to have an ungoverned AI estate.
             if self._ai_assets is not None:
                 _METRICS["ai_assets_observed"] += await self._ai_assets.observe(payload)
+
+            if self._agent_baselines is not None and await self._agent_baselines.observe(payload):
+                _METRICS["agent_observations"] += 1
 
             # Resolved once and shared by both engines. Parity 5.4: without
             # the overlay the stateless engine evaluated the shared corpus and
