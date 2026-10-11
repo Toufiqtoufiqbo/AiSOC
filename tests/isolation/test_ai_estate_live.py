@@ -36,7 +36,6 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-import asyncpg
 import pytest
 import pytest_asyncio
 
@@ -107,6 +106,15 @@ class _Pool:
 
 
 async def _connect(dsn: str) -> Any:
+    # Imported here rather than at module scope, deliberately and against the
+    # usual rule. `ci.yml`'s offline isolation job installs a minimal
+    # dependency set and collects this whole directory; a module-scope
+    # `import asyncpg` turns a suite that should skip into a **collection
+    # error**, which took all 353 tests in that job down with it. The same
+    # reason keeps the heavy imports inside fixtures in
+    # `tests/isolation/test_scim_live.py`.
+    import asyncpg
+
     return await asyncpg.create_pool(dsn, min_size=1, max_size=2)
 
 
