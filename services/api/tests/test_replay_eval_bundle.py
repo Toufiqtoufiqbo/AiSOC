@@ -163,10 +163,11 @@ def test_a_public_indicator_is_kept_because_it_is_not_the_partners_property() ->
     """The deliberate half of the trade-off, asserted so a change is visible."""
     scores = _item_bundle()["payload"]["scores"]
 
-    # Membership in the list, not a substring of the serialised blob: a
-    # substring test would also pass on `evil.example.com.attacker.test`,
-    # which is a different host and the opposite of what this asserts.
-    assert "evil.example.com" in scores["hallucinated_examples"]
+    # Equality against each element, never `in`: both a substring test over
+    # the serialised blob and a containment test spelled with `in` would
+    # also pass on `evil.example.com.attacker.test`, which is a different
+    # host and the opposite of what this asserts.
+    assert any(example == "evil.example.com" for example in scores["hallucinated_examples"])
 
 
 # --------------------------------------------------------------------------

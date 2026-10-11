@@ -44,6 +44,7 @@ import os
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -96,6 +97,17 @@ class ReplayEvalError(RuntimeError):
 
 
 def _request(method: str, url: str, *, token: str, payload: dict | None = None, timeout: float = 120.0) -> Any:
+    # urllib honours `file://`, `ftp://` and friends, so a base URL that
+    # arrives from a flag or the environment can turn an HTTP client into a
+    # file reader. Refuse anything that is not HTTP(S) before opening it,
+    # rather than trusting the caller to have passed a URL at all.
+    scheme = urllib.parse.urlsplit(url).scheme.lower()
+    if scheme not in ("http", "https"):
+        raise ReplayEvalError(
+            f"refusing to request {url!r}: --api-url must be http:// or https://, got {scheme or 'no'} scheme. "
+            "urllib would otherwise read local files through a file:// URL."
+        )
+
     body = json.dumps(payload).encode("utf-8") if payload is not None else None
     request = urllib.request.Request(url, data=body, method=method)
     request.add_header("Authorization", f"Bearer {token}")
@@ -103,7 +115,13 @@ def _request(method: str, url: str, *, token: str, payload: dict | None = None, 
         request.add_header("Content-Type", "application/json")
 
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310 - operator-supplied base URL
+        # The scheme is checked against an allow-list at the top of this
+        # function, which is the condition the rule exists to ask for. It
+        # matches on the call shape and cannot see a guard, so the
+        # suppression is scoped to this one line: any *other* urlopen added
+        # to this file still fails the scan.
+        # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
+        with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310 - scheme checked above
             raw = response.read().decode("utf-8")
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", "replace")[:400]
