@@ -287,8 +287,7 @@ def command_run(args: argparse.Namespace) -> int:
             raise ReplayEvalError("the completed run carried no score; there is nothing to publish")
     except ReplayEvalError as exc:
         raise ReplayEvalError(
-            f"{exc}\n\nThe run itself is server side and was not lost. Collect it with:\n"
-            f"  make replay-eval ARGS=\"--collect {run_id}\""
+            f'{exc}\n\nThe run itself is server side and was not lost. Collect it with:\n  make replay-eval ARGS="--collect {run_id}"'
         ) from exc
 
     egress = classify_egress(score)

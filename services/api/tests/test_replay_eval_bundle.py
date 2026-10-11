@@ -15,6 +15,7 @@ cannot pass that way.
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 
 import pytest
 from app.services.evidence_bundle import BundleVerificationError, verify_bundle
@@ -278,13 +279,23 @@ def test_a_bundle_with_no_score_is_refused() -> None:
 
 def test_two_bundles_of_one_result_are_byte_identical() -> None:
     """Apart from the generation time, which is pinned here to test the rest."""
-    from datetime import datetime, timezone
+    at = datetime(2026, 10, 11, 12, 0, tzinfo=UTC)
 
-    at = datetime(2026, 10, 11, 12, 0, tzinfo=timezone.utc)
-    kwargs = dict(score=_score(), method=_method(), model={"id": "m"}, items=_items(), signing_key=SIGNING_KEY, generated_at=at)
+    # Spelled out at each call rather than splatted from one dict: a dict of
+    # mixed-typed values widens to a single join type, which costs the
+    # per-argument checking this file otherwise gets for free.
+    def build() -> dict:
+        return build_replay_bundle(
+            score=_score(),
+            method=_method(),
+            model={"id": "m"},
+            items=_items(),
+            signing_key=SIGNING_KEY,
+            generated_at=at,
+        )
 
-    first = build_replay_bundle(**kwargs)
-    second = build_replay_bundle(**kwargs)
+    first = build()
+    second = build()
 
     assert json.dumps(first, sort_keys=True) == json.dumps(second, sort_keys=True)
 

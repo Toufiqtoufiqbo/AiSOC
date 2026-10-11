@@ -182,8 +182,7 @@ def render_table(scorecard: dict[str, Any]) -> str:
     ]
     if winner := scorecard.get("default_model"):
         lines += [
-            f"**Shipped default: `{winner}`.** "
-            + (scorecard.get("default_rationale") or "").strip(),
+            f"**Shipped default: `{winner}`.** " + (scorecard.get("default_rationale") or "").strip(),
             "",
         ]
     lines.append(END)

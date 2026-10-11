@@ -335,7 +335,11 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument("--api-base", default=os.getenv("OPENAI_BASE_URL") or "", help="OpenAI-compatible base URL the model is served at")
-    parser.add_argument("--api-key", default=os.getenv("OPENAI_API_KEY") or "", help="key for that endpoint; local servers accept any non-empty string")
+    parser.add_argument(
+        "--api-key",
+        default=os.getenv("OPENAI_API_KEY") or "",
+        help="key for that endpoint; local servers accept any non-empty string",
+    )
     parser.add_argument("--corpus", type=Path, default=CORPUS)
     parser.add_argument("--out", type=Path, help="write the scorecard JSON here")
     parser.add_argument("--decisions-out", type=Path, help="write the per-item decisions here (stays local by default)")

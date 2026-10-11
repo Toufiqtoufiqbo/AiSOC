@@ -67,7 +67,7 @@ from __future__ import annotations
 import re
 import uuid
 from collections.abc import Mapping, Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from app._vendor.redactor import Pseudonymizer
@@ -170,10 +170,10 @@ class ReplayBundleError(RuntimeError):
 
 
 def _utc_iso(value: datetime | None = None) -> str:
-    moment = value or datetime.now(timezone.utc)
+    moment = value or datetime.now(UTC)
     if moment.tzinfo is None:
-        moment = moment.replace(tzinfo=timezone.utc)
-    return moment.astimezone(timezone.utc).isoformat()
+        moment = moment.replace(tzinfo=UTC)
+    return moment.astimezone(UTC).isoformat()
 
 
 class BundleRedactor:
@@ -386,9 +386,7 @@ def build_replay_bundle(
     deployment and lets two exports of one run agree byte for byte.
     """
     if not score:
-        raise ReplayBundleError(
-            "refusing to build a bundle with no score: an empty aggregate would publish as a run that graded nothing"
-        )
+        raise ReplayBundleError("refusing to build a bundle with no score: an empty aggregate would publish as a run that graded nothing")
 
     # One redactor for the whole bundle, so a host appearing in a rule name,
     # in the reasoning and in an item row is the same token in all three.
