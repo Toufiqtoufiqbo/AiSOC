@@ -1,7 +1,7 @@
 """Observed AI estate: one row per AI asset a tenant actually runs.
 
 Depth plan 6.1. Backs ``/api/v1/ai-assets`` and migration
-``105_ai_assets.sql``; the migration header carries the reasoning for each
+``110_ai_assets.sql``; the migration header carries the reasoning for each
 column and is the thing to read first.
 
 The distinction worth repeating here, because it is what makes the table
