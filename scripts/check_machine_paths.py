@@ -41,7 +41,17 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
+# `scripts/` is on sys.path when this file runs as a program, but not when a
+# test loads it by path with importlib. gate_toolkit sits beside it either way.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from gate_toolkit import repo_root  # noqa: E402
+
+# Resolved through `git rev-parse`, not from `__file__`. Two levels above this
+# script is whatever happens to be there — and `scripts/` copied into an empty
+# repository is exactly that, which is how the first version of this gate
+# reported 253 files clean without ever seeing the product.
+REPO = repo_root()
 
 #: A home directory alone is not the defect, and assuming it was is how the
 #: first draft of this gate produced 288 findings that were all correct
@@ -253,6 +263,26 @@ def main() -> int:
 
     if args.self_test:
         return self_test()
+
+    # Refuse a tree that is not this repository, before scanning it.
+    #
+    # `scanned == 0` is not a strong enough guard: `scripts/` copied into an
+    # empty git repository yields 253 tracked files, and this gate reported
+    # them clean — a pass over a corpus that contains none of the product.
+    # That is the exact shape `No check may report OK over a repository with
+    # no content` exists to catch, and it caught this one.
+    #
+    # Each required input is somewhere a machine path has actually been found
+    # or would land: the services tree, the deployment scripts, and the
+    # compose file a self-hoster runs.
+    missing = [name for name in ("services", "infra", "docker-compose.yml") if not (REPO / name).exists()]
+    if missing:
+        print(
+            "check_machine_paths: FAILED to read the tree: expected input does not exist: "
+            + ", ".join(str(REPO / name) for name in missing),
+            file=sys.stderr,
+        )
+        return 2
 
     result = scan()
     if not result.scanned:
