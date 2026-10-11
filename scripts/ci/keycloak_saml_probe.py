@@ -453,10 +453,15 @@ async def main() -> int:
 
         # 5. The negative control. Same assertion, same connection, one
         #    certificate swapped for a realm this deployment never trusted.
-        untrusted = descriptor.replace(
-            re.search(r"<ds:X509Certificate>([^<]+)</ds:X509Certificate>", descriptor).group(1),
-            _untrusted_certificate(),
-        )
+        trusted_certificate = re.search(r"<ds:X509Certificate>([^<]+)</ds:X509Certificate>", descriptor)
+        if trusted_certificate is None:
+            # `saml_descriptor` already refused a document with no
+            # certificate, so this is unreachable — and saying so beats a
+            # `# type: ignore`, which would also suppress the day the
+            # descriptor's shape changes and the negative control starts
+            # silently comparing a document against itself.
+            raise KeycloakError("the descriptor that signed this assertion carries no certificate to swap")
+        untrusted = descriptor.replace(trusted_certificate.group(1), _untrusted_certificate())
         await _replace_connection_metadata(dsn, issuer=issuer, metadata_xml=untrusted)
         replayed = await app_client.post(
             "/auth/saml/acs",
