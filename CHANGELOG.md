@@ -231,6 +231,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **AI-estate containment and an agent kill switch** (depth plan 6.6). Four
+  verbs — `revoke_provider_key`, `revoke_oauth_grant`,
+  `block_ai_key_at_gateway` and `unblock_ai_key_at_gateway` — each with a
+  capability contract, a live-action adapter, a legacy executor and a
+  verification probe, composed into one kill-switch playbook that approves
+  before anything irreversible.
+
+  **Four verbs rather than three** because the gateway block declares a
+  platform reverse, and a declared reverse that is not itself a dispatchable
+  verb is a rollback path that resolves to nothing — which is what
+  `unisolate_host`, the rollback for the most disruptive action in the
+  product, was for a release.
+
+  **Two of them cannot be undone by anybody**, and that is the vendor's
+  design rather than a gap in ours: neither OpenAI nor Anthropic returns a
+  revoked key's secret, and a re-granted OAuth consent is the user acting in
+  their own browser. Both are `IRREVERSIBLE` and `MANDATORY_HUMAN` — a floor
+  no autonomy tier may lift — and `revoke_provider_key` carries
+  `BlastRadius.CRITICAL` because its subject is every process holding that
+  key, not one person's access. `irreversible` enters the approval-matrix
+  sweep for the first time, pinned as an exact set in both directions.
+
+  **All four ship off**, behind `AISOC_AI_CONTAINMENT_ENABLED`, and a disabled
+  arm returns `FAILED` naming the variable rather than a simulated success.
+  That direction is the lesson from `NotifySlackExecutor`, which reported
+  `message_sent: true` on a send that never happened: a containment that
+  reports success while touching nothing is worse than one that refuses,
+  because the operator stops looking. The kill-switch playbook ships
+  `enabled: false` for the same reason one level up. ADR 0011 records the
+  decision; `scripts/check_ai_containment.py` keeps it.
+
 - **An AI rule pack with hand-authored negatives** (depth plan 6.5). Seven
   detections: a provider key minted or used from an unfamiliar address, an
   agent calling a state-changing tool for the first time, an MCP server the

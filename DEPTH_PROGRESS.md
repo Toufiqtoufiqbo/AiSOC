@@ -605,7 +605,57 @@ substitution `first_seen.py`'s own docstring refuses for `domain_age_days`.
   description; closing it with a plausible-looking ASN substitute would be the
   dishonesty the corpus's own first-seen module docstring warns about. See
   D11.
-- [ ] **6.6** AI containment and kill-switch
+- [x] **6.6** AI containment and kill-switch. Reproduced:
+  `check_ai_containment.py` on the pre-change tree reported every rule failing
+  — no executor module, no contract for any of the four verbs, no probe, no
+  playbook and no ADR. `grep` for `revoke_provider_key` across the tree
+  returned nothing.
+
+  Built four verbs in all six registries (the connectors `Capability` enum,
+  `KNOWN_CAPABILITIES`, `CAPABILITY_CONTRACTS`, `ActionType`,
+  `EXECUTOR_REGISTRY`/adapters and the probe table), four `StepType` members
+  across the engine, the published TypeScript union, the JSON schema and the
+  three editor surfaces the parity gate reads, the
+  `ai-agent-kill-switch` playbook, ADR 0011 and a 7-rule gate. Executor arms
+  79 → 83; actions suite 1,166 → 1,187; playbooks 126 → 127.
+
+  **Four rather than three**, because `block_ai_key_at_gateway` declares a
+  platform reverse and a reverse that is not a dispatchable verb is a rollback
+  path that resolves to nothing — which `unisolate_host` was for a release.
+  The gate's REVERSE rule makes that a rule rather than a comment.
+
+  **Two are irreversible by the vendor's design.** Neither OpenAI nor
+  Anthropic returns a revoked key's secret; a re-granted OAuth consent is the
+  user acting in their own browser. Both are `IRREVERSIBLE` /
+  `MANDATORY_HUMAN`, and `revoke_provider_key` is `BlastRadius.CRITICAL`
+  because its subject is every process holding that key. `irreversible`
+  joined the approval-matrix sweep for the first time; its test now pins the
+  covered tiers as an exact set in both directions so a tier joining is a
+  decision somebody records.
+
+  **Off by default, and the refusal is a failure.** `AISOC_AI_CONTAINMENT_ENABLED`
+  gates every arm, and an unset flag returns `FAILED` naming the variable
+  rather than a simulated success — the `NotifySlackExecutor` lesson, which
+  reported `message_sent: true` on a send that never happened. The kill-switch
+  playbook ships `enabled: false` for the same reason one level up, and the
+  gate's PLAYBOOK rule requires the approval step to precede both irreversible
+  steps so the human is asked only about what cannot be taken back.
+
+  Negative controls: the gate's self-test injects one violation per rule and
+  each is caught, including flipping the disabled result from `FAILED` to
+  `COMPLETED` and deleting the declared reverse. Writing it found two false
+  positives in the gate itself — it looked for the literal flag string inside
+  two functions that correctly reference a module constant, and a PROBES
+  injection that suffixed a name left the substring in place.
+
+  **Honest limit, and the reason the claim row is PARTIAL:** no vendor account
+  exists for any of the four arms. Every endpoint was read from the provider's
+  current published reference (OpenAI project and admin key deletion,
+  Anthropic key status update, Google Workspace token delete, Graph
+  `oauth2PermissionGrants` delete, LiteLLM `/key/block`), and every test drives
+  the real HTTP client against a mock built from the documented response
+  shape. That verifies the request and the parsing. It does not verify the
+  effect on a real tenant, and no probe has ever read a real revoked key.
 
 ## Phase 7: Phishing operations
 
@@ -645,6 +695,7 @@ substitution `first_seen.py`'s own docstring refuses for `domain_age_days`.
 | 2026-10-09 | 3.3 | Identity privilege (18 rules) and a per-tenant first-seen store (2) built; 5 rules were never unreachable (gate operator drift, D9); 18 retired with a reason (D10). `MAX_UNREACHABLE` 45 → 2, the two remaining both needing the 3.4 baseline. Two matcher operators three shipped rules already used were implemented. |
 | 2026-10-09 | 3.2 | Ordered and unordered sequences in the windowed engine; all four translatable Sigma correlation types compile, seven refusal reasons recorded. No upstream correlation rule exists in this tree to import (D8), so the corpus is first-party and labelled as such. |
 | 2026-10-09 | 4.1 | Reproduced: `check_cloud_native_collection.py` on the unmodified tree reported all three collection paths absent. Implemented `aws_cloudtrail_s3` (SQS-notified S3 objects; management events, data events and VPC flow logs; delete-after-emit), `gcp_pubsub` (REST pull on a log-sink subscription; ack-after-read) and `azure_event_hubs` (Capture blobs over the Data Lake Gen2 JSON API, with a focused Avro OCF reader). Negative controls recorded in the PR: deleting the SQS message before the object is read, acknowledging the Pub/Sub batch before it is built, ignoring the Avro union branch index, and ignoring the flow-log header line each fail a named test, and all were restored. Connectors suite 1014 -> 1098 passed. |
+| 2026-10-11 | 6.6 | Reproduced: the new gate failed every rule — no executor, no contract, no probe, no playbook, no ADR. Built four verbs across six registries plus four `StepType` members and the three editor surfaces, the kill-switch playbook (approval before the irreversible half, `enabled: false`), ADR 0011 and a 7-rule gate. Arms 79 → 83, actions suite 1,166 → 1,187. `irreversible` entered the approval-matrix sweep for the first time. Writing the gate found two false positives in itself. PARTIAL: no vendor account exists, so every arm is verified at the request and not at the effect. |
 | 2026-10-11 | 6.5 | Reproduced: none of the seven abuses the plan names was detectable — the eight existing `ai-*` rules all fire on a `finding_type` a guardrail already decided. Added four stateless and three windowed rules with hand-authored fixtures on both sides. Executable 2,511 → 2,515, windowed 72 → 75, fusion suite 700 → 722, strict replay 6,995 validated / 0 failed. The attributability test fired during authoring and tightened one negative. One deviation recorded (D11): ASN novelty is not reachable from the match namespace, so the rule keys on a new source address and says so. |
 | 2026-10-11 | 6.3 | Reproduced: five of seven providers absent. Added Gemini in Workspace, Workspace OAuth grants, M365 Copilot, Entra consent and GitHub Copilot, every endpoint fetched from the vendor's current reference first. 15 new tests asserting the request shape as well as the result; connectors suite 1,126 -> 1,141. Three findings from reading the references (blob references not records; `AIAppInteraction` is Microsoft's own word for undeployed third-party AI; `app_name` means two things across the two Google streams). PARTIAL: no funded account exists with any of the seven, recorded per provider as `not measured` rather than as a zero. |
 | 2026-10-11 | 6.2 | Reproduced: 13 of 16 new cases failed, driving the shapes the four endpoint connectors actually emit. Root cause was 6.1's endpoint branch reading `process.name` off OCSF, which the canonical profile never populates — it found `None` on every real source while its own tests passed. Fixed by reconstructing the connector namespace. Shipped the osquery pack (5 queries, packs 5 -> 6), the source-capability table, the operator doc and a 6-rule gate. Fusion suite 683 -> 700. Claim row is PARTIAL: no osquery agent runs in CI, and the EDR connectors return vendor detections rather than process telemetry, so the plan's "CrowdStrike, Defender, SentinelOne" wording is not satisfiable with these connectors. |
