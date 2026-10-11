@@ -1,0 +1,86 @@
+{
+  "baselines_note": "Four classes, so a constant answer scores 0.250 balanced accuracy and 0.500 plain accuracy. Both are printed beside every row because a score is only readable against the thing it has to beat.",
+  "commit": "9449d4c3",
+  "comparability": [
+    "Both rows graded the same corpus digest through the same production triage path, 72 model calls each, zero provider errors.",
+    "Latency is NOT comparable between these two rows and is excluded from the decision: the 3B ran CPU-bound inside the stack container and the 8B ran GPU-accelerated on the host. The figure is kept per row because dropping it would hide the asymmetry rather than state it.",
+    "resolved_models came back empty for every decision, so per-decision model attribution is unverified even though the calls were placed and answered. The count of calls is measured; the attribution is not."
+  ],
+  "corpus": {
+    "classes": {
+      "benign": 18,
+      "benign_true_positive": 10,
+      "false_positive": 8,
+      "true_positive": 36
+    },
+    "constant_answer_ceiling": 0.25,
+    "digest": "sha256:ec60d7bddabcc5b28d8942cea52d770bd8a2d13b93396826a6deab1dcba6aa86",
+    "items": 72,
+    "majority_class_plain_accuracy": 0.5,
+    "name": "verdict_corpus_v1",
+    "pairs": 36
+  },
+  "default_model": "llama3.2:3b-instruct-q4_K_M",
+  "default_rationale": "Chosen strictly by score, and the score says do not move. The 8B candidate loses on balanced accuracy (0.279 against 0.285), which is the metric this corpus was built to make meaningful, and its auto-close precision falls to 0.091 -- a model that wrongly closes nine alerts in ten it chooses to close is more dangerous in this product than one that catches fewer. It does halve false negatives, which is a real gain and is why the row stays published rather than deleted. The honest reading is that neither model is good at this: both sit barely above the 0.250 a constant answer scores and below the 0.500 plain accuracy of always guessing the majority class, so the next move is the verdict path and the prompt, not a larger model.",
+  "entries": [
+    {
+      "abstention_rate": 0.0,
+      "auto_close_considered": 7,
+      "auto_close_precision": 0.5714285714285714,
+      "balanced_accuracy": 0.28541666666666665,
+      "corpus_digest": "sha256:ec60d7bddabcc5b28d8942cea52d770bd8a2d13b93396826a6deab1dcba6aa86",
+      "corpus_items": 72,
+      "decisions_errored": 0,
+      "expected_calibration_error": 0.441667,
+      "false_negatives": 27,
+      "hallucination_rate": 0.0,
+      "headline_accuracy": 0.3194444444444444,
+      "llm_calls_placed": 72,
+      "malicious_precision": 0.5,
+      "malicious_recall": 0.25,
+      "malicious_support": 36,
+      "matthews_corrcoef": 0.046864498582862235,
+      "measured_at": "2026-10-10",
+      "mode": "live",
+      "model": "llama3.2:3b-instruct-q4_K_M",
+      "note": "Incumbent. Retained: see default_rationale.",
+      "role": "shipped default",
+      "served_on": "CPU, in-stack container",
+      "time_to_verdict_p50_ms": 11188.0,
+      "total_tokens": 70983
+    },
+    {
+      "abstention_rate": 0.0,
+      "auto_close_considered": 11,
+      "auto_close_precision": 0.09090909090909091,
+      "balanced_accuracy": 0.2791666666666667,
+      "corpus_digest": "sha256:ec60d7bddabcc5b28d8942cea52d770bd8a2d13b93396826a6deab1dcba6aa86",
+      "corpus_items": 72,
+      "decisions_errored": 0,
+      "expected_calibration_error": 0.420833,
+      "false_negatives": 13,
+      "hallucination_rate": 0.0,
+      "headline_accuracy": 0.4166666666666667,
+      "llm_calls_placed": 72,
+      "malicious_precision": 0.6571428571428571,
+      "malicious_recall": 0.6388888888888888,
+      "malicious_support": 36,
+      "matthews_corrcoef": 0.11329558957744541,
+      "measured_at": "2026-10-10",
+      "mode": "live",
+      "model": "llama3:8b",
+      "note": "Doubles malicious recall and halves false negatives, but auto-close precision collapses from 0.571 to 0.091 and balanced accuracy does not improve.",
+      "role": "7B-8B candidate",
+      "served_on": "GPU, host Ollama",
+      "time_to_verdict_p50_ms": 1546.0,
+      "total_tokens": 74808
+    },
+    {
+      "measured": false,
+      "model": "any hosted provider (GPT-4o class)",
+      "not_measured_reason": "no funded key exists in this repository, and no hosted provider has ever been exercised"
+    }
+  ],
+  "generated_from": "scripts/run_verdict_eval.py",
+  "schema_version": "1.0"
+}
