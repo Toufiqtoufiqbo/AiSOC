@@ -58,19 +58,40 @@ is written. Next free at capture: migration `095`, ADR `0010`
 | ADR `0010` | 2.7 — entity and session context in CORE | **landed**, `docs/decisions/0010-entity-and-session-context-in-core.md`, accepted |
 | migration `102` | 2.4 — `102_sessions.sql` | claimed |
 | migration `103` | 2.5 — `103_posture_snapshots.sql` | claimed |
-| migration `104` | 5.4 — `104_playbook_verification.sql` | claimed on `depth/5.4-5.6-lane-c`, recorded here because the lane took it without a row |
-| migration `105` | 6.1 — `105_ai_assets.sql` | claimed |
-| migration `106` | 6.4 — `106_ai_agent_identities.sql` | claimed |
+| migration `104` | 9.1 — `104_mcp_access.sql` | claimed |
+| migration `105` | 9.2 — `105_semantic_memory.sql` | claimed |
+| migration `106` | 9.3 — `106_case_depth.sql` | claimed |
+| migration `107` | 9.4 — `107_case_war_rooms.sql` | claimed |
+| migration `108` | 9.5 — `108_hunt_reports.sql` | claimed |
+| migration `109` | 9.6 — `109_push_devices.sql` | claimed |
+| migration `110` | 6.1 — `110_ai_assets.sql` | claimed |
+| migration `111` | 6.4 — `111_ai_agent_identities.sql` | claimed |
 | ADR `0011` | 6.6 — AI containment arms off by default, and the rollback a kill-switch needs | claimed |
+| — | 5.4 — `104_playbook_verification.sql` on `depth/5.4-5.6-lane-c`, and 7.1 — `104_phishing_campaigns.sql` on `depth/7.1-7.3-phishing` | **collision, unresolved here.** Both lanes wrote a `104` on a branch without a row in this table. Phase 9's `104` is the one with a claim, so these two need renumbering by their own lanes; recorded rather than renamed from outside, because renaming another lane's migration from here is how a branch comes back to a file that no longer exists |
 
 Highest migration on `main` at claim time was `101_audit_immutable_nullify.sql`,
 so `095`--`101` were taken by sibling lanes between the capture above and this
 claim; re-read `services/api/migrations/` rather than trusting the capture row.
 
-The same is true of this table: `104` was already written on a sibling lane's
-branch with no row here, which is how two lanes collide. Phase 6's numbers
-above were picked after reading `services/api/migrations/` on `main` **and**
+The same is true of this table: `104` was already written on two sibling
+lanes' branches with no row here, which is how lanes collide. Phase 6's
+numbers were picked after reading `services/api/migrations/` on `main` **and**
 `git ls-tree` over every `origin/*` branch, not from the row above.
+
+Phase 9 re-read `services/api/migrations/` on 2026-10-11 before claiming:
+`101_audit_immutable_nullify.sql` was still the highest on `main`, and `102`
+and `103` were already spoken for in the table above, so Phase 9 takes `104`
+through `109`, one per item. A number left unused at the end of the phase is
+released by striking its row rather than by silently leaving a gap.
+
+**Phase 6 moved `105`/`106` to `110`/`111` on 2026-10-11**, because Phase 9's
+claim for `104`--`109` reached this table on `main` first and a claim table
+nobody defers to is not a coordination mechanism. The lesson is the one this
+section already states and that three lanes still fell to: the table is
+authoritative only for lanes that write to it **before** the file, and four
+branches now carry a `104` or a `105` that was never claimed here. Reading
+`main` is not enough; read `git ls-tree` over every `origin/*` branch as
+well, which is what found this.
 
 ## Phase 0: Kickoff
 
@@ -418,7 +439,7 @@ substitution `first_seen.py`'s own docstring refuses for `domain_age_days`.
   problems across five of its eight rules — no migration creates the table,
   no model maps it, no route reads it, no writer exists, and the graph
   vocabulary has no label for an AI asset. Implemented `aisoc_ai_assets`
-  (migration `105`, tenant-scoped, `FORCE ROW LEVEL SECURITY`, granted to
+  (migration `110`, tenant-scoped, `FORCE ROW LEVEL SECURITY`, granted to
   `aisoc_app`), the ORM model, `GET /ai-assets`, `GET /ai-assets/{id}` and
   `POST /ai-assets/{id}/sanction` behind a new `ai_estate:read` /
   `ai_estate:write` pair held by five roles and mintable into an API key,
@@ -543,7 +564,7 @@ substitution `first_seen.py`'s own docstring refuses for `domain_age_days`.
   `ast.unparse` renders string literals with single quotes whatever the source
   used, so a double-quoted-only check reported all seven providers missing from
   a schema that listed them; and a denial is not a claim, so the overclaim
-  check flagged the page's own caution title. Both are covered by injections.
+  check flagged the page's own caution title. Both are covered by injections.- [ ] **6.3** Provider coverage beyond OpenAI and Anthropic
 - [ ] **6.4** Agent identity and baselines (parity 6.7)
 - [x] **6.5** AI rule pack. Reproduced: of the seven abuses the plan names,
   the corpus detected **none**. The eight existing `ai-*` rules all fire on a
@@ -627,6 +648,5 @@ substitution `first_seen.py`'s own docstring refuses for `domain_age_days`.
 | 2026-10-11 | 6.5 | Reproduced: none of the seven abuses the plan names was detectable — the eight existing `ai-*` rules all fire on a `finding_type` a guardrail already decided. Added four stateless and three windowed rules with hand-authored fixtures on both sides. Executable 2,511 → 2,515, windowed 72 → 75, fusion suite 700 → 722, strict replay 6,995 validated / 0 failed. The attributability test fired during authoring and tightened one negative. One deviation recorded (D11): ASN novelty is not reachable from the match namespace, so the rule keys on a new source address and says so. |
 | 2026-10-11 | 6.3 | Reproduced: five of seven providers absent. Added Gemini in Workspace, Workspace OAuth grants, M365 Copilot, Entra consent and GitHub Copilot, every endpoint fetched from the vendor's current reference first. 15 new tests asserting the request shape as well as the result; connectors suite 1,126 -> 1,141. Three findings from reading the references (blob references not records; `AIAppInteraction` is Microsoft's own word for undeployed third-party AI; `app_name` means two things across the two Google streams). PARTIAL: no funded account exists with any of the seven, recorded per provider as `not measured` rather than as a zero. |
 | 2026-10-11 | 6.2 | Reproduced: 13 of 16 new cases failed, driving the shapes the four endpoint connectors actually emit. Root cause was 6.1's endpoint branch reading `process.name` off OCSF, which the canonical profile never populates — it found `None` on every real source while its own tests passed. Fixed by reconstructing the connector namespace. Shipped the osquery pack (5 queries, packs 5 -> 6), the source-capability table, the operator doc and a 6-rule gate. Fusion suite 683 -> 700. Claim row is PARTIAL: no osquery agent runs in CI, and the EDR connectors return vendor detections rather than process telemetry, so the plan's "CrowdStrike, Defender, SentinelOne" wording is not satisfiable with these connectors. |
-| 2026-10-11 | 6.2 | Reproduced: 13 of 16 new cases failed, driving the shapes the four endpoint connectors actually emit. Root cause was 6.1's endpoint branch reading `process.name` off OCSF, which the canonical profile never populates — it found `None` on every real source while its own tests passed. Fixed by reconstructing the connector namespace. Shipped the osquery pack (5 queries, packs 5 -> 6), the source-capability table, the operator doc and a 6-rule gate. Fusion suite 683 -> 700. Claim row is PARTIAL: no osquery agent runs in CI, and the EDR connectors return vendor detections rather than process telemetry, so the plan's "CrowdStrike, Defender, SentinelOne" wording is not satisfiable with these connectors. |
-| 2026-10-11 | 6.1 | Reproduced: the new gate reported nine problems across five of eight rules on the unmodified tree. Built `aisoc_ai_assets` (migration 105), its routes behind a new `ai_estate:*` permission pair, the fusion recorder that writes it on the default profile, the `AIAsset` graph label with `OPERATES`/`HOSTS` edges, and the `/ai-estate` page. Two negative controls against a real PostgreSQL: reverting `NULLS NOT DISTINCT` turns one provider-key row into three, and a `USING (true)` policy leaks across tenants. Claim matrix 302 -> 303 rows, 300 GATED. Writing the gate found two blind spots in the gate itself. |
+| 2026-10-11 | 6.1 | Reproduced: the new gate reported nine problems across five of eight rules on the unmodified tree. Built `aisoc_ai_assets` (migration 105), its routes behind a new `ai_estate:*` permission pair, the fusion recorder that writes it on the default profile, the `AIAsset` graph label with `OPERATES`/`HOSTS` edges, and the `/ai-estate` page. Two negative controls against a real PostgreSQL: reverting `NULLS NOT DISTINCT` turns one provider-key row into three, and a `USING (true)` policy leaks across tenants. Claim matrix 302 -> 303 rows, 300 GATED. Writing the gate found two blind spots in the gate itself. || 2026-10-11 | 6.1 | Reproduced: the new gate reported nine problems across five of eight rules on the unmodified tree. Built `aisoc_ai_assets` (migration 110), its routes behind a new `ai_estate:*` permission pair, the fusion recorder that writes it on the default profile, the `AIAsset` graph label with `OPERATES`/`HOSTS` edges, and the `/ai-estate` page. Two negative controls against a real PostgreSQL: reverting `NULLS NOT DISTINCT` turns one provider-key row into three, and a `USING (true)` policy leaks across tenants. Claim matrix 302 -> 303 rows, 300 GATED. Writing the gate found two blind spots in the gate itself. |
 | 2026-10-09 | 3.1 | All 74 decided. 50 translated into `wd-*` rules derived from each original's own clauses and replayed through the real engine (162 assertions); 24 refused with a reason across five kinds. `MAX_UNREACHABLE` 119 → 45, published executable 2,603 → 2,529, windowed 18 → 68. Three findings recorded as D4–D6 below. |
