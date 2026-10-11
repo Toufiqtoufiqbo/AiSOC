@@ -238,3 +238,44 @@ def test_the_connector_map_names_real_connectors() -> None:
     slugs = {p.stem for p in pkg.glob("*.py")}
     unknown = sorted(k for k in CONNECTOR_PRODUCTS if k not in slugs)
     assert not unknown, f"CONNECTOR_PRODUCTS names connectors that do not exist: {unknown}"
+
+
+# -- the drafting loop (gap-closure 9.2) ------------------------------------
+
+
+def test_the_drafting_loop_only_targets_gaps_and_cannot_promote() -> None:
+    """The two refusals that are the substance of `draft-from-gaps`.
+
+    Read off the handler's source rather than executed, because exercising
+    it needs the whole app, a database and an LLM — and the properties
+    being pinned are structural: that `report.gaps` is the input (so a
+    `no_telemetry` technique can never be drafted against), and that the
+    route has no promotion path at all.
+
+    A source-reading test is normally a poor substitute for calling the
+    handler, and is used here only for a property that is about *what the
+    code does not contain*. The behavioural half is covered by the state
+    classification above, which is where the gap/no_telemetry decision is
+    actually made.
+    """
+    from pathlib import Path
+
+    src = (Path(__file__).resolve().parents[1] / "app" / "api" / "v1" / "endpoints" / "detection_proposals.py").read_text()
+    body = src.split("async def draft_from_gaps(")[1].split("\n@router.")[0]
+
+    # Targets come from `report.gaps`, which excludes `no_telemetry` by
+    # construction — so an untelemetered technique cannot be drafted.
+    assert "report.gaps[" in body
+    # No promotion path. `promoted` is reported as a literal zero, and
+    # nothing in the body writes a promoted status.
+    assert '"promoted": 0' in body
+    assert 'promoted"] = ' not in body
+    assert 'status="promoted"' not in body
+
+
+def test_the_drafting_loop_defaults_to_dry_run() -> None:
+    """A loop whose default writes to the proposal queue is run once."""
+    from app.api.v1.endpoints.detection_proposals import DraftFromGapsRequest
+
+    assert DraftFromGapsRequest().dry_run is True
+    assert DraftFromGapsRequest().limit <= 10

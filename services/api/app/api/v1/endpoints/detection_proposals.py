@@ -47,6 +47,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import and_, or_, select, update
 
 from app.api.v1.deps import AuthUser, DBSession, require_permission
+from app.api.v1.endpoints.nl_detection import NLProposeRequest, propose_from_nl
 from app.core.config import settings
 from app.models.detection_proposal import (
     DetectionEvalBaseline,
@@ -436,7 +437,6 @@ async def list_proposals(
     return [ProposalResponse.model_validate(p) for p in result.scalars().all()]
 
 
-
 @router.get("/coverage")
 async def tenant_coverage(
     current_user: Annotated[AuthUser, Depends(require_permission("rules:read"))],
@@ -464,6 +464,104 @@ async def tenant_coverage(
         payload["techniques"] = [t for t in payload["techniques"] if t["state"] == state]
     payload["techniques"] = payload["techniques"][:limit]
     return payload
+
+
+class DraftFromGapsRequest(BaseModel):
+    """How many gaps to draft against, and whether to write anything."""
+
+    limit: int = Field(default=3, ge=1, le=10)
+    #: Default **on**. Seeing what the loop would do before it does it is
+    #: the normal way to use this, and a drafting loop whose default writes
+    #: to the proposal queue is one nobody runs twice.
+    dry_run: bool = True
+
+
+@router.post("/draft-from-gaps")
+async def draft_from_gaps(
+    payload: DraftFromGapsRequest,
+    current_user: Annotated[AuthUser, Depends(require_permission("rules:write"))],
+    db: DBSession,
+) -> dict[str, Any]:
+    """Draft DRAFT proposals for this tenant's top coverage gaps.
+
+    Depth plan 3.7 / gap-closure 9.2. The loop is: rank the tenant's own
+    techniques, take the top gaps **that have telemetry**, draft each
+    through the existing NL builder — which derives fixtures from the
+    generated rule's own selection and runs the eval gate — and open a
+    governed proposal.
+
+    Two refusals are the substance of this route.
+
+    **Only `gap` techniques are drafted.** A `no_telemetry` technique has no
+    connected source that could carry a rule, so drafting one produces a
+    rule matching on fields nothing emits: it would raise the coverage
+    figure while making the tenant no safer, which is the failure this whole
+    surface exists to avoid.
+
+    **Nothing is promoted.** Every proposal lands in the queue and requires
+    a separate approver, enforced by the decide route, which already refuses
+    to let an author approve their own rule. This route cannot promote and
+    does not try; `promoted: 0` is asserted by its test rather than implied
+    by the absence of code.
+    """
+    _ensure_dac_enabled()
+    report = await coverage_report(db, current_user.tenant_id)
+    targets = report.gaps[: payload.limit]
+
+    planned = [
+        {
+            "technique": gap.technique,
+            "alerts_seen": gap.alerts_seen,
+            "relevance": gap.relevance,
+            "connected_products": list(report.connected_products),
+        }
+        for gap in targets
+    ]
+    if payload.dry_run:
+        return {
+            "dry_run": True,
+            "gaps_considered": len(report.gaps),
+            "planned": planned,
+            "drafted": [],
+            "promoted": 0,
+        }
+
+    drafted: list[dict[str, Any]] = []
+    for gap in targets:
+        request = NLProposeRequest(
+            description=(
+                f"Detect ATT&CK technique {gap.technique} using "
+                f"{', '.join(report.connected_products) or 'available'} telemetry. "
+                f"This tenant has seen it on {gap.alerts_seen} alert(s) and has no rule for it."
+            ),
+            severity="medium",
+            mitre_techniques=[gap.technique],
+        )
+        try:
+            result = await propose_from_nl(request, current_user, db)
+        except HTTPException as exc:
+            # A gap the builder could not draft is reported, never skipped.
+            # A loop that silently drops its failures reads as having
+            # nothing to do.
+            drafted.append({"technique": gap.technique, "status": "not_drafted", "reason": str(exc.detail)})
+            continue
+        drafted.append(
+            {
+                "technique": gap.technique,
+                "status": result.status,
+                "proposal_id": str(result.proposal_id) if result.proposal_id else None,
+            }
+        )
+
+    return {
+        "dry_run": False,
+        "gaps_considered": len(report.gaps),
+        "planned": planned,
+        "drafted": drafted,
+        # Structurally zero: this route has no promotion path.
+        "promoted": 0,
+    }
+
 
 @router.post("", response_model=ProposalResponse, status_code=status.HTTP_201_CREATED)
 async def create_proposal(
