@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import useSWR from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import Link from 'next/link';
+import { BulkTriageBar } from './BulkTriageBar';
 import { alertsApi, type Alert, type AlertFacets, type AlertFilters, type ConfidenceLabel } from '@/lib/api';
 import { clsx } from 'clsx';
 import { formatDistanceToNow } from 'date-fns';
@@ -223,10 +224,14 @@ function AlertRow({
   alert,
   selected,
   onSelect,
+  checked,
+  onToggleChecked,
 }: {
   alert: Alert;
   selected: boolean;
   onSelect: (id: string) => void;
+  checked: boolean;
+  onToggleChecked: (id: string) => void;
 }) {
   return (
     <Link
@@ -247,6 +252,24 @@ function AlertRow({
           : 'border-l-transparent hover:bg-gray-800/20',
       )}
     >
+      {/*
+        Depth 9.3. The row is a Link, so the checkbox has to stop the event
+        before it reaches it — otherwise ticking a box navigates to the
+        alert, which is the single most irritating way to break a bulk
+        selection.
+      */}
+      <input
+        type="checkbox"
+        checked={checked}
+        aria-label={`Select ${alert.title}`}
+        onClick={(e) => e.stopPropagation()}
+        onChange={(e) => {
+          e.stopPropagation();
+          onToggleChecked(alert.id);
+        }}
+        className="accent-blue-500 shrink-0"
+      />
+
       <SeverityDot severity={alert.severity} />
 
       <div className="flex-1 min-w-0">
@@ -433,6 +456,20 @@ function AlertsTable({
   // Switching to the entities tab unmounts this state cleanly, which is
   // what we want — the rail is alert-scoped, not entity-scoped.
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
+  // Depth 9.3 — bulk selection, separate from the rail's single selection.
+  // A Set rather than an array so toggling is O(1) and the "select all on
+  // this page" header checkbox does not have to scan.
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const { mutate } = useSWRConfig();
+
+  const toggleChecked = useCallback((id: string) => {
+    setCheckedIds((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -475,6 +512,15 @@ function AlertsTable({
 
       <FiltersBar filters={filters} onChange={onFilterChange} total={total} />
 
+      <BulkTriageBar
+        selectedIds={[...checkedIds]}
+        onClearSelection={() => setCheckedIds(new Set())}
+        // Revalidate rather than patching rows locally: the server decided
+        // what changed and an optimistic update would show a state it may
+        // not have written.
+        onApplied={() => void mutate((key) => Array.isArray(key) && key[0] === 'alerts')}
+      />
+
       {/*
         v1.5 W6 — two-pane layout. On wide screens the queue takes the left
         seven cols and the Investigation Rail takes the right five; on narrow
@@ -492,6 +538,9 @@ function AlertsTable({
             selectedAlertId={selectedAlertId}
             onSelect={setSelectedAlertId}
             onFilterChange={onFilterChange}
+            checkedIds={checkedIds}
+            onToggleChecked={toggleChecked}
+            onSetChecked={setCheckedIds}
           />
           <AlertsPagination
             alerts={alerts}
@@ -523,6 +572,9 @@ function AlertsTableGrid({
   selectedAlertId,
   onSelect,
   onFilterChange,
+  checkedIds,
+  onToggleChecked,
+  onSetChecked,
 }: {
   alerts: Alert[];
   isLoading: boolean;
@@ -531,11 +583,35 @@ function AlertsTableGrid({
   selectedAlertId: string | null;
   onSelect: (id: string) => void;
   onFilterChange: (f: AlertFilters) => void;
+  checkedIds: Set<string>;
+  onToggleChecked: (id: string) => void;
+  onSetChecked: (next: Set<string>) => void;
 }) {
+  const pageIds = alerts.map((a) => a.id);
+  const allOnPageChecked = pageIds.length > 0 && pageIds.every((id) => checkedIds.has(id));
+
   return (
     <div className="bg-gray-900/60 border border-gray-800/60 rounded-xl overflow-hidden">
-      <div className="flex items-center px-4 py-2 border-b border-gray-800/60 bg-gray-900/80">
-        <span className="text-xs text-gray-500 flex-1 pl-2">ALERT</span>
+      <div className="flex items-center gap-4 px-4 py-2 border-b border-gray-800/60 bg-gray-900/80">
+        {/*
+          Selects this page only, never "everything matching the filter".
+          A control that silently selects rows the analyst cannot see is the
+          shape that turns a bulk action into an incident.
+        */}
+        <input
+          type="checkbox"
+          aria-label="Select all alerts on this page"
+          checked={allOnPageChecked}
+          disabled={pageIds.length === 0}
+          onChange={(e) => {
+            const next = new Set(checkedIds);
+            if (e.target.checked) pageIds.forEach((id) => next.add(id));
+            else pageIds.forEach((id) => next.delete(id));
+            onSetChecked(next);
+          }}
+          className="accent-blue-500"
+        />
+        <span className="text-xs text-gray-500 flex-1">ALERT</span>
         <span className="text-xs text-gray-500 w-20">SEVERITY</span>
         <span className="text-xs text-gray-500 w-24">STATUS</span>
         <span className="text-xs text-gray-500 w-24 text-right">TIME</span>
@@ -590,6 +666,8 @@ function AlertsTableGrid({
               alert={alert}
               selected={selectedAlertId === alert.id}
               onSelect={onSelect}
+              checked={checkedIds.has(alert.id)}
+              onToggleChecked={onToggleChecked}
             />
           ))}
         </div>
