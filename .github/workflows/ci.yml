@@ -724,6 +724,14 @@ jobs:
         run: python3 scripts/check_ai_endpoint_discovery.py --self-test
       - name: AI endpoint discovery gate
         run: python3 scripts/check_ai_endpoint_discovery.py
+      # Depth 6.3. HONESTY is the rule that earns this gate: no hosted
+      # provider has ever been exercised from this repository, and a page
+      # that stops saying so per provider reads as verification. A zero would
+      # be worse — it reads as graded-and-failed.
+      - name: AI provider coverage gate — self-test
+        run: python3 scripts/check_ai_provider_coverage.py --self-test
+      - name: AI provider coverage gate
+        run: python3 scripts/check_ai_provider_coverage.py
       # One layer in from the name: the profile gate asks whether a connector
       # reaches a normalization path, this asks which OCSF class it reaches
       # when it gets there. The class uid divided by a thousand is the

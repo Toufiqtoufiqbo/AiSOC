@@ -191,6 +191,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **AI control-plane audit across seven providers** (depth plan 6.3).
+  `llm_usage` grows from OpenAI and Anthropic to Gemini in Google Workspace,
+  Workspace OAuth grants, Microsoft 365 Copilot interactions, Microsoft Entra
+  application consent and GitHub Copilot. Every endpoint was read from the
+  vendor's current published reference before it was implemented, and the
+  doc publishes the host each provider dials so a reviewer can check the two
+  agree.
+
+  Three findings from doing that, each now a property of the connector. The
+  Microsoft content endpoint returns **blob references, not records**, so a
+  reader that normalized the reference list would report "no Copilot
+  activity" on a tenant that has plenty. Three of the streams carry far more
+  than AI — the Microsoft activity feed is every `Audit.General` record in the
+  tenant — so the connector filters before emitting rather than pulling a
+  whole tenant's audit trail into the lake under an AI connector's name. And
+  `app_name` means two different things on the two Google streams: the
+  third-party application on the token stream, the Workspace surface on the
+  Gemini one, so folding them together would put "gmail" in an application
+  column.
+
+  **No provider here has been exercised against a funded account**, and
+  `scripts/check_ai_provider_coverage.py` makes that a rule: every provider
+  must carry `not measured` on its own row in the documentation table, and a
+  `0.000` anywhere in that table is a hard failure, because a zero reads as
+  graded-and-failed where nobody ran it at all.
+
 - **Endpoint discovery of the AI estate, with no new agent** (depth plan 6.2).
   `packs/aisoc-ai-estate.yaml` finds coding agents and MCP server processes,
   the configuration files the popular MCP clients read, AI IDE extensions and
