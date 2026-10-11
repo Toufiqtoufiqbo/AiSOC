@@ -66,7 +66,7 @@ is written. Next free at capture: migration `095`, ADR `0010`
 | migration `109` | 9.6 — `109_push_devices.sql` | claimed |
 | migration `110` | 6.1 — `110_ai_assets.sql` | claimed |
 | migration `111` | 6.4 — `111_ai_agent_identities.sql` | claimed |
-| ADR `0011` | 6.6 — AI containment arms off by default, and the rollback a kill-switch needs | claimed |
+| ADR `0011` | 6.6 — AI containment arms off by default, and the rollback a kill-switch needs | **landed**, `docs/decisions/0011-ai-containment-off-by-default.md`, accepted |
 | — | 5.4 — `104_playbook_verification.sql` on `depth/5.4-5.6-lane-c`, and 7.1 — `104_phishing_campaigns.sql` on `depth/7.1-7.3-phishing` | **collision, unresolved here.** Both lanes wrote a `104` on a branch without a row in this table. Phase 9's `104` is the one with a claim, so these two need renumbering by their own lanes; recorded rather than renamed from outside, because renaming another lane's migration from here is how a branch comes back to a file that no longer exists |
 
 Highest migration on `main` at claim time was `101_audit_immutable_nullify.sql`,
