@@ -231,14 +231,19 @@ async def merge_cases(
         ).bindparams(primary=primary_id, now=now, tenant_id=tenant_id, ids=ids)
     )
 
+    # `aisoc_cases.alert_ids` is `uuid[]`, not JSONB -- unlike `ioc_ids` and
+    # `artifact_ids` beside it, and unlike `alerts.child_alert_ids` above.
+    # The first version of this statement assumed JSONB and raised
+    # `jsonb_array_elements_text(uuid[]) does not exist` against the real
+    # schema. A SQLite stand-in would have accepted either and shipped it.
     await db.execute(
         text(
             "UPDATE aisoc_cases SET alert_ids = ("
-            "  SELECT CAST(jsonb_agg(DISTINCT e) AS jsonb) FROM ("
-            "    SELECT jsonb_array_elements_text(p.alert_ids) AS e FROM aisoc_cases p"
+            "  SELECT COALESCE(array_agg(DISTINCT e), '{}'::uuid[]) FROM ("
+            "    SELECT unnest(p.alert_ids) AS e FROM aisoc_cases p"
             "      WHERE p.id = :primary AND p.tenant_id = :tenant_id"
             "    UNION"
-            "    SELECT jsonb_array_elements_text(d.alert_ids) AS e FROM aisoc_cases d"
+            "    SELECT unnest(d.alert_ids) AS e FROM aisoc_cases d"
             "      WHERE d.tenant_id = :tenant_id AND d.id = ANY(CAST(:ids AS uuid[]))"
             "  ) AS combined"
             "), updated_at = :now "
