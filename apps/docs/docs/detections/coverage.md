@@ -28,7 +28,7 @@ Sigma compiler began translating rules where they sat: rules under
 ## Headline numbers
 
 - **Curated detections**: `489` (target: ≥ 300)
-- **Executable rules considered**: `2511` (quality floor: 0.55)
+- **Executable rules considered**: `2515` (quality floor: 0.55)
 - **Unique MITRE techniques covered**: `137`
 
 ## Coverage by buyer family

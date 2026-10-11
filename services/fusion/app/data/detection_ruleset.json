@@ -1,5 +1,5 @@
 {
-  "count": 741,
+  "count": 745,
   "rules": [
     {
       "category": "application",
@@ -1336,6 +1336,95 @@
       "service": "runtime",
       "severity": "high",
       "slug": "ai-prompt-contained-credential"
+    },
+    {
+      "category": "application",
+      "id": "det-application-087",
+      "match_when": {
+        "event_type_contains": "api_key",
+        "source_ip_seen_before": false
+      },
+      "mitre": [
+        "T1078.004"
+      ],
+      "name": "Model-Provider Key Minted or Used From an Unfamiliar Address",
+      "product": "llm_usage",
+      "service": "audit",
+      "severity": "high",
+      "slug": "ai-provider-key-from-new-source"
+    },
+    {
+      "category": "application",
+      "id": "det-application-088",
+      "match_when": {
+        "agent_tool_seen_before": false,
+        "tool_name_in": [
+          "execute_command",
+          "run_shell",
+          "write_file",
+          "delete_file",
+          "send_email",
+          "create_user",
+          "grant_permission",
+          "deploy",
+          "terraform_apply",
+          "database_write"
+        ]
+      },
+      "mitre": [
+        "T1059"
+      ],
+      "name": "AI Agent Called a State-Changing Tool for the First Time",
+      "product": "ai_runtime",
+      "service": "runtime",
+      "severity": "high",
+      "slug": "ai-agent-new-high-risk-tool"
+    },
+    {
+      "category": "application",
+      "id": "det-application-089",
+      "match_when": {
+        "mcp_server_not_in_allowlist": true
+      },
+      "mitre": [
+        "T1195"
+      ],
+      "name": "AI Agent Reached an MCP Server the Tenant Has Not Approved",
+      "product": "ai_runtime",
+      "service": "runtime",
+      "severity": "high",
+      "slug": "ai-mcp-server-unvetted"
+    },
+    {
+      "category": "application",
+      "id": "det-application-090",
+      "match_when": {
+        "cmdline_contains_any": [
+          "--dangerously-skip-permissions",
+          "--yolo",
+          "--auto-approve",
+          "--no-confirm",
+          "--yes-always",
+          "--full-auto"
+        ],
+        "name_in": [
+          "claude",
+          "codex",
+          "aider",
+          "goose",
+          "gemini",
+          "cline",
+          "opencode"
+        ]
+      },
+      "mitre": [
+        "T1059"
+      ],
+      "name": "Coding Agent Started With Its Permission Prompts Disabled",
+      "product": "osquery",
+      "service": "processes",
+      "severity": "high",
+      "slug": "ai-coding-agent-prompts-disabled"
     },
     {
       "category": "application",

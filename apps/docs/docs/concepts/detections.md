@@ -221,9 +221,9 @@ The summary line breaks the count down by tier and by whether the engine loads
 the rule, so a typical green CI run looks like:
 
 ```
-Validated 6991 rules — 6991 passed, 0 failed, 44 fixture warnings
+Validated 6995 rules — 6995 passed, 0 failed, 44 fixture warnings
   Tiers: community=1, imported=6113, native=877
-  Executable (loaded by the engine): 2511; not loaded: 4480
+  Executable (loaded by the engine): 2515; not loaded: 4480
 ```
 
 The executable figure is read out of the compiled ruleset, which is the same

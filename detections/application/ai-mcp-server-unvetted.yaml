@@ -1,0 +1,26 @@
+id: det-application-089
+name: AI Agent Reached an MCP Server the Tenant Has Not Approved
+description: An MCP server outside this tenant's approved set answered an agent. An MCP server is somebody
+  else's code whose replies land in the prompt that decides what the agent does next, so an unreviewed
+  one is an unreviewed input to every decision the agent makes. Approval is per tenant and the clause
+  contributes no key until a tenant has configured one, so this stays silent rather than firing on everything.
+version: 1.0.0
+severity: high
+tags:
+- mitre.attack.t1195
+- tlp.white
+category: application
+log_source:
+  product: ai_runtime
+  service: runtime
+detection:
+  condition: |
+    mcp_server_not_in_allowlist == true
+false_positives:
+- A server approved in a change ticket but not yet added to the allowlist
+- A rename of an already-approved server
+playbook: tpl-supply-chain
+enabled: true
+author: AiSOC
+created: '2026-05-03'
+modified: '2026-05-03'

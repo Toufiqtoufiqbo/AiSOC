@@ -620,6 +620,31 @@ class LlmUsageConnector(BaseConnector):
         etag = raw.get("etag")
         return str(etag) if etag else ""
 
+    def _source_ip(self, raw: dict[str, Any]) -> str | None:
+        """The address the control-plane action came from, where a vendor records one.
+
+        Three of the seven do. OpenAI puts it on the actor's session, Entra on
+        the initiating user, and GitHub at the top level of an audit entry.
+        The rest publish none, and `None` is the honest answer — a novelty
+        rule keyed on a fabricated address would fire on every event from the
+        providers that do not record one.
+        """
+        actor = raw.get("actor")
+        if isinstance(actor, dict):
+            session = actor.get("session")
+            if isinstance(session, dict) and session.get("ip_address"):
+                return str(session["ip_address"])
+        initiated = raw.get("initiatedBy")
+        if isinstance(initiated, dict):
+            user = initiated.get("user")
+            if isinstance(user, dict) and user.get("ipAddress"):
+                return str(user["ipAddress"])
+        for key in ("actor_ip", "ClientIP", "ClientIPAddress"):
+            value = raw.get(key)
+            if value:
+                return str(value)
+        return None
+
     def _timestamp(self, raw: dict[str, Any]) -> Any:
         if self._provider.startswith("google_workspace"):
             identifier = raw.get("id") or {}
@@ -733,6 +758,10 @@ class LlmUsageConnector(BaseConnector):
             "stream": PROVIDER_STREAM[self._provider],
             "actor": actor,
             "actor_email": actor,
+            # Only where the vendor records one. Absent, not invented: a
+            # novelty rule keyed on a fabricated address would fire on every
+            # event from the four providers that publish none.
+            "src_ip": self._source_ip(raw),
             "created_at": self._timestamp(raw),
             # The inventory reads these two by name.
             "application": evidence.get("application"),

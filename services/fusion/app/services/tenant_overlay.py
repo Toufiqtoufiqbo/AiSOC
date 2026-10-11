@@ -284,6 +284,13 @@ ALLOWLIST_FIELDS: dict[str, str] = {
     "image_basename_in_allowlist": "image_basename",
     "dst_in_allowlist": "dst",
     "src_in_allowlist": "src",
+    # Depth 6.5. "Vetted" is a per-tenant judgement, not a global one: one
+    # organisation's approved MCP server is another's shadow AI, and a global
+    # list would make one operator's decision everybody's. Both default to
+    # unconfigured, which contributes **no key** and leaves the rules silent
+    # until a tenant has actually said what it approves.
+    "mcp_server_not_in_allowlist": "server_name",
+    "oauth_app_not_in_allowlist": "application",
 }
 
 

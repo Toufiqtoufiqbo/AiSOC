@@ -1,7 +1,7 @@
 {
   "$schema": "https://example.com/schemas/marketplace/v1.json",
   "version": "1.0.0",
-  "generated": "2026-10-10T01:22:53Z",
+  "generated": "2026-10-11T03:13:18Z",
   "categories": [
     {
       "id": "playbooks",
@@ -20,27 +20,27 @@
     }
   ],
   "stats": {
-    "total": 7158,
+    "total": 7162,
     "playbooks": 87,
     "playbook_packs": 62,
-    "detections": 6991,
+    "detections": 6995,
     "plugins": 80,
-    "verified": 1037,
+    "verified": 1041,
     "community": 1,
     "by_tier": {
       "beta": 7,
       "community": 1,
       "imported": 6113,
-      "stable": 1037
+      "stable": 1041
     },
     "detections_by_tier": {
       "community": 1,
       "imported": 6113,
-      "stable": 877
+      "stable": 881
     },
-    "executable": 2678,
+    "executable": 2682,
     "quarantined": 4480,
-    "executable_detections": 2511,
+    "executable_detections": 2515,
     "reference_only_detections": 4480,
     "not_a_detection": 167
   },
@@ -116,7 +116,7 @@
       "T1056.001": 3,
       "T1056.002": 1,
       "T1057": 3,
-      "T1059": 49,
+      "T1059": 51,
       "T1059.001": 132,
       "T1059.002": 3,
       "T1059.003": 24,
@@ -145,7 +145,7 @@
       "T1078.001": 5,
       "T1078.002": 7,
       "T1078.003": 2,
-      "T1078.004": 45,
+      "T1078.004": 46,
       "T1082": 13,
       "T1083": 9,
       "T1087": 10,
@@ -208,7 +208,7 @@
       "T1185": 3,
       "T1187": 3,
       "T1190": 39,
-      "T1195": 3,
+      "T1195": 4,
       "T1195.001": 1,
       "T1195.002": 7,
       "T1197": 13,
@@ -435,7 +435,7 @@
       "T1686.003": 10,
       "T1689": 1
     },
-    "total_with_mitre": 2380,
+    "total_with_mitre": 2384,
     "unique_techniques_all_rules": 493,
     "techniques_all_rules": {
       "T1001.003": 2,
@@ -527,7 +527,7 @@
       "T1056.001": 4,
       "T1056.002": 4,
       "T1057": 8,
-      "T1059": 122,
+      "T1059": 124,
       "T1059.001": 243,
       "T1059.002": 11,
       "T1059.003": 41,
@@ -563,7 +563,7 @@
       "T1078.001": 10,
       "T1078.002": 14,
       "T1078.003": 11,
-      "T1078.004": 98,
+      "T1078.004": 99,
       "T1082": 49,
       "T1083": 28,
       "T1087": 21,
@@ -633,7 +633,7 @@
       "T1187": 12,
       "T1189": 4,
       "T1190": 177,
-      "T1195": 23,
+      "T1195": 24,
       "T1195.001": 2,
       "T1195.002": 17,
       "T1197": 23,
@@ -976,7 +976,7 @@
         "T1055.001": 1,
         "T1055.012": 1,
         "T1056.001": 1,
-        "T1059": 9,
+        "T1059": 11,
         "T1059.001": 5,
         "T1059.002": 3,
         "T1059.004": 8,
@@ -995,7 +995,7 @@
         "T1078.001": 4,
         "T1078.002": 3,
         "T1078.003": 1,
-        "T1078.004": 38,
+        "T1078.004": 39,
         "T1083": 2,
         "T1087.001": 2,
         "T1087.002": 5,
@@ -1028,7 +1028,7 @@
         "T1176": 1,
         "T1185": 1,
         "T1190": 30,
-        "T1195": 2,
+        "T1195": 3,
         "T1195.002": 10,
         "T1197": 1,
         "T1199": 15,
@@ -32772,6 +32772,106 @@
       "executable": true,
       "path": "detections/application/ai-agent-tool-call-failed-repeatedly.yaml",
       "sha256": "761239d214b8c504f62eeb0e33e934af5cd33f73012bf827fe9dc7dd504090c6"
+    },
+    {
+      "id": "det-application-087",
+      "type": "detection",
+      "name": "Model-Provider Key Minted or Used From an Unfamiliar Address",
+      "description": "An API-key action on a model provider arrived from an address this tenant has never been seen to use. A provider key is a bearer credential with no device binding and no MFA, so where it is used from is most of what is knowable about who is holding it.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "application",
+      "mitre_techniques": [
+        "T1078.004"
+      ],
+      "log_source": "llm_usage",
+      "playbook": "tpl-account-compromise",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/application/ai-provider-key-from-new-source.yaml",
+      "sha256": "564509ae758723ba03c767cd49820a5c178721e7e0cc15282b156f2ab753ee41"
+    },
+    {
+      "id": "det-application-088",
+      "type": "detection",
+      "name": "AI Agent Called a State-Changing Tool for the First Time",
+      "description": "An agent invoked a tool that changes an estate, and this tenant has never seen that agent call that tool before. The pair is the subject, not either half: a tool somebody else has called, or an agent that has called something, are different and much weaker questions.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "application",
+      "mitre_techniques": [
+        "T1059"
+      ],
+      "log_source": "ai_runtime",
+      "playbook": "tpl-privilege-escalation",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/application/ai-agent-new-high-risk-tool.yaml",
+      "sha256": "f1724e985eedc2dfe37fb7c5e222d7e8718f3d25d9ef8c1168a5b1b318884911"
+    },
+    {
+      "id": "det-application-089",
+      "type": "detection",
+      "name": "AI Agent Reached an MCP Server the Tenant Has Not Approved",
+      "description": "An MCP server outside this tenant's approved set answered an agent. An MCP server is somebody else's code whose replies land in the prompt that decides what the agent does next, so an unreviewed one is an unreviewed input to every decision the agent makes. Approval is per tenant and the clause contributes no key until a tenant has configured one, so this stays silent rather than firing on everything.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "application",
+      "mitre_techniques": [
+        "T1195"
+      ],
+      "log_source": "ai_runtime",
+      "playbook": "tpl-supply-chain",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/application/ai-mcp-server-unvetted.yaml",
+      "sha256": "e3f01cc02fe4ab6e565255dc8f9b826245a7d0338410746a2b618f40f790f0f1"
+    },
+    {
+      "id": "det-application-090",
+      "type": "detection",
+      "name": "Coding Agent Started With Its Permission Prompts Disabled",
+      "description": "A coding agent was started with the flag that stops it asking. Every subsequent file write, shell command and network call it makes is unreviewed, so this is the single highest-signal attribute endpoint telemetry can supply about an AI asset \u2014 and it appears nowhere except the command line. Collected by the `aisoc-ai-estate` osquery pack through FleetDM or osctrl.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "application",
+      "mitre_techniques": [
+        "T1059"
+      ],
+      "log_source": "osquery",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/application/ai-coding-agent-prompts-disabled.yaml",
+      "sha256": "1fe6e9b58efc1ed3d025e945165bb7f0decf8f909c1d424fed4ef9d2ab23adc1"
     },
     {
       "id": "det-cloud-001",

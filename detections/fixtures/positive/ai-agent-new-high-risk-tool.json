@@ -1,0 +1,8 @@
+{
+  "agent_id": "agent-7f2",
+  "agent_name": "claude",
+  "agent_tool_seen_before": false,
+  "outcome": "success",
+  "source": "ai_gateway",
+  "tool_name": "execute_command"
+}

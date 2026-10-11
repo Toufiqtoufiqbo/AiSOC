@@ -1,0 +1,9 @@
+{
+  "actor": "ada@example.com",
+  "event_type": "openai.api_key.created",
+  "provider": "openai",
+  "source": "llm_usage",
+  "source_ip_seen_before": false,
+  "src_ip": "203.0.113.77",
+  "stream": "control_plane"
+}

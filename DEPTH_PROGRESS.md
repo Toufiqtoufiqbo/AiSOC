@@ -314,6 +314,26 @@ Instead, every selector field, `group-by` and `distinct_by` is checked
 against the emitted-field namespace with **no ceiling**, which caught three
 invented fields on the first run of the gate.
 
+### D11 -- ASN novelty is not reachable from the detection match namespace
+
+Depth 6.5's first rule is *"a provider key created or used from a new ASN"*.
+The ASN exists: `activity.Project` computes `location.asn` and `location.as_org`
+onto the **OCSF event**. The detection matcher reads a different namespace —
+`DetectionEngine._raw_fields`, which is the connector's own payload merged with
+`raw_event` — and nothing copies the projection into it.
+
+Three options, and why the third was taken. Copying the projection into the
+match namespace is a change to what every one of the 2,515 loaded rules sees,
+for one rule. Adding ASN lookup to the connector means shipping a geo database
+into `services/connectors`. So the rule keys on a new source **address**
+instead, and says so in its name (`ai-provider-key-from-new-source`) and in its
+description.
+
+That is weaker than the plan asks for: an attacker on the same ASN as the
+tenant's own egress raises nothing. It is recorded here rather than closed with
+an ASN-shaped field that would actually hold an address, which is the
+substitution `first_seen.py`'s own docstring refuses for `domain_age_days`.
+
 ## Phase 1: Verdict quality you can publish
 
 - [x] **1.1** Balanced, labelled verdict corpus
@@ -546,7 +566,45 @@ invented fields on the first run of the gate.
   a schema that listed them; and a denial is not a claim, so the overclaim
   check flagged the page's own caution title. Both are covered by injections.- [ ] **6.3** Provider coverage beyond OpenAI and Anthropic
 - [ ] **6.4** Agent identity and baselines (parity 6.7)
-- [ ] **6.5** AI rule pack
+- [x] **6.5** AI rule pack. Reproduced: of the seven abuses the plan names,
+  the corpus detected **none**. The eight existing `ai-*` rules all fire on a
+  `finding_type` a guardrail already decided; nothing matched on novelty, on
+  approval, on a command-line flag, or on a rate.
+
+  Built four stateless rules (`ai-provider-key-from-new-source`,
+  `ai-agent-new-high-risk-tool`, `ai-mcp-server-unvetted`,
+  `ai-coding-agent-prompts-disabled`) and three windowed
+  (`wd-ai-guardrail-violation-rise`, `wd-ai-token-spend-burst`,
+  `wd-ai-oauth-app-bulk-access`). **Executable 2,511 → 2,515; windowed 72 →
+  75; on disk 6,991 → 6,995.** 22 new fusion tests (suite 700 → 722). Strict
+  fixture replay: 6,995 validated, 0 failed.
+
+  **Every fixture is hand-authored, which is the point of the item.** The
+  generator's `build_negative` inverts a clause by prefixing `not-` to the
+  expected value, and 423 of the corpus's 878 negatives are that shape: a
+  rule passes by failing to match a string no source emits. These negatives
+  are events a real AI estate produces every day — the same key action from a
+  familiar address, the same agent calling the tool it calls hourly, the
+  approved MCP server, the same agent started without the flag — and each
+  inverts **the clause the rule is about**. A test refuses a pair differing in
+  more than that, and it fired during authoring: the MCP negative also changed
+  the tool name, which would have made a pass unattributable.
+
+  Three new reachable fields rather than rules that cannot fire, all gated by
+  `check_detection_fields.py`: `source_ip_seen_before`, a **composite**
+  `agent_tool_seen_before` (the pair is the subject; either half alone answers
+  a weaker question), and two per-tenant allowlists. Each contributes no key
+  when unconfigured, so a `not_in_allowlist` clause cannot flip true on
+  absence — the Sigma-import failure this corpus already recorded once.
+
+  **One deviation, recorded rather than closed with a substitute.** The plan
+  asks for a provider key used from a new **ASN**. The activity projection
+  computes `location.asn` onto the OCSF event, and the detection match
+  namespace is the *connector payload*, so ASN is not reachable there. The
+  rule keys on a new source **address** instead and says so in its name and
+  description; closing it with a plausible-looking ASN substitute would be the
+  dishonesty the corpus's own first-seen module docstring warns about. See
+  D11.
 - [ ] **6.6** AI containment and kill-switch
 
 ## Phase 7: Phishing operations
@@ -587,6 +645,7 @@ invented fields on the first run of the gate.
 | 2026-10-09 | 3.3 | Identity privilege (18 rules) and a per-tenant first-seen store (2) built; 5 rules were never unreachable (gate operator drift, D9); 18 retired with a reason (D10). `MAX_UNREACHABLE` 45 → 2, the two remaining both needing the 3.4 baseline. Two matcher operators three shipped rules already used were implemented. |
 | 2026-10-09 | 3.2 | Ordered and unordered sequences in the windowed engine; all four translatable Sigma correlation types compile, seven refusal reasons recorded. No upstream correlation rule exists in this tree to import (D8), so the corpus is first-party and labelled as such. |
 | 2026-10-09 | 4.1 | Reproduced: `check_cloud_native_collection.py` on the unmodified tree reported all three collection paths absent. Implemented `aws_cloudtrail_s3` (SQS-notified S3 objects; management events, data events and VPC flow logs; delete-after-emit), `gcp_pubsub` (REST pull on a log-sink subscription; ack-after-read) and `azure_event_hubs` (Capture blobs over the Data Lake Gen2 JSON API, with a focused Avro OCF reader). Negative controls recorded in the PR: deleting the SQS message before the object is read, acknowledging the Pub/Sub batch before it is built, ignoring the Avro union branch index, and ignoring the flow-log header line each fail a named test, and all were restored. Connectors suite 1014 -> 1098 passed. |
+| 2026-10-11 | 6.5 | Reproduced: none of the seven abuses the plan names was detectable — the eight existing `ai-*` rules all fire on a `finding_type` a guardrail already decided. Added four stateless and three windowed rules with hand-authored fixtures on both sides. Executable 2,511 → 2,515, windowed 72 → 75, fusion suite 700 → 722, strict replay 6,995 validated / 0 failed. The attributability test fired during authoring and tightened one negative. One deviation recorded (D11): ASN novelty is not reachable from the match namespace, so the rule keys on a new source address and says so. |
 | 2026-10-11 | 6.3 | Reproduced: five of seven providers absent. Added Gemini in Workspace, Workspace OAuth grants, M365 Copilot, Entra consent and GitHub Copilot, every endpoint fetched from the vendor's current reference first. 15 new tests asserting the request shape as well as the result; connectors suite 1,126 -> 1,141. Three findings from reading the references (blob references not records; `AIAppInteraction` is Microsoft's own word for undeployed third-party AI; `app_name` means two things across the two Google streams). PARTIAL: no funded account exists with any of the seven, recorded per provider as `not measured` rather than as a zero. |
 | 2026-10-11 | 6.2 | Reproduced: 13 of 16 new cases failed, driving the shapes the four endpoint connectors actually emit. Root cause was 6.1's endpoint branch reading `process.name` off OCSF, which the canonical profile never populates — it found `None` on every real source while its own tests passed. Fixed by reconstructing the connector namespace. Shipped the osquery pack (5 queries, packs 5 -> 6), the source-capability table, the operator doc and a 6-rule gate. Fusion suite 683 -> 700. Claim row is PARTIAL: no osquery agent runs in CI, and the EDR connectors return vendor detections rather than process telemetry, so the plan's "CrowdStrike, Defender, SentinelOne" wording is not satisfiable with these connectors. |
 | 2026-10-11 | 6.1 | Reproduced: the new gate reported nine problems across five of eight rules on the unmodified tree. Built `aisoc_ai_assets` (migration 105), its routes behind a new `ai_estate:*` permission pair, the fusion recorder that writes it on the default profile, the `AIAsset` graph label with `OPERATES`/`HOSTS` edges, and the `/ai-estate` page. Two negative controls against a real PostgreSQL: reverting `NULLS NOT DISTINCT` turns one provider-key row into three, and a `USING (true)` policy leaks across tenants. Claim matrix 302 -> 303 rows, 300 GATED. Writing the gate found two blind spots in the gate itself. || 2026-10-11 | 6.1 | Reproduced: the new gate reported nine problems across five of eight rules on the unmodified tree. Built `aisoc_ai_assets` (migration 110), its routes behind a new `ai_estate:*` permission pair, the fusion recorder that writes it on the default profile, the `AIAsset` graph label with `OPERATES`/`HOSTS` edges, and the `/ai-estate` page. Two negative controls against a real PostgreSQL: reverting `NULLS NOT DISTINCT` turns one provider-key row into three, and a `USING (true)` policy leaks across tenants. Claim matrix 302 -> 303 rows, 300 GATED. Writing the gate found two blind spots in the gate itself. |

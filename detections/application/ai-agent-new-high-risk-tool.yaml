@@ -1,0 +1,26 @@
+id: det-application-088
+name: AI Agent Called a State-Changing Tool for the First Time
+description: 'An agent invoked a tool that changes an estate, and this tenant has never seen that agent
+  call that tool before. The pair is the subject, not either half: a tool somebody else has called, or
+  an agent that has called something, are different and much weaker questions.'
+version: 1.0.0
+severity: high
+tags:
+- mitre.attack.t1059
+- tlp.white
+category: application
+log_source:
+  product: ai_runtime
+  service: runtime
+detection:
+  condition: |
+    agent_tool_seen_before == false
+    AND tool_name IN ["execute_command", "run_shell", "write_file", "delete_file", "send_email", "create_user", "grant_permission", "deploy", "terraform_apply", "database_write"]
+false_positives:
+- A newly deployed agent whose tool set legitimately widened in the same release
+- An engineer testing a new capability in a development tenant
+playbook: tpl-privilege-escalation
+enabled: true
+author: AiSOC
+created: '2026-05-03'
+modified: '2026-05-03'

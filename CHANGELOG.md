@@ -231,6 +231,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **An AI rule pack with hand-authored negatives** (depth plan 6.5). Seven
+  detections: a provider key minted or used from an unfamiliar address, an
+  agent calling a state-changing tool for the first time, an MCP server the
+  tenant has not approved, a coding agent started with its permission prompts
+  disabled, guardrail violations rising against one agent, a token-spend
+  burst, and an unapproved OAuth AI application reading at volume. Four are
+  stateless and three windowed; executable rules 2,511 → 2,515 and windowed
+  72 → 75.
+
+  **Every fixture is hand-authored, positive and negative**, which is a
+  deliberate departure from the generator. `build_negative` inverts a clause
+  by prefixing the literal `not-` to the expected value, and 423 of the
+  corpus's 878 negatives are that shape — a rule passes its negative by
+  failing to match a value no log source would ever emit, which measures
+  nothing about false positives. The negatives here are events a real AI
+  estate produces daily: the same key action from a familiar address, the
+  same agent calling the same tool it calls hourly, the approved MCP server,
+  the same agent started without the flag. A test refuses any pair differing
+  in more than the clause its rule is about, and it caught one of these
+  during authoring.
+
+  Three new reachable fields rather than rules that cannot fire:
+  `source_ip_seen_before` and a **composite** `agent_tool_seen_before` in the
+  first-seen store (the pair is the subject — a tool somebody else called, or
+  an agent that called something, are different and much weaker questions),
+  and two per-tenant allowlists (`mcp_server_not_in_allowlist`,
+  `oauth_app_not_in_allowlist`) because "vetted" is one organisation's
+  judgement and a global list would impose it on everybody. Each contributes
+  **no key** when unconfigured, so the rules stay silent rather than firing
+  on everything.
+
 - **AI control-plane audit across seven providers** (depth plan 6.3).
   `llm_usage` grows from OpenAI and Anthropic to Gemini in Google Workspace,
   Workspace OAuth grants, Microsoft 365 Copilot interactions, Microsoft Entra
