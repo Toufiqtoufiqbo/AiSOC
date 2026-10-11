@@ -91,9 +91,7 @@ def test_every_source_with_a_minimum_has_a_connector(source: str) -> None:
     """A minimum nobody can meet honestly invites meeting it dishonestly."""
     if source == "ci":
         pytest.skip("`ci` is a generic build-system source, not one vendor's connector")
-    assert _has_connector(source, _connector_slugs()), (
-        f"{source} carries a minimum in check_content_depth.py but no connector emits it"
-    )
+    assert _has_connector(source, _connector_slugs()), f"{source} carries a minimum in check_content_depth.py but no connector emits it"
 
 
 def test_every_grouped_source_is_in_exactly_one_group() -> None:
@@ -125,7 +123,7 @@ def test_the_gate_passes_on_this_tree() -> None:
 
 
 def test_the_gate_refuses_an_empty_tree() -> None:
-    """"Found nothing" and "scanned nothing" must not print the same word."""
+    """ "Found nothing" and "scanned nothing" must not print the same word."""
     result = subprocess.run(  # noqa: S603
         ["python3", str(_REPO / "scripts" / "check_content_depth.py"), "--self-test"],
         capture_output=True,
