@@ -1,0 +1,24 @@
+id: det-saas-017
+name: Box Collaboration Removed
+description: AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Collaboration Removed'.
+  Watch the 2 documented false-positive cases before tuning.
+version: 1.0.0
+severity: low
+tags:
+- mitre.attack.t1531
+- tlp.white
+category: saas
+log_source:
+  product: box
+  service: audit
+detection:
+  condition: |
+    event_type == "COLLABORATION_REMOVE"
+false_positives:
+- Offboarding
+- A project closing
+playbook: tpl-triage
+enabled: true
+author: AiSOC
+created: '2026-05-03'
+modified: '2026-05-03'

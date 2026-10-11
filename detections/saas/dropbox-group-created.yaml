@@ -1,0 +1,23 @@
+id: det-saas-033
+name: Dropbox Group Created
+description: AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Group Created'.
+  Watch the 1 documented false-positive case before tuning.
+version: 1.0.0
+severity: low
+tags:
+- mitre.attack.t1098
+- tlp.white
+category: saas
+log_source:
+  product: dropbox
+  service: audit
+detection:
+  condition: |
+    event_type == "group_create"
+false_positives:
+- A new project team
+playbook: tpl-triage
+enabled: true
+author: AiSOC
+created: '2026-05-03'
+modified: '2026-05-03'

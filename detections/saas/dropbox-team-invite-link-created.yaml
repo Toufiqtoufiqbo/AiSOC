@@ -1,0 +1,23 @@
+id: det-saas-027
+name: Dropbox Team Member Invite Link Created
+description: AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Team Member
+  Invite Link Created'. Watch the 1 documented false-positive case before tuning.
+version: 1.0.0
+severity: high
+tags:
+- mitre.attack.t1136.003
+- tlp.white
+category: saas
+log_source:
+  product: dropbox
+  service: audit
+detection:
+  condition: |
+    event_type == "team_member_create_team_invite_link"
+false_positives:
+- Bulk onboarding at the start of a quarter
+playbook: tpl-triage
+enabled: true
+author: AiSOC
+created: '2026-05-03'
+modified: '2026-05-03'

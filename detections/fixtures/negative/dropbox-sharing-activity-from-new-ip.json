@@ -1,0 +1,6 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "shared_content_add_member",
+  "source": "dropbox",
+  "src_ip": "10.4.2.9"
+}

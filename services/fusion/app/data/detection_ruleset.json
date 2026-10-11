@@ -1,5 +1,5 @@
 {
-  "count": 765,
+  "count": 825,
   "rules": [
     {
       "category": "application",
@@ -13296,6 +13296,947 @@
       "service": "stp",
       "severity": "medium",
       "slug": "net-stp-topology-change-from-edge"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-001",
+      "match_when": {
+        "event_type": "SHIELD_ALERT"
+      },
+      "mitre": [
+        "T1530"
+      ],
+      "name": "Box Shield Alert Raised",
+      "product": "box",
+      "service": "audit",
+      "severity": "high",
+      "slug": "box-shield-alert-raised"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-002",
+      "match_when": {
+        "event_type": "SHIELD_EXTERNAL_COLLAB_INVITE_ABNORMAL_LOCATION"
+      },
+      "mitre": [
+        "T1567.002"
+      ],
+      "name": "Box External Collaboration Invite From an Abnormal Location",
+      "product": "box",
+      "service": "audit",
+      "severity": "high",
+      "slug": "box-external-collab-abnormal-location"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-003",
+      "match_when": {
+        "event_type": "SHIELD_EXTERNAL_COLLAB_INVITE_BLOCKED"
+      },
+      "mitre": [
+        "T1567.002"
+      ],
+      "name": "Box External Collaboration Invite Blocked by Policy",
+      "product": "box",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "box-external-collab-invite-blocked"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-004",
+      "match_when": {
+        "event_type": "ROLE_CHANGE_TO_ADMIN"
+      },
+      "mitre": [
+        "T1098.003"
+      ],
+      "name": "Box User Promoted to Administrator",
+      "product": "box",
+      "service": "audit",
+      "severity": "high",
+      "slug": "box-role-change-to-admin"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-005",
+      "match_when": {
+        "event_type": "GROUP_ADMIN_CREATED"
+      },
+      "mitre": [
+        "T1098.003"
+      ],
+      "name": "Box Group Administrator Created",
+      "product": "box",
+      "service": "audit",
+      "severity": "high",
+      "slug": "box-group-admin-created"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-006",
+      "match_when": {
+        "event_type": "APPLICATION_PUBLIC_KEY_ADDED"
+      },
+      "mitre": [
+        "T1098.001",
+        "T1550.001"
+      ],
+      "name": "Box Application Public Key Added",
+      "product": "box",
+      "service": "audit",
+      "severity": "high",
+      "slug": "box-application-public-key-added"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-007",
+      "match_when": {
+        "event_type": "APPLICATION_PUBLIC_KEY_DELETED"
+      },
+      "mitre": [
+        "T1562.001"
+      ],
+      "name": "Box Application Public Key Deleted",
+      "product": "box",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "box-application-public-key-deleted"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-008",
+      "match_when": {
+        "event_type": "DELETE_USER"
+      },
+      "mitre": [
+        "T1531"
+      ],
+      "name": "Box User Deleted",
+      "product": "box",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "box-user-deleted"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-009",
+      "match_when": {
+        "event_type": "FAILED_LOGIN"
+      },
+      "mitre": [
+        "T1110"
+      ],
+      "name": "Box Failed Login",
+      "product": "box",
+      "service": "audit",
+      "severity": "low",
+      "slug": "box-failed-login"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-010",
+      "match_when": {
+        "event_type": "ADD_LOGIN_ACTIVITY_DEVICE"
+      },
+      "mitre": [
+        "T1078.004"
+      ],
+      "name": "Box Login From a Newly Registered Device",
+      "product": "box",
+      "service": "audit",
+      "severity": "low",
+      "slug": "box-new-login-device-registered"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-011",
+      "match_when": {
+        "event_type": "REMOVE_LOGIN_ACTIVITY_DEVICE"
+      },
+      "mitre": [
+        "T1070"
+      ],
+      "name": "Box Login Device Removed",
+      "product": "box",
+      "service": "audit",
+      "severity": "low",
+      "slug": "box-login-device-removed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-012",
+      "match_when": {
+        "event_type": "ITEM_SHARED_LINK"
+      },
+      "mitre": [
+        "T1567.002"
+      ],
+      "name": "Box Shared Link Created",
+      "product": "box",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "box-shared-link-created"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-013",
+      "match_when": {
+        "event_type": "ITEM_SHARED_UPDATE"
+      },
+      "mitre": [
+        "T1567.002"
+      ],
+      "name": "Box Shared Link Settings Changed",
+      "product": "box",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "box-shared-link-settings-changed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-014",
+      "match_when": {
+        "actor_email_endswith_any": [
+          "@gmail.com",
+          "@yahoo.com",
+          "@outlook.com"
+        ],
+        "event_type": "ITEM_DOWNLOAD"
+      },
+      "mitre": [
+        "T1567.002",
+        "T1530"
+      ],
+      "name": "Box Item Downloaded by a Consumer-Domain Collaborator",
+      "product": "box",
+      "service": "audit",
+      "severity": "high",
+      "slug": "box-item-download-by-external-collaborator"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-015",
+      "match_when": {
+        "actor_email_endswith_any": [
+          "@gmail.com",
+          "@outlook.com"
+        ],
+        "event_type": "COLLABORATION_INVITE"
+      },
+      "mitre": [
+        "T1567.002"
+      ],
+      "name": "Box Collaboration Invited to a Consumer Domain",
+      "product": "box",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "box-collaboration-invite-to-consumer-domain"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-016",
+      "match_when": {
+        "event_type": "COLLABORATION_ROLE_CHANGE"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "Box Collaboration Role Changed",
+      "product": "box",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "box-collaboration-role-escalated"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-017",
+      "match_when": {
+        "event_type": "COLLABORATION_REMOVE"
+      },
+      "mitre": [
+        "T1531"
+      ],
+      "name": "Box Collaboration Removed",
+      "product": "box",
+      "service": "audit",
+      "severity": "low",
+      "slug": "box-collaboration-removed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-018",
+      "match_when": {
+        "event_type": "COLLABORATION_EXPIRATION"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "Box Collaboration Expiration Changed",
+      "product": "box",
+      "service": "audit",
+      "severity": "low",
+      "slug": "box-collaboration-expiration-set"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-019",
+      "match_when": {
+        "event_type": "MASTER_INVITE_ACCEPT"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "Box Master Invite Accepted",
+      "product": "box",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "box-master-invite-accepted"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-020",
+      "match_when": {
+        "event_type": "MASTER_INVITE_REJECT"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "Box Master Invite Rejected",
+      "product": "box",
+      "service": "audit",
+      "severity": "low",
+      "slug": "box-master-invite-rejected"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-021",
+      "match_when": {
+        "event_type": "shared_content_change_link_audience_to_public"
+      },
+      "mitre": [
+        "T1567.002"
+      ],
+      "name": "Dropbox Shared Link Audience Changed to Public",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "high",
+      "slug": "dropbox-link-audience-changed-to-public"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-022",
+      "match_when": {
+        "event_type": "member_change_admin_role"
+      },
+      "mitre": [
+        "T1098.003"
+      ],
+      "name": "Dropbox Member Admin Role Changed",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "high",
+      "slug": "dropbox-admin-role-changed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-023",
+      "match_when": {
+        "event_type": "member_change_email"
+      },
+      "mitre": [
+        "T1098",
+        "T1556"
+      ],
+      "name": "Dropbox Member Email Address Changed",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "high",
+      "slug": "dropbox-member-email-changed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-024",
+      "match_when": {
+        "event_type": "member_change_status"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "Dropbox Member Status Changed",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "dropbox-member-status-changed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-025",
+      "match_when": {
+        "event_type": "account_external_password_unmask"
+      },
+      "mitre": [
+        "T1555"
+      ],
+      "name": "Dropbox External Account Password Unmasked",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "high",
+      "slug": "dropbox-external-password-unmasked"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-026",
+      "match_when": {
+        "event_type": "sso_change_policy"
+      },
+      "mitre": [
+        "T1556.007"
+      ],
+      "name": "Dropbox SSO Policy Changed",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "critical",
+      "slug": "dropbox-sso-policy-changed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-027",
+      "match_when": {
+        "event_type": "team_member_create_team_invite_link"
+      },
+      "mitre": [
+        "T1136.003"
+      ],
+      "name": "Dropbox Team Member Invite Link Created",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "high",
+      "slug": "dropbox-team-invite-link-created"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-028",
+      "match_when": {
+        "event_type": "team_folder_change_status"
+      },
+      "mitre": [
+        "T1565"
+      ],
+      "name": "Dropbox Team Folder Status Changed",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "dropbox-team-folder-status-changed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-029",
+      "match_when": {
+        "event_type": "login_fail"
+      },
+      "mitre": [
+        "T1110"
+      ],
+      "name": "Dropbox Login Failed",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "dropbox-login-failed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-030",
+      "match_when": {
+        "event_type": "login_success"
+      },
+      "mitre": [
+        "T1078.004"
+      ],
+      "name": "Dropbox Login Succeeded Without Two-Factor",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "dropbox-login-without-two-factor"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-031",
+      "match_when": {
+        "event_type": "app_link_team"
+      },
+      "mitre": [
+        "T1550.001"
+      ],
+      "name": "Dropbox Application Linked to the Team",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "high",
+      "slug": "dropbox-app-linked-to-team"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-032",
+      "match_when": {
+        "event_type": "device_link"
+      },
+      "mitre": [
+        "T1078.004"
+      ],
+      "name": "Dropbox Device Linked",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "low",
+      "slug": "dropbox-device-linked"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-033",
+      "match_when": {
+        "event_type": "group_create"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "Dropbox Group Created",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "low",
+      "slug": "dropbox-group-created"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-034",
+      "match_when": {
+        "event_type": "group_delete"
+      },
+      "mitre": [
+        "T1531"
+      ],
+      "name": "Dropbox Group Deleted",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "dropbox-group-deleted"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-035",
+      "match_when": {
+        "event_type": "shared_content_remove_member"
+      },
+      "mitre": [
+        "T1531"
+      ],
+      "name": "Dropbox Shared Content Member Removed",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "low",
+      "slug": "dropbox-shared-content-member-removed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-036",
+      "match_when": {
+        "actor_email_endswith_any": [
+          "@gmail.com",
+          "@outlook.com"
+        ],
+        "event_type_startswith": "shared_content_"
+      },
+      "mitre": [
+        "T1567.002"
+      ],
+      "name": "Dropbox Sharing Action by a Consumer-Domain Account",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "dropbox-shared-content-event-from-consumer-domain"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-037",
+      "match_when": {
+        "event_type_startswith": "shared_link_"
+      },
+      "mitre": [
+        "T1567.002"
+      ],
+      "name": "Dropbox Shared Link Activity",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "low",
+      "slug": "dropbox-shared-link-event"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-038",
+      "match_when": {
+        "event_type_startswith": "shmodel_"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "Dropbox Shared-Model Permission Activity",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "low",
+      "slug": "dropbox-shmodel-event"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-039",
+      "match_when": {
+        "event_type_startswith": "shared_",
+        "src_ip_not_startswith_any": [
+          "10.",
+          "192.168.",
+          "172.16."
+        ]
+      },
+      "mitre": [
+        "T1567.002"
+      ],
+      "name": "Dropbox Sharing Activity From an Unrecognised Address",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "medium",
+      "slug": "dropbox-sharing-activity-from-new-ip"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-040",
+      "match_when": {
+        "event_type": "login_success_with_two_factor",
+        "src_ip_not_startswith_any": [
+          "10.",
+          "192.168."
+        ]
+      },
+      "mitre": [
+        "T1078.004"
+      ],
+      "name": "Dropbox Two-Factor Login From an External Address",
+      "product": "dropbox",
+      "service": "audit",
+      "severity": "low",
+      "slug": "dropbox-two-factor-login-from-external-ip"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-041",
+      "match_when": {
+        "category": "credentials_failed"
+      },
+      "mitre": [
+        "T1110"
+      ],
+      "name": "1Password Sign-In Failed on Credentials",
+      "product": "1password",
+      "service": "signin",
+      "severity": "medium",
+      "slug": "1password-credentials-failed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-042",
+      "match_when": {
+        "category": "mfa_failed"
+      },
+      "mitre": [
+        "T1621",
+        "T1111"
+      ],
+      "name": "1Password Sign-In Failed on Second Factor",
+      "product": "1password",
+      "service": "signin",
+      "severity": "high",
+      "slug": "1password-mfa-failed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-043",
+      "match_when": {
+        "category": "firewall_failed"
+      },
+      "mitre": [
+        "T1078.004"
+      ],
+      "name": "1Password Sign-In Blocked by Firewall Rules",
+      "product": "1password",
+      "service": "signin",
+      "severity": "high",
+      "slug": "1password-firewall-blocked-sign-in"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-044",
+      "match_when": {
+        "category": "modern_version_failed"
+      },
+      "mitre": [
+        "T1078"
+      ],
+      "name": "1Password Sign-In Rejected for an Outdated Client",
+      "product": "1password",
+      "service": "signin",
+      "severity": "low",
+      "slug": "1password-outdated-client-rejected"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-045",
+      "match_when": {
+        "type": "totp_disabled"
+      },
+      "mitre": [
+        "T1556.006"
+      ],
+      "name": "1Password Time-Based One-Time Password Disabled",
+      "product": "1password",
+      "service": "signin",
+      "severity": "high",
+      "slug": "1password-totp-disabled"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-046",
+      "match_when": {
+        "type": "totp_incorrect"
+      },
+      "mitre": [
+        "T1111"
+      ],
+      "name": "1Password Incorrect One-Time Password",
+      "product": "1password",
+      "service": "signin",
+      "severity": "medium",
+      "slug": "1password-totp-incorrect"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-047",
+      "match_when": {
+        "type": "mfa_missing"
+      },
+      "mitre": [
+        "T1621"
+      ],
+      "name": "1Password Sign-In Attempted Without a Second Factor",
+      "product": "1password",
+      "service": "signin",
+      "severity": "high",
+      "slug": "1password-mfa-missing"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-048",
+      "match_when": {
+        "category": "success",
+        "src_ip_not_startswith_any": [
+          "10.",
+          "192.168.",
+          "172.16."
+        ]
+      },
+      "mitre": [
+        "T1078.004"
+      ],
+      "name": "1Password Sign-In From an Unrecognised Address",
+      "product": "1password",
+      "service": "signin",
+      "severity": "low",
+      "slug": "1password-sign-in-from-external-address"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-049",
+      "match_when": {
+        "category": "credentials_failed",
+        "src_ip_not_startswith_any": [
+          "10.",
+          "192.168."
+        ]
+      },
+      "mitre": [
+        "T1110"
+      ],
+      "name": "1Password Failed Sign-In From an Unrecognised Address",
+      "product": "1password",
+      "service": "signin",
+      "severity": "medium",
+      "slug": "1password-failed-sign-in-from-external-address"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-050",
+      "match_when": {
+        "action": "reveal"
+      },
+      "mitre": [
+        "T1555.005"
+      ],
+      "name": "1Password Item Secret Revealed",
+      "product": "1password",
+      "service": "signin",
+      "severity": "medium",
+      "slug": "1password-item-secret-revealed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-051",
+      "match_when": {
+        "action": "secure_copy"
+      },
+      "mitre": [
+        "T1555.005",
+        "T1115"
+      ],
+      "name": "1Password Item Secret Copied to the Clipboard",
+      "product": "1password",
+      "service": "signin",
+      "severity": "medium",
+      "slug": "1password-item-secret-copied"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-052",
+      "match_when": {
+        "action": "export"
+      },
+      "mitre": [
+        "T1555.005",
+        "T1530"
+      ],
+      "name": "1Password Item Exported",
+      "product": "1password",
+      "service": "signin",
+      "severity": "critical",
+      "slug": "1password-item-exported"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-053",
+      "match_when": {
+        "action": "delete"
+      },
+      "mitre": [
+        "T1485"
+      ],
+      "name": "1Password Vault Item Deleted",
+      "product": "1password",
+      "service": "signin",
+      "severity": "medium",
+      "slug": "1password-vault-item-deleted"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-054",
+      "match_when": {
+        "item_name_contains_any": [
+          "root",
+          "break-glass",
+          "emergency"
+        ]
+      },
+      "mitre": [
+        "T1555.005"
+      ],
+      "name": "1Password Privileged Item Accessed",
+      "product": "1password",
+      "service": "signin",
+      "severity": "high",
+      "slug": "1password-privileged-item-accessed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-055",
+      "match_when": {
+        "type": "service_account_token"
+      },
+      "mitre": [
+        "T1078.004"
+      ],
+      "name": "1Password Service Account Token Used",
+      "product": "1password",
+      "service": "signin",
+      "severity": "medium",
+      "slug": "1password-service-account-token-used"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-056",
+      "match_when": {
+        "action": "group_member_add"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "1Password Group Membership Changed",
+      "product": "1password",
+      "service": "signin",
+      "severity": "medium",
+      "slug": "1password-group-membership-changed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-057",
+      "match_when": {
+        "action": "vault_permission_grant"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "1Password Vault Permissions Changed",
+      "product": "1password",
+      "service": "signin",
+      "severity": "high",
+      "slug": "1password-vault-permissions-changed"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-058",
+      "match_when": {
+        "action": "recovery_initiate"
+      },
+      "mitre": [
+        "T1098.005"
+      ],
+      "name": "1Password Account Recovery Initiated",
+      "product": "1password",
+      "service": "signin",
+      "severity": "high",
+      "slug": "1password-recovery-initiated"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-059",
+      "match_when": {
+        "action": "user_suspend"
+      },
+      "mitre": [
+        "T1531"
+      ],
+      "name": "1Password User Suspended",
+      "product": "1password",
+      "service": "signin",
+      "severity": "low",
+      "slug": "1password-user-suspended"
+    },
+    {
+      "category": "saas",
+      "id": "det-saas-060",
+      "match_when": {
+        "action": "user_reactivate"
+      },
+      "mitre": [
+        "T1098"
+      ],
+      "name": "1Password Suspended User Reactivated",
+      "product": "1password",
+      "service": "signin",
+      "severity": "medium",
+      "slug": "1password-user-reactivated"
     },
     {
       "category": "threat-anomaly",

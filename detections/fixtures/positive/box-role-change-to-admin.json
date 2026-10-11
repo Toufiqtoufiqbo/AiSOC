@@ -1,0 +1,7 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "ROLE_CHANGE_TO_ADMIN",
+  "source": "box",
+  "src_ip": "198.51.100.17",
+  "target": "contractor-7@example.com"
+}

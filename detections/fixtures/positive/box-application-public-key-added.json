@@ -1,0 +1,7 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "APPLICATION_PUBLIC_KEY_ADDED",
+  "source": "box",
+  "src_ip": "198.51.100.17",
+  "target": "reporting-app"
+}

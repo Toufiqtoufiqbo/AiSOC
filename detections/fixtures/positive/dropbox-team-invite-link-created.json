@@ -1,0 +1,6 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "team_member_create_team_invite_link",
+  "source": "dropbox",
+  "src_ip": "198.51.100.17"
+}

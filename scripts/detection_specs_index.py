@@ -39,6 +39,7 @@ from detection_specs_part3_endpoint import ENDPOINT_EXTRA  # type: ignore[import
 from detection_specs_part3_identity import IDENTITY_EXTRA  # type: ignore[import-not-found]
 from detection_specs_part3_network import NETWORK_EXTRA  # type: ignore[import-not-found]
 from detection_specs_part4_threat_anomaly import THREAT_ANOMALY  # type: ignore[import-not-found]
+from detection_specs_part5_saas import SAAS_DEPTH  # type: ignore[import-not-found]
 
 CATEGORIES: dict[str, list[dict]] = {
     "cloud": [*CLOUD, *CLOUD_EXTRA],
@@ -52,6 +53,10 @@ CATEGORIES: dict[str, list[dict]] = {
     # so a fresh install has the rule before it has the signal. Counted
     # separately in scripts/project_stats.py for the same reason.
     "threat-anomaly": THREAT_ANOMALY,
+    # Depth plan 3.6. Box, Dropbox and 1Password each had zero
+    # executable rules while shipping a working connector, so a
+    # customer could attach them and get nothing.
+    "saas": SAAS_DEPTH,
 }
 
 

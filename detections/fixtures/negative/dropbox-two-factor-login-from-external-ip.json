@@ -1,0 +1,6 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "login_success_with_two_factor",
+  "source": "dropbox",
+  "src_ip": "10.4.2.9"
+}

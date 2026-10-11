@@ -1,0 +1,6 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "ADD_LOGIN_ACTIVITY_DEVICE",
+  "source": "box",
+  "src_ip": "198.51.100.17"
+}

@@ -1,0 +1,7 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "ITEM_DOWNLOAD",
+  "source": "box",
+  "src_ip": "198.51.100.17",
+  "target": "Pricing-2026.xlsx"
+}

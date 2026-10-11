@@ -214,7 +214,7 @@ TARGET = 800
 
 #: What the tree measures today. A ratchet: it may rise, never fall. See the
 #: module docstring for why this is not `TARGET`.
-FLOOR = 461
+FLOOR = 521
 
 
 def _executable_detections() -> list[dict]:

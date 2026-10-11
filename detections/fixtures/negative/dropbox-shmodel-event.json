@@ -1,0 +1,6 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "file_edit",
+  "source": "dropbox",
+  "src_ip": "198.51.100.17"
+}

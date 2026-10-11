@@ -1,7 +1,7 @@
 {
   "$schema": "https://example.com/schemas/marketplace/v1.json",
   "version": "1.0.0",
-  "generated": "2026-10-11T05:10:50Z",
+  "generated": "2026-10-11T05:20:02Z",
   "categories": [
     {
       "id": "playbooks",
@@ -20,32 +20,32 @@
     }
   ],
   "stats": {
-    "total": 7182,
+    "total": 7242,
     "playbooks": 87,
     "playbook_packs": 62,
-    "detections": 7015,
+    "detections": 7075,
     "plugins": 80,
-    "verified": 1061,
+    "verified": 1121,
     "community": 1,
     "by_tier": {
       "beta": 7,
       "community": 1,
       "imported": 6113,
-      "stable": 1061
+      "stable": 1121
     },
     "detections_by_tier": {
       "community": 1,
       "imported": 6113,
-      "stable": 901
+      "stable": 961
     },
-    "executable": 2702,
+    "executable": 2762,
     "quarantined": 4480,
-    "executable_detections": 2535,
+    "executable_detections": 2595,
     "reference_only_detections": 4480,
     "not_a_detection": 167
   },
   "mitre_coverage": {
-    "unique_techniques": 391,
+    "unique_techniques": 392,
     "techniques": {
       "T1001.003": 1,
       "T1003": 21,
@@ -129,7 +129,7 @@
       "T1069": 3,
       "T1069.001": 12,
       "T1069.002": 11,
-      "T1070": 17,
+      "T1070": 18,
       "T1070.001": 3,
       "T1070.002": 1,
       "T1070.003": 6,
@@ -141,11 +141,11 @@
       "T1071.004": 10,
       "T1072": 4,
       "T1074.001": 4,
-      "T1078": 49,
+      "T1078": 50,
       "T1078.001": 5,
       "T1078.002": 7,
       "T1078.003": 3,
-      "T1078.004": 49,
+      "T1078.004": 56,
       "T1082": 13,
       "T1083": 9,
       "T1087": 10,
@@ -158,28 +158,29 @@
       "T1090.003": 9,
       "T1091": 1,
       "T1095": 4,
-      "T1098": 48,
-      "T1098.001": 21,
-      "T1098.003": 8,
+      "T1098": 59,
+      "T1098.001": 22,
+      "T1098.003": 11,
       "T1098.004": 6,
-      "T1098.005": 1,
+      "T1098.005": 2,
       "T1098.007": 1,
       "T1102": 5,
       "T1102.002": 1,
       "T1105": 49,
       "T1106": 6,
-      "T1110": 18,
+      "T1110": 22,
       "T1110.001": 5,
       "T1110.002": 1,
       "T1110.003": 2,
       "T1110.004": 3,
+      "T1111": 2,
       "T1112": 58,
       "T1113": 7,
       "T1114": 1,
       "T1114.001": 1,
       "T1114.002": 1,
       "T1114.003": 3,
-      "T1115": 3,
+      "T1115": 4,
       "T1119": 3,
       "T1120": 2,
       "T1123": 4,
@@ -198,7 +199,7 @@
       "T1136": 2,
       "T1136.001": 11,
       "T1136.002": 3,
-      "T1136.003": 2,
+      "T1136.003": 3,
       "T1137": 4,
       "T1137.002": 1,
       "T1137.003": 1,
@@ -253,7 +254,7 @@
       "T1484": 1,
       "T1484.001": 7,
       "T1484.002": 3,
-      "T1485": 29,
+      "T1485": 30,
       "T1486": 11,
       "T1489": 10,
       "T1490": 20,
@@ -275,8 +276,8 @@
       "T1526": 2,
       "T1528": 8,
       "T1529": 3,
-      "T1530": 31,
-      "T1531": 7,
+      "T1530": 34,
+      "T1531": 12,
       "T1535": 1,
       "T1537": 7,
       "T1539": 6,
@@ -314,7 +315,7 @@
       "T1548.003": 2,
       "T1548.004": 1,
       "T1550": 6,
-      "T1550.001": 3,
+      "T1550.001": 5,
       "T1550.002": 6,
       "T1550.003": 3,
       "T1550.004": 1,
@@ -331,17 +332,17 @@
       "T1553.004": 9,
       "T1553.005": 5,
       "T1554": 3,
-      "T1555": 8,
+      "T1555": 9,
       "T1555.001": 4,
       "T1555.003": 9,
       "T1555.004": 3,
-      "T1555.005": 1,
-      "T1556": 42,
+      "T1555.005": 5,
+      "T1556": 43,
       "T1556.001": 1,
       "T1556.003": 1,
       "T1556.004": 1,
-      "T1556.006": 16,
-      "T1556.007": 2,
+      "T1556.006": 17,
+      "T1556.007": 3,
       "T1556.009": 1,
       "T1557": 2,
       "T1557.001": 12,
@@ -358,7 +359,7 @@
       "T1560.001": 12,
       "T1561.002": 1,
       "T1562": 5,
-      "T1562.001": 31,
+      "T1562.001": 32,
       "T1562.004": 7,
       "T1562.006": 2,
       "T1562.008": 11,
@@ -371,14 +372,14 @@
       "T1564.004": 12,
       "T1564.006": 2,
       "T1564.008": 2,
-      "T1565": 2,
+      "T1565": 3,
       "T1565.001": 3,
       "T1566": 5,
       "T1566.001": 15,
       "T1566.002": 2,
       "T1567": 16,
       "T1567.001": 1,
-      "T1567.002": 15,
+      "T1567.002": 25,
       "T1568.002": 2,
       "T1569": 1,
       "T1569.002": 29,
@@ -425,7 +426,7 @@
       "T1614.001": 2,
       "T1615": 4,
       "T1620": 4,
-      "T1621": 5,
+      "T1621": 7,
       "T1622": 1,
       "T1647": 1,
       "T1649": 4,
@@ -439,8 +440,8 @@
       "T1686.003": 10,
       "T1689": 1
     },
-    "total_with_mitre": 2404,
-    "unique_techniques_all_rules": 494,
+    "total_with_mitre": 2464,
+    "unique_techniques_all_rules": 495,
     "techniques_all_rules": {
       "T1001.003": 2,
       "T1003": 51,
@@ -547,7 +548,7 @@
       "T1069.001": 29,
       "T1069.002": 35,
       "T1069.003": 4,
-      "T1070": 35,
+      "T1070": 36,
       "T1070.001": 8,
       "T1070.002": 1,
       "T1070.003": 13,
@@ -563,11 +564,11 @@
       "T1072": 9,
       "T1074": 3,
       "T1074.001": 6,
-      "T1078": 132,
+      "T1078": 133,
       "T1078.001": 10,
       "T1078.002": 14,
       "T1078.003": 12,
-      "T1078.004": 102,
+      "T1078.004": 109,
       "T1082": 49,
       "T1083": 28,
       "T1087": 21,
@@ -580,12 +581,12 @@
       "T1090.003": 11,
       "T1091": 5,
       "T1095": 8,
-      "T1098": 95,
-      "T1098.001": 29,
+      "T1098": 106,
+      "T1098.001": 30,
       "T1098.002": 6,
-      "T1098.003": 37,
+      "T1098.003": 40,
       "T1098.004": 12,
-      "T1098.005": 8,
+      "T1098.005": 9,
       "T1098.007": 1,
       "T1102": 17,
       "T1102.001": 4,
@@ -593,18 +594,19 @@
       "T1102.003": 2,
       "T1105": 118,
       "T1106": 11,
-      "T1110": 57,
+      "T1110": 61,
       "T1110.001": 18,
       "T1110.002": 1,
       "T1110.003": 45,
       "T1110.004": 16,
+      "T1111": 2,
       "T1112": 164,
       "T1113": 16,
       "T1114": 6,
       "T1114.001": 7,
       "T1114.002": 16,
       "T1114.003": 13,
-      "T1115": 11,
+      "T1115": 12,
       "T1119": 8,
       "T1120": 2,
       "T1123": 9,
@@ -625,7 +627,7 @@
       "T1136": 11,
       "T1136.001": 32,
       "T1136.002": 7,
-      "T1136.003": 25,
+      "T1136.003": 26,
       "T1137": 11,
       "T1137.002": 2,
       "T1137.003": 1,
@@ -688,7 +690,7 @@
       "T1484": 13,
       "T1484.001": 16,
       "T1484.002": 7,
-      "T1485": 84,
+      "T1485": 85,
       "T1485.001": 2,
       "T1486": 27,
       "T1489": 38,
@@ -719,8 +721,8 @@
       "T1526": 11,
       "T1528": 28,
       "T1529": 16,
-      "T1530": 50,
-      "T1531": 20,
+      "T1530": 53,
+      "T1531": 25,
       "T1535": 6,
       "T1537": 23,
       "T1538": 1,
@@ -767,7 +769,7 @@
       "T1548.003": 39,
       "T1548.004": 1,
       "T1550": 14,
-      "T1550.001": 5,
+      "T1550.001": 7,
       "T1550.002": 7,
       "T1550.003": 9,
       "T1550.004": 2,
@@ -786,18 +788,18 @@
       "T1553.004": 13,
       "T1553.005": 11,
       "T1554": 10,
-      "T1555": 13,
+      "T1555": 14,
       "T1555.001": 7,
       "T1555.003": 15,
       "T1555.004": 6,
-      "T1555.005": 5,
-      "T1556": 73,
+      "T1555.005": 9,
+      "T1556": 74,
       "T1556.001": 1,
       "T1556.002": 3,
       "T1556.003": 1,
       "T1556.004": 3,
-      "T1556.006": 29,
-      "T1556.007": 2,
+      "T1556.006": 30,
+      "T1556.007": 3,
       "T1556.009": 1,
       "T1557": 13,
       "T1557.001": 19,
@@ -816,7 +818,7 @@
       "T1561.001": 2,
       "T1561.002": 4,
       "T1562": 28,
-      "T1562.001": 137,
+      "T1562.001": 138,
       "T1562.002": 13,
       "T1562.003": 2,
       "T1562.004": 18,
@@ -832,7 +834,7 @@
       "T1564.004": 25,
       "T1564.006": 3,
       "T1564.008": 5,
-      "T1565": 3,
+      "T1565": 4,
       "T1565.001": 11,
       "T1565.002": 3,
       "T1566": 30,
@@ -841,7 +843,7 @@
       "T1566.003": 1,
       "T1567": 34,
       "T1567.001": 2,
-      "T1567.002": 23,
+      "T1567.002": 33,
       "T1568": 1,
       "T1568.001": 2,
       "T1568.002": 4,
@@ -916,7 +918,7 @@
       "T1615": 5,
       "T1619": 1,
       "T1620": 6,
-      "T1621": 25,
+      "T1621": 27,
       "T1622": 1,
       "T1647": 2,
       "T1649": 22,
@@ -988,7 +990,7 @@
         "T1059.005": 1,
         "T1068": 3,
         "T1069.003": 1,
-        "T1070": 3,
+        "T1070": 4,
         "T1070.001": 3,
         "T1070.002": 1,
         "T1070.003": 2,
@@ -996,11 +998,11 @@
         "T1071.001": 10,
         "T1071.004": 6,
         "T1074.001": 1,
-        "T1078": 41,
+        "T1078": 42,
         "T1078.001": 4,
         "T1078.002": 3,
         "T1078.003": 2,
-        "T1078.004": 42,
+        "T1078.004": 49,
         "T1083": 2,
         "T1087.001": 2,
         "T1087.002": 5,
@@ -1008,28 +1010,30 @@
         "T1090": 3,
         "T1090.003": 6,
         "T1095": 3,
-        "T1098": 36,
-        "T1098.001": 24,
-        "T1098.003": 11,
+        "T1098": 47,
+        "T1098.001": 25,
+        "T1098.003": 14,
         "T1098.004": 8,
-        "T1098.005": 1,
+        "T1098.005": 2,
         "T1098.007": 1,
         "T1105": 3,
-        "T1110": 9,
+        "T1110": 13,
         "T1110.001": 4,
         "T1110.003": 5,
         "T1110.004": 4,
+        "T1111": 2,
         "T1112": 1,
         "T1113": 2,
         "T1114.002": 5,
         "T1114.003": 5,
+        "T1115": 1,
         "T1127.001": 1,
         "T1133": 13,
         "T1134": 1,
         "T1135": 3,
         "T1136": 3,
         "T1136.001": 5,
-        "T1136.003": 3,
+        "T1136.003": 4,
         "T1140": 1,
         "T1176": 1,
         "T1185": 1,
@@ -1059,7 +1063,7 @@
         "T1482": 1,
         "T1484.001": 2,
         "T1484.002": 3,
-        "T1485": 29,
+        "T1485": 30,
         "T1486": 8,
         "T1489": 2,
         "T1490": 7,
@@ -1071,8 +1075,8 @@
         "T1505.003": 3,
         "T1525": 8,
         "T1528": 6,
-        "T1530": 40,
-        "T1531": 5,
+        "T1530": 43,
+        "T1531": 10,
         "T1535": 1,
         "T1537": 10,
         "T1539": 4,
@@ -1103,7 +1107,7 @@
         "T1548.003": 3,
         "T1548.004": 1,
         "T1550": 4,
-        "T1550.001": 1,
+        "T1550.001": 3,
         "T1550.002": 2,
         "T1550.003": 1,
         "T1550.004": 1,
@@ -1117,17 +1121,17 @@
         "T1553.002": 1,
         "T1553.004": 2,
         "T1554": 1,
-        "T1555": 1,
+        "T1555": 2,
         "T1555.001": 5,
         "T1555.003": 3,
         "T1555.004": 1,
-        "T1555.005": 1,
-        "T1556": 42,
+        "T1555.005": 5,
+        "T1556": 43,
         "T1556.001": 1,
         "T1556.003": 1,
         "T1556.004": 1,
-        "T1556.006": 15,
-        "T1556.007": 2,
+        "T1556.006": 16,
+        "T1556.007": 3,
         "T1556.009": 1,
         "T1557": 2,
         "T1557.001": 5,
@@ -1139,7 +1143,7 @@
         "T1560.001": 3,
         "T1561.002": 1,
         "T1562": 5,
-        "T1562.001": 40,
+        "T1562.001": 41,
         "T1562.004": 7,
         "T1562.006": 2,
         "T1562.007": 1,
@@ -1147,6 +1151,7 @@
         "T1562.012": 2,
         "T1564.001": 1,
         "T1564.008": 2,
+        "T1565": 1,
         "T1565.001": 4,
         "T1565.002": 1,
         "T1566": 3,
@@ -1154,7 +1159,7 @@
         "T1566.002": 2,
         "T1566.003": 1,
         "T1567": 13,
-        "T1567.002": 7,
+        "T1567.002": 17,
         "T1568.001": 2,
         "T1568.002": 2,
         "T1570": 3,
@@ -1177,7 +1182,7 @@
         "T1611": 25,
         "T1612": 1,
         "T1620": 2,
-        "T1621": 5,
+        "T1621": 7,
         "T1647": 1,
         "T1656": 1,
         "T1659": 1
@@ -52751,6 +52756,1512 @@
       "executable": true,
       "path": "detections/network/net-stp-topology-change-from-edge.yaml",
       "sha256": "9290467d3a6710e910c7c1405b10c903ecc05b8d60dadf1ba41bec54de83892c"
+    },
+    {
+      "id": "det-saas-001",
+      "type": "detection",
+      "name": "Box Shield Alert Raised",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Shield Alert Raised'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1530"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-data-exfiltration",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-shield-alert-raised.yaml",
+      "sha256": "b7c6188999bf2e8ea251c79087390cffafe3f6bf77d7ea7d9a770f3fc4734174"
+    },
+    {
+      "id": "det-saas-002",
+      "type": "detection",
+      "name": "Box External Collaboration Invite From an Abnormal Location",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box External Collaboration Invite From an Abnormal Location'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1567.002"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-external-collab-abnormal-location.yaml",
+      "sha256": "e33f823d2fa49f2b38ad3ae179ac9ff6220e3a8c9f18f2ad527e224a8a6a6dce"
+    },
+    {
+      "id": "det-saas-003",
+      "type": "detection",
+      "name": "Box External Collaboration Invite Blocked by Policy",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box External Collaboration Invite Blocked by Policy'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1567.002"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-external-collab-invite-blocked.yaml",
+      "sha256": "bacffa9f2e1328cc4484405144d025598f67e0be381f3114f57563deb84d8121"
+    },
+    {
+      "id": "det-saas-004",
+      "type": "detection",
+      "name": "Box User Promoted to Administrator",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box User Promoted to Administrator'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098.003"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-privilege-escalation",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-role-change-to-admin.yaml",
+      "sha256": "80294fa86d8a89614c97e0e3f29bb23382bb1c674d26718a4c15572dec1168b2"
+    },
+    {
+      "id": "det-saas-005",
+      "type": "detection",
+      "name": "Box Group Administrator Created",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Group Administrator Created'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098.003"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-privilege-escalation",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-group-admin-created.yaml",
+      "sha256": "5b1665593ea53d27cbac65da46534f5abe79b76dafb346687cd0c7af8eb78f2a"
+    },
+    {
+      "id": "det-saas-006",
+      "type": "detection",
+      "name": "Box Application Public Key Added",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Application Public Key Added'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098.001",
+        "T1550.001"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-credential-compromise",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-application-public-key-added.yaml",
+      "sha256": "2fec3bbac949b492c38ce90e3e62f01ce936a3de600c3fab5e2b83d02e624002"
+    },
+    {
+      "id": "det-saas-007",
+      "type": "detection",
+      "name": "Box Application Public Key Deleted",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Application Public Key Deleted'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1562.001"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-application-public-key-deleted.yaml",
+      "sha256": "f980058d17956e4ff23942f645464b6c9ce129c928441adb4d57573346231d91"
+    },
+    {
+      "id": "det-saas-008",
+      "type": "detection",
+      "name": "Box User Deleted",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box User Deleted'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1531"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-user-deleted.yaml",
+      "sha256": "fb969c0574999de8b025ffc56f9d58884750ded22d06591142cafccf8694f76e"
+    },
+    {
+      "id": "det-saas-009",
+      "type": "detection",
+      "name": "Box Failed Login",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Failed Login'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1110"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-failed-login.yaml",
+      "sha256": "d7a041760fb41f87f62369a7204cef37f9dd43207bff3a7aba9547cf1ac05968"
+    },
+    {
+      "id": "det-saas-010",
+      "type": "detection",
+      "name": "Box Login From a Newly Registered Device",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Login From a Newly Registered Device'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1078.004"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-new-login-device-registered.yaml",
+      "sha256": "35507d6170cb927a6537b1b0717f01b58437c3b4391165d77f71707cd4532917"
+    },
+    {
+      "id": "det-saas-011",
+      "type": "detection",
+      "name": "Box Login Device Removed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Login Device Removed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1070"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-login-device-removed.yaml",
+      "sha256": "d359d642da06e2e0ea9c9c32a8d0179ca209240321bdfc995e2c33bd3a0321ee"
+    },
+    {
+      "id": "det-saas-012",
+      "type": "detection",
+      "name": "Box Shared Link Created",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Shared Link Created'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1567.002"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-shared-link-created.yaml",
+      "sha256": "4e7e7724a24869be36df586d4446ea51559f242cf7cb0b366f9f216543ab920e"
+    },
+    {
+      "id": "det-saas-013",
+      "type": "detection",
+      "name": "Box Shared Link Settings Changed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Shared Link Settings Changed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1567.002"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-shared-link-settings-changed.yaml",
+      "sha256": "cd2654e5b383f4a5fa0ea0d180b528b56a93f60a4723479aee12c70e813dc51f"
+    },
+    {
+      "id": "det-saas-014",
+      "type": "detection",
+      "name": "Box Item Downloaded by a Consumer-Domain Collaborator",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Item Downloaded by a Consumer-Domain Collaborator'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1567.002",
+        "T1530"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-data-exfiltration",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-item-download-by-external-collaborator.yaml",
+      "sha256": "ae6a11fcb8a96e6852ca84d32602c1200281bdf886c67da4684102274a7b962b"
+    },
+    {
+      "id": "det-saas-015",
+      "type": "detection",
+      "name": "Box Collaboration Invited to a Consumer Domain",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Collaboration Invited to a Consumer Domain'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1567.002"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-collaboration-invite-to-consumer-domain.yaml",
+      "sha256": "5f06d4d9be725b30f4a3ae81eb79af5ec5683c2a31ec20dfada0657c6d7ee59b"
+    },
+    {
+      "id": "det-saas-016",
+      "type": "detection",
+      "name": "Box Collaboration Role Changed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Collaboration Role Changed'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-collaboration-role-escalated.yaml",
+      "sha256": "f1d9327fb23c1b433ae16427f222ea1e9265081a5ef99d2b2ed9d5b962072715"
+    },
+    {
+      "id": "det-saas-017",
+      "type": "detection",
+      "name": "Box Collaboration Removed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Collaboration Removed'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1531"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-collaboration-removed.yaml",
+      "sha256": "ac1f33fa6fa0e8db480d121d31bb650f6b44859ac5269e54879245952d48def1"
+    },
+    {
+      "id": "det-saas-018",
+      "type": "detection",
+      "name": "Box Collaboration Expiration Changed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Collaboration Expiration Changed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-collaboration-expiration-set.yaml",
+      "sha256": "f6c2567232617dad0bbe5c9f1c48e862ca5522085818f84d3058194a6938f195"
+    },
+    {
+      "id": "det-saas-019",
+      "type": "detection",
+      "name": "Box Master Invite Accepted",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Master Invite Accepted'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-master-invite-accepted.yaml",
+      "sha256": "73fe34936c2433603b6b6904b12858d228868edd79d4af910e3840b8b95de06d"
+    },
+    {
+      "id": "det-saas-020",
+      "type": "detection",
+      "name": "Box Master Invite Rejected",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Box Master Invite Rejected'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098"
+      ],
+      "log_source": "box",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/box-master-invite-rejected.yaml",
+      "sha256": "e778f53081d1a40d85475b01224b9262aafd776fe6b03358dc307c60123132d6"
+    },
+    {
+      "id": "det-saas-021",
+      "type": "detection",
+      "name": "Dropbox Shared Link Audience Changed to Public",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Shared Link Audience Changed to Public'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1567.002"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-data-exfiltration",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-link-audience-changed-to-public.yaml",
+      "sha256": "eb741c4af968a41b6259a73c809da577a9c84dbf67f009c710f76f79f6a665be"
+    },
+    {
+      "id": "det-saas-022",
+      "type": "detection",
+      "name": "Dropbox Member Admin Role Changed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Member Admin Role Changed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098.003"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-privilege-escalation",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-admin-role-changed.yaml",
+      "sha256": "771e25b3ac5a4171ed6c904cfbadf60d25e12a39827a2a2824919b68e4a10889"
+    },
+    {
+      "id": "det-saas-023",
+      "type": "detection",
+      "name": "Dropbox Member Email Address Changed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Member Email Address Changed'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098",
+        "T1556"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-account-takeover",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-member-email-changed.yaml",
+      "sha256": "2ee2724c2ee3a30f843f4f587f54d2b3c4098f2ff512c38397ace8da750f5f29"
+    },
+    {
+      "id": "det-saas-024",
+      "type": "detection",
+      "name": "Dropbox Member Status Changed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Member Status Changed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-member-status-changed.yaml",
+      "sha256": "dfacf3e39adb96b398d7d1921f75c6f202e89c2f85ad334143c441daec4c9777"
+    },
+    {
+      "id": "det-saas-025",
+      "type": "detection",
+      "name": "Dropbox External Account Password Unmasked",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox External Account Password Unmasked'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1555"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-credential-compromise",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-external-password-unmasked.yaml",
+      "sha256": "a3058e9729e35632b9842ac624b439cf3ca64d3fb3db373499295e18248fd939"
+    },
+    {
+      "id": "det-saas-026",
+      "type": "detection",
+      "name": "Dropbox SSO Policy Changed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox SSO Policy Changed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "critical",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1556.007"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-account-takeover",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-sso-policy-changed.yaml",
+      "sha256": "be42eb698054bfa155254382fe6e6540de810edf4ef7eb5bb1c7006dbfd6f4cf"
+    },
+    {
+      "id": "det-saas-027",
+      "type": "detection",
+      "name": "Dropbox Team Member Invite Link Created",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Team Member Invite Link Created'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1136.003"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-team-invite-link-created.yaml",
+      "sha256": "d1ea193e83dfe9748df93870f30fe3e6674876bc38fa9cafd3695a241ac4d1e7"
+    },
+    {
+      "id": "det-saas-028",
+      "type": "detection",
+      "name": "Dropbox Team Folder Status Changed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Team Folder Status Changed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1565"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-team-folder-status-changed.yaml",
+      "sha256": "72cfb1e8b0eb32c9353392ccfa5e6756f0aa00c70978eab91f7bbda35dbe592c"
+    },
+    {
+      "id": "det-saas-029",
+      "type": "detection",
+      "name": "Dropbox Login Failed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Login Failed'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1110"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-login-failed.yaml",
+      "sha256": "db92d7257bf0ac8ccc325aaabd38fe5cc6434e6e0b1dd6bdfd7d2094ecaad6f1"
+    },
+    {
+      "id": "det-saas-030",
+      "type": "detection",
+      "name": "Dropbox Login Succeeded Without Two-Factor",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Login Succeeded Without Two-Factor'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1078.004"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-login-without-two-factor.yaml",
+      "sha256": "8a0fac9ad7091244f36124ed8c3331750e0c0e2e56abf55ef47710a441aafada"
+    },
+    {
+      "id": "det-saas-031",
+      "type": "detection",
+      "name": "Dropbox Application Linked to the Team",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Application Linked to the Team'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1550.001"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-app-linked-to-team.yaml",
+      "sha256": "519776307b51dd00b25e1223f696021aa1e11ea4ea449b4830af28ea3e81576c"
+    },
+    {
+      "id": "det-saas-032",
+      "type": "detection",
+      "name": "Dropbox Device Linked",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Device Linked'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1078.004"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-device-linked.yaml",
+      "sha256": "c6a1f6cebeb070fd1325044c8136308cecdb072008d171da31941ea9b540b4a2"
+    },
+    {
+      "id": "det-saas-033",
+      "type": "detection",
+      "name": "Dropbox Group Created",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Group Created'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-group-created.yaml",
+      "sha256": "8e82ac6b5c50a9bdcf124814a7021bda30df890d35680ac02601ba8643063f8d"
+    },
+    {
+      "id": "det-saas-034",
+      "type": "detection",
+      "name": "Dropbox Group Deleted",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Group Deleted'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1531"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-group-deleted.yaml",
+      "sha256": "bf2fe8f4427e5507cc74237ae23f69690b18af3de3fa12a47f920206e0a31686"
+    },
+    {
+      "id": "det-saas-035",
+      "type": "detection",
+      "name": "Dropbox Shared Content Member Removed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Shared Content Member Removed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1531"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-shared-content-member-removed.yaml",
+      "sha256": "e56f34d093fa8decae32f1772beba0cea83964aec99e470f3d0b1c977e0eca71"
+    },
+    {
+      "id": "det-saas-036",
+      "type": "detection",
+      "name": "Dropbox Sharing Action by a Consumer-Domain Account",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Sharing Action by a Consumer-Domain Account'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1567.002"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-shared-content-event-from-consumer-domain.yaml",
+      "sha256": "0febc41c77cbfa555bcc5767aa4a8d0639792bb357583039b0d14762a0a4f300"
+    },
+    {
+      "id": "det-saas-037",
+      "type": "detection",
+      "name": "Dropbox Shared Link Activity",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Shared Link Activity'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1567.002"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-shared-link-event.yaml",
+      "sha256": "820a5ff7326845e1e0b3ebf061a3081ea47412e75cc0573c7da4aa1bd38c0c74"
+    },
+    {
+      "id": "det-saas-038",
+      "type": "detection",
+      "name": "Dropbox Shared-Model Permission Activity",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Shared-Model Permission Activity'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-shmodel-event.yaml",
+      "sha256": "f0a9c3b72cb19b693973a0e84aedefc74b319c6120f17b48d114368628407ba6"
+    },
+    {
+      "id": "det-saas-039",
+      "type": "detection",
+      "name": "Dropbox Sharing Activity From an Unrecognised Address",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Sharing Activity From an Unrecognised Address'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1567.002"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-sharing-activity-from-new-ip.yaml",
+      "sha256": "21c2a06905d5fbe11ff1a3eea5da335fb090080d0ce490f97d14858ab3958b33"
+    },
+    {
+      "id": "det-saas-040",
+      "type": "detection",
+      "name": "Dropbox Two-Factor Login From an External Address",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by 'Dropbox Two-Factor Login From an External Address'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1078.004"
+      ],
+      "log_source": "dropbox",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/dropbox-two-factor-login-from-external-ip.yaml",
+      "sha256": "2ddfacdb91cd5ffc08a848c36e421642349b29da6c4e4891cac8c606adab96b8"
+    },
+    {
+      "id": "det-saas-041",
+      "type": "detection",
+      "name": "1Password Sign-In Failed on Credentials",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Sign-In Failed on Credentials'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1110"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-credentials-failed.yaml",
+      "sha256": "c3ce3af99d7b04bdda8016a3f833701f6332573238e36fe709c84993a5ea6db7"
+    },
+    {
+      "id": "det-saas-042",
+      "type": "detection",
+      "name": "1Password Sign-In Failed on Second Factor",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Sign-In Failed on Second Factor'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1621",
+        "T1111"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-account-takeover",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-mfa-failed.yaml",
+      "sha256": "745008290813635ff402058ceb814a6ea3d0c980ab457b31634ec3b942855aa7"
+    },
+    {
+      "id": "det-saas-043",
+      "type": "detection",
+      "name": "1Password Sign-In Blocked by Firewall Rules",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Sign-In Blocked by Firewall Rules'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1078.004"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-firewall-blocked-sign-in.yaml",
+      "sha256": "7cf9ecb3bd296deb789dffe9d233cf6c574aa9806962e40547ba3ca518952ddb"
+    },
+    {
+      "id": "det-saas-044",
+      "type": "detection",
+      "name": "1Password Sign-In Rejected for an Outdated Client",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Sign-In Rejected for an Outdated Client'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1078"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-outdated-client-rejected.yaml",
+      "sha256": "311ba2d837874b0083ba1412d91d5e17e141a8483644306e34cf759b33231fe4"
+    },
+    {
+      "id": "det-saas-045",
+      "type": "detection",
+      "name": "1Password Time-Based One-Time Password Disabled",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Time-Based One-Time Password Disabled'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1556.006"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-account-takeover",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-totp-disabled.yaml",
+      "sha256": "faedc9cc8ebd6830e52c98149b8e7aeb15b6840cd3d8ed7d12648c5efa75dcc5"
+    },
+    {
+      "id": "det-saas-046",
+      "type": "detection",
+      "name": "1Password Incorrect One-Time Password",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Incorrect One-Time Password'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1111"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-totp-incorrect.yaml",
+      "sha256": "45292b310ba724082024f624d6d91680de1bae9d1c50e5b81fcbb565c1149e78"
+    },
+    {
+      "id": "det-saas-047",
+      "type": "detection",
+      "name": "1Password Sign-In Attempted Without a Second Factor",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Sign-In Attempted Without a Second Factor'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1621"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-mfa-missing.yaml",
+      "sha256": "4ff0a7f554bb14ee2ce00a430abfc7992d108db8c7b9392ae6506b98f7e310de"
+    },
+    {
+      "id": "det-saas-048",
+      "type": "detection",
+      "name": "1Password Sign-In From an Unrecognised Address",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Sign-In From an Unrecognised Address'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1078.004"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-sign-in-from-external-address.yaml",
+      "sha256": "69876cf5dbb9e3fa5fb45fc3ea09269fb4ec27a934f61f5c210505b6b0afb885"
+    },
+    {
+      "id": "det-saas-049",
+      "type": "detection",
+      "name": "1Password Failed Sign-In From an Unrecognised Address",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Failed Sign-In From an Unrecognised Address'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1110"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-failed-sign-in-from-external-address.yaml",
+      "sha256": "1c6e12d7082580aa766dc6017f1f7a6634b7b13efd6c51c8e9587c2285fa2859"
+    },
+    {
+      "id": "det-saas-050",
+      "type": "detection",
+      "name": "1Password Item Secret Revealed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Item Secret Revealed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1555.005"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-item-secret-revealed.yaml",
+      "sha256": "3b3738917cfe1e64ea1cde17fafb19c1dfe3d2d761b01139fbaca8c852b0e29a"
+    },
+    {
+      "id": "det-saas-051",
+      "type": "detection",
+      "name": "1Password Item Secret Copied to the Clipboard",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Item Secret Copied to the Clipboard'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1555.005",
+        "T1115"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-item-secret-copied.yaml",
+      "sha256": "8ecbc57816f4d674f46d6797d4c10a22b40d6bf11d105bdffb9eed5462dcb07b"
+    },
+    {
+      "id": "det-saas-052",
+      "type": "detection",
+      "name": "1Password Item Exported",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Item Exported'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "critical",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1555.005",
+        "T1530"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-data-exfiltration",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-item-exported.yaml",
+      "sha256": "f89f49102e3b83f10a4e4ffdb3fee8f51b1315728199479efba686d1be24b03d"
+    },
+    {
+      "id": "det-saas-053",
+      "type": "detection",
+      "name": "1Password Vault Item Deleted",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Vault Item Deleted'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1485"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-vault-item-deleted.yaml",
+      "sha256": "e86ab5824cd1cc338526b2eb13918bd52c5d2de5250b8ac1ba939846b7920f21"
+    },
+    {
+      "id": "det-saas-054",
+      "type": "detection",
+      "name": "1Password Privileged Item Accessed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Privileged Item Accessed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1555.005"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-credential-compromise",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-privileged-item-accessed.yaml",
+      "sha256": "cd9a8dcd29a78da6256fc1317679579eaada659a1f984b8eea87a75ad451f927"
+    },
+    {
+      "id": "det-saas-055",
+      "type": "detection",
+      "name": "1Password Service Account Token Used",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Service Account Token Used'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1078.004"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-service-account-token-used.yaml",
+      "sha256": "1ee2ce0d023f3530f22cddfde0bbaf361dc20549ae4d08a7d1c84bb32cfae31b"
+    },
+    {
+      "id": "det-saas-056",
+      "type": "detection",
+      "name": "1Password Group Membership Changed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Group Membership Changed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-group-membership-changed.yaml",
+      "sha256": "d0b4fe71cf0a0f5bf0847102a9104d81db07759ebdc8dd5541ee721c8b786796"
+    },
+    {
+      "id": "det-saas-057",
+      "type": "detection",
+      "name": "1Password Vault Permissions Changed",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Vault Permissions Changed'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-privilege-escalation",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-vault-permissions-changed.yaml",
+      "sha256": "2de78f19de7ad0a1db3a1a08956cff2f68676884b5eeeb01824eb64741f864c6"
+    },
+    {
+      "id": "det-saas-058",
+      "type": "detection",
+      "name": "1Password Account Recovery Initiated",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Account Recovery Initiated'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "high",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098.005"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-account-takeover",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-recovery-initiated.yaml",
+      "sha256": "f45f0445675a1eca39d5fe08be2f365b5785f0498a79301572b85b341f9ed732"
+    },
+    {
+      "id": "det-saas-059",
+      "type": "detection",
+      "name": "1Password User Suspended",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password User Suspended'. Watch the 1 documented false-positive case before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "low",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1531"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-user-suspended.yaml",
+      "sha256": "c21fce0f400c5eb74d596648de8a1807ad190439f4c073ac0ab2d5e8d001573f"
+    },
+    {
+      "id": "det-saas-060",
+      "type": "detection",
+      "name": "1Password Suspended User Reactivated",
+      "description": "AiSOC v1 curated detection. Triggers on the saas signal described by '1Password Suspended User Reactivated'. Watch the 2 documented false-positive cases before tuning.",
+      "version": "1.0.0",
+      "author": "AiSOC",
+      "tags": [
+        "tlp.white"
+      ],
+      "severity": "medium",
+      "category": "saas",
+      "mitre_techniques": [
+        "T1098"
+      ],
+      "log_source": "1password",
+      "playbook": "tpl-triage",
+      "verified": true,
+      "source": "core",
+      "tier": "stable",
+      "enabled": true,
+      "executable": true,
+      "path": "detections/saas/1password-user-reactivated.yaml",
+      "sha256": "2c4bca04753cedeb664bf8496e52a20267527a3006c639f5b693040fa5656cdd"
     },
     {
       "id": "det-threat-anomaly-001",

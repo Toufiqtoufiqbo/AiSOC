@@ -1,0 +1,6 @@
+{
+  "actor_email": "dana.k@example.com",
+  "event_type": "group_delete",
+  "source": "dropbox",
+  "src_ip": "198.51.100.17"
+}

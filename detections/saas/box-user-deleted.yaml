@@ -1,0 +1,24 @@
+id: det-saas-008
+name: Box User Deleted
+description: AiSOC v1 curated detection. Triggers on the saas signal described by 'Box User Deleted'.
+  Watch the 2 documented false-positive cases before tuning.
+version: 1.0.0
+severity: medium
+tags:
+- mitre.attack.t1531
+- tlp.white
+category: saas
+log_source:
+  product: box
+  service: audit
+detection:
+  condition: |
+    event_type == "DELETE_USER"
+false_positives:
+- Offboarding
+- Deprovisioning a duplicate account
+playbook: tpl-triage
+enabled: true
+author: AiSOC
+created: '2026-05-03'
+modified: '2026-05-03'
