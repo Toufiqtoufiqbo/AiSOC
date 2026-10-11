@@ -47,6 +47,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import and_, or_, select, update
 
 from app.api.v1.deps import AuthUser, DBSession, require_permission
+from app.api.v1.endpoints.nl_detection import NLProposeRequest, propose_from_nl
 from app.core.config import settings
 from app.models.detection_proposal import (
     DetectionEvalBaseline,
@@ -54,6 +55,8 @@ from app.models.detection_proposal import (
 )
 from app.models.detection_rule import DetectionRule
 from app.services.backtest import backtest_rule, fetch_lake_events
+from app.services.detection_coverage import as_dict as coverage_as_dict
+from app.services.detection_coverage import coverage_report
 from app.services.detection_eval import evaluate_candidate_rule
 from app.services.github import create_detection_pr
 
@@ -432,6 +435,132 @@ async def list_proposals(
         select(DetectionRuleProposal).where(and_(*filters)).order_by(DetectionRuleProposal.created_at.desc()).limit(limit)
     )
     return [ProposalResponse.model_validate(p) for p in result.scalars().all()]
+
+
+@router.get("/coverage")
+async def tenant_coverage(
+    current_user: Annotated[AuthUser, Depends(require_permission("rules:read"))],
+    db: DBSession,
+    state: str | None = Query(default=None, description="covered | gap | no_telemetry"),
+    limit: int = Query(default=100, ge=1, le=500),
+) -> dict[str, Any]:
+    """This tenant's ATT&CK coverage, ranked by what it has actually seen.
+
+    Depth plan 3.7 / gap-closure 9.1. Deliberately **not** the global
+    "techniques tagged" figure the console already publishes: that number is
+    the same for every tenant and gives a tenant running only Okta and
+    Workspace credit for 1,687 Windows rules they can never fire.
+
+    Coverage here means an executable rule exists *and* its log source is one
+    this tenant ingests. The three states are separated because a gap you can
+    close and one you cannot need different answers — `no_telemetry` rows
+    carry the connector that would fix them, which is an onboarding answer
+    rather than a content one.
+    """
+    _ensure_dac_enabled()
+    report = await coverage_report(db, current_user.tenant_id)
+    payload = coverage_as_dict(report)
+    if state:
+        payload["techniques"] = [t for t in payload["techniques"] if t["state"] == state]
+    payload["techniques"] = payload["techniques"][:limit]
+    return payload
+
+
+class DraftFromGapsRequest(BaseModel):
+    """How many gaps to draft against, and whether to write anything."""
+
+    limit: int = Field(default=3, ge=1, le=10)
+    #: Default **on**. Seeing what the loop would do before it does it is
+    #: the normal way to use this, and a drafting loop whose default writes
+    #: to the proposal queue is one nobody runs twice.
+    dry_run: bool = True
+
+
+@router.post("/draft-from-gaps")
+async def draft_from_gaps(
+    payload: DraftFromGapsRequest,
+    current_user: Annotated[AuthUser, Depends(require_permission("rules:write"))],
+    db: DBSession,
+) -> dict[str, Any]:
+    """Draft DRAFT proposals for this tenant's top coverage gaps.
+
+    Depth plan 3.7 / gap-closure 9.2. The loop is: rank the tenant's own
+    techniques, take the top gaps **that have telemetry**, draft each
+    through the existing NL builder — which derives fixtures from the
+    generated rule's own selection and runs the eval gate — and open a
+    governed proposal.
+
+    Two refusals are the substance of this route.
+
+    **Only `gap` techniques are drafted.** A `no_telemetry` technique has no
+    connected source that could carry a rule, so drafting one produces a
+    rule matching on fields nothing emits: it would raise the coverage
+    figure while making the tenant no safer, which is the failure this whole
+    surface exists to avoid.
+
+    **Nothing is promoted.** Every proposal lands in the queue and requires
+    a separate approver, enforced by the decide route, which already refuses
+    to let an author approve their own rule. This route cannot promote and
+    does not try; `promoted: 0` is asserted by its test rather than implied
+    by the absence of code.
+    """
+    _ensure_dac_enabled()
+    report = await coverage_report(db, current_user.tenant_id)
+    targets = report.gaps[: payload.limit]
+
+    planned = [
+        {
+            "technique": gap.technique,
+            "alerts_seen": gap.alerts_seen,
+            "relevance": gap.relevance,
+            "connected_products": list(report.connected_products),
+        }
+        for gap in targets
+    ]
+    if payload.dry_run:
+        return {
+            "dry_run": True,
+            "gaps_considered": len(report.gaps),
+            "planned": planned,
+            "drafted": [],
+            "promoted": 0,
+        }
+
+    drafted: list[dict[str, Any]] = []
+    for gap in targets:
+        request = NLProposeRequest(
+            description=(
+                f"Detect ATT&CK technique {gap.technique} using "
+                f"{', '.join(report.connected_products) or 'available'} telemetry. "
+                f"This tenant has seen it on {gap.alerts_seen} alert(s) and has no rule for it."
+            ),
+            severity="medium",
+            mitre_techniques=[gap.technique],
+        )
+        try:
+            result = await propose_from_nl(request, current_user, db)
+        except HTTPException as exc:
+            # A gap the builder could not draft is reported, never skipped.
+            # A loop that silently drops its failures reads as having
+            # nothing to do.
+            drafted.append({"technique": gap.technique, "status": "not_drafted", "reason": str(exc.detail)})
+            continue
+        drafted.append(
+            {
+                "technique": gap.technique,
+                "status": result.status,
+                "proposal_id": str(result.proposal_id) if result.proposal_id else None,
+            }
+        )
+
+    return {
+        "dry_run": False,
+        "gaps_considered": len(report.gaps),
+        "planned": planned,
+        "drafted": drafted,
+        # Structurally zero: this route has no promotion path.
+        "promoted": 0,
+    }
 
 
 @router.post("", response_model=ProposalResponse, status_code=status.HTTP_201_CREATED)

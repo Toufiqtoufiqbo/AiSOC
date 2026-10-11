@@ -65,7 +65,7 @@ is written. Next free at capture: migration `095`, ADR `0010`
 | migration `108` | 9.5 — `108_hunt_reports.sql` | claimed |
 | migration `109` | 9.6 — `109_push_devices.sql` | claimed |
 | ~~migration `110`~~ | ~~3.4 — `110_entity_baselines.sql`~~ | **released**, ADR-0011 put the baselines in the Redis fusion already runs, so there is no table |
-| migration `111` | 3.7 — `111_detection_coverage.sql` | claimed |
+| ~~migration `111`~~ | ~~3.7 — `111_detection_coverage.sql`~~ | **released**, coverage is computed from the alerts, connectors and compiled ruleset that already exist, so there is no table |
 | ADR `0011` | 3.4 — behavioural baselines in CORE | **landed**, `docs/decisions/0011-behavioural-baselines-in-core.md`, accepted |
 
 Highest migration on `main` at claim time was `101_audit_immutable_nullify.sql`,
@@ -502,6 +502,34 @@ and field namespaces already exist. Nothing blocks them; this lane ran out
 of room, and saying so is more useful than a number that implies
 otherwise.
 
+### D17 -- 3.7 was mostly already built, and two of its four parts are still open
+
+Gap-closure Phase 9 has four parts. Inventorying before proposing -- the
+rule this programme keeps re-learning -- found that **9.2's machinery was
+already shipped and unwired**: `/nl-detection/propose` already translates a
+description to Sigma, derives fixtures from the generated rule's own
+selection (not from the model's imagination), runs the eval gate and opens
+a governed proposal; `/detection-proposals/{id}/backtest` already replays
+against the lake; and the decide route already refuses to let an author
+approve their own rule. None of it was reachable from a coverage gap,
+because there were no per-tenant coverage gaps.
+
+So the work was 9.1 plus the join, not a new agent. Writing a second
+drafting path would have duplicated a working one.
+
+**9.3 and 9.4 are open and were not attempted.** 9.3 is false-positive-driven
+exclusion proposals through the existing rule-tuning surface; 9.4 is the
+measurement -- proposals accepted, time from gap to proposal, backtest noise
+-- which the plan says to publish *"as measured on real deployments, or as
+'not measured'"*. Neither is blocked: `detection_tuner.py` and the
+dispositions store both exist. This lane ran out of room.
+
+One thing 9.4 would need that does not exist yet is worth recording now:
+there is no deployment this repository can measure those numbers on, so the
+honest first version of that surface publishes **"not measured"** rather
+than zeros. A zero there reads as "no proposals were accepted", which is a
+claim about the loop rather than about the absence of data.
+
 ## Phase 1: Verdict quality you can publish
 
 - [x] **1.1** Balanced, labelled verdict corpus
@@ -607,7 +635,28 @@ otherwise.
   still unmet — itemised in D16 rather than left to be inferred, because
   a partial item that does not say what is missing is indistinguishable
   from a finished one.
-- [ ] **3.7** Detection engineering agent (gap-closure Phase 9 / parity 6.2)
+- [~] **3.7** Detection engineering agent (gap-closure Phase 9 / parity 6.2).
+  **9.1 and the 9.2 loop are done; 9.3 and 9.4 are not.** Most of Phase 9
+  already existed unwired, which is why the work here is smaller than the
+  item reads: governed proposals, the eval gate, the lake backtest, fixture
+  derivation from a rule's own selection and separation of duties were all
+  shipped — what was missing was **9.1, the per-tenant coverage gap**, and
+  anything joining it to the drafting path. `detection_coverage.py` ranks a
+  tenant's techniques by what that tenant has actually seen and classifies
+  each into **three** states rather than two: `covered` means an executable
+  rule exists *and* its log source is one the tenant ingests, so an
+  Okta-and-Workspace tenant no longer gets credit for 1,687 Windows rules
+  they can never fire; `gap` is the only state the drafting loop acts on;
+  `no_telemetry` carries the connector that would fix it, which is an
+  onboarding answer rather than a content one. A configured connector that
+  has never delivered an event is reported as **silent**, not as telemetry.
+  Every row publishes the counts it was ranked on so the ranking can be
+  argued with. `GET /detection-proposals/coverage` and
+  `POST /detection-proposals/draft-from-gaps` (dry-run by default, and
+  structurally unable to promote). 14 tests. **9.3 (FP-driven tuning
+  proposals) and 9.4 (measure acceptance, gap-to-proposal time, backtest
+  noise) were not attempted** and are named here rather than left to be
+  inferred (D17).
 
 ## Phase 4: Collection and scale
 

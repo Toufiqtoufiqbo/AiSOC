@@ -4113,6 +4113,141 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/detection-proposals/coverage:
+    get:
+      tags:
+      - detection_rules
+      - dac
+      summary: Tenant Coverage
+      description: 'This tenant''s ATT&CK coverage, ranked by what it has actually
+        seen.
+
+
+        Depth plan 3.7 / gap-closure 9.1. Deliberately **not** the global
+
+        "techniques tagged" figure the console already publishes: that number is
+
+        the same for every tenant and gives a tenant running only Okta and
+
+        Workspace credit for 1,687 Windows rules they can never fire.
+
+
+        Coverage here means an executable rule exists *and* its log source is one
+
+        this tenant ingests. The three states are separated because a gap you can
+
+        close and one you cannot need different answers — `no_telemetry` rows
+
+        carry the connector that would fix them, which is an onboarding answer
+
+        rather than a content one.'
+      operationId: tenant_coverage_api_v1_detection_proposals_coverage_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: covered | gap | no_telemetry
+          title: State
+        description: covered | gap | no_telemetry
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 500
+          minimum: 1
+          default: 100
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Tenant Coverage Api V1 Detection Proposals Coverage
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/detection-proposals/draft-from-gaps:
+    post:
+      tags:
+      - detection_rules
+      - dac
+      summary: Draft From Gaps
+      description: 'Draft DRAFT proposals for this tenant''s top coverage gaps.
+
+
+        Depth plan 3.7 / gap-closure 9.2. The loop is: rank the tenant''s own
+
+        techniques, take the top gaps **that have telemetry**, draft each
+
+        through the existing NL builder — which derives fixtures from the
+
+        generated rule''s own selection and runs the eval gate — and open a
+
+        governed proposal.
+
+
+        Two refusals are the substance of this route.
+
+
+        **Only `gap` techniques are drafted.** A `no_telemetry` technique has no
+
+        connected source that could carry a rule, so drafting one produces a
+
+        rule matching on fields nothing emits: it would raise the coverage
+
+        figure while making the tenant no safer, which is the failure this whole
+
+        surface exists to avoid.
+
+
+        **Nothing is promoted.** Every proposal lands in the queue and requires
+
+        a separate approver, enforced by the decide route, which already refuses
+
+        to let an author approve their own rule. This route cannot promote and
+
+        does not try; `promoted: 0` is asserted by its test rather than implied
+
+        by the absence of code.'
+      operationId: draft_from_gaps_api_v1_detection_proposals_draft_from_gaps_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftFromGapsRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Draft From Gaps Api V1 Detection Proposals Draft From
+                  Gaps Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
   /api/v1/detection-proposals/baselines:
     get:
       tags:
@@ -25357,6 +25492,21 @@ components:
       - executed
       title: DlqReplayResponse
       description: What the replay found, and what it did about it.
+    DraftFromGapsRequest:
+      properties:
+        limit:
+          type: integer
+          maximum: 10.0
+          minimum: 1.0
+          title: Limit
+          default: 3
+        dry_run:
+          type: boolean
+          title: Dry Run
+          default: true
+      type: object
+      title: DraftFromGapsRequest
+      description: How many gaps to draft against, and whether to write anything.
     DriftEntry:
       properties:
         ruleId:
