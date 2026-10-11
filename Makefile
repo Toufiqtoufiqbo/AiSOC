@@ -485,6 +485,7 @@ test-e2e: smoke
 # cannot be edited by hand into something the tree does not support.
 stats:
 	@$(PYTHON) scripts/project_stats.py
+	@$(PYTHON) scripts/check_content_depth.py
 
 # ── Papers + demo script (pre-existing) ────────────────────────────────────
 

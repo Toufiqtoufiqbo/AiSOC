@@ -314,6 +314,47 @@ def community_plugin_manifests() -> list[Path]:
     return out
 
 
+def _log_source_of(data: dict[str, Any]) -> str | None:
+    """The product a rule's telemetry comes from, from either spelling.
+
+    Native specs carry AiSOC's own `log_source: {product, service}`.
+    **Imported Sigma rules carry Sigma's `logsource:` instead** — one word,
+    a different schema — and this function used to read only the first. The
+    result was that 1,770 of 2,535 executable rules indexed with no log
+    source at all, which is 70% of the corpus invisible to anything that
+    groups by it.
+
+    Most of that is correct-by-accident: 1,687 of them are Windows rules,
+    which no cloud/identity/SaaS figure wants. But **83 were not** — 39 AWS,
+    28 Azure and 16 Okta rules that the depth plan 3.6 measurement is
+    specifically about, and which it was therefore undercounting. The
+    temptation that creates is the damaging one: the gap reads as missing
+    content and invites authoring 83 rules this repository already has.
+
+    One-directional by construction. A native rule's own `log_source` always
+    wins, so this can only fill a blank and can never relabel a rule whose
+    author stated its source.
+    """
+    native = data.get("log_source")
+    if isinstance(native, dict) and native.get("product"):
+        return str(native["product"])
+    if isinstance(native, str) and native:
+        return native
+
+    sigma = data.get("logsource")
+    if not isinstance(sigma, dict):
+        return None
+    # `product` is the vendor (aws, azure, okta, windows). `service` is the
+    # log within it (cloudtrail, signinlogs). Prefer the vendor, because
+    # every consumer of this field groups by vendor; fall back to `service`
+    # for the rules that name one without the other.
+    for key in ("product", "service"):
+        value = sigma.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
 def build_detection_item(
     path: Path,
     *,
@@ -340,6 +381,7 @@ def build_detection_item(
     if quarantined:
         # Quarantine directory layout has the category two levels below the
         # tier root (e.g. sigma-imports/_quarantine/cloud/foo.yaml).
+        # (see _log_source_of below for the other half of this recovery)
         if not data.get("category"):
             try:
                 rel = path.relative_to(DETECTIONS_DIR).parts
@@ -359,7 +401,7 @@ def build_detection_item(
         "severity": data.get("severity"),
         "category": category,
         "mitre_techniques": mitre,
-        "log_source": (data.get("log_source") or {}).get("product"),
+        "log_source": _log_source_of(data),
         "playbook": data.get("playbook"),
         "verified": tier == "stable",
         "source": source,

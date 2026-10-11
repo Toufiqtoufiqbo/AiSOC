@@ -87,6 +87,16 @@ jobs:
       - name: Verify detection rules match on fields that exist
         run: python3 scripts/check_detection_fields.py
 
+      # Depth plan 3.6. The cloud/identity/SaaS/code figure was re-derivable
+      # two ways and the two disagreed (the plan captured 461, a later pass
+      # measured 395 from the same tree), because nothing pinned which
+      # log_source values belong to which group. This gate owns the grouping,
+      # ratchets the total against regression, and fails on a log_source that
+      # is in neither the in-scope table nor the out-of-scope one -- so a new
+      # source cannot land silently uncounted.
+      - name: Verify cloud, identity, SaaS and code content depth
+        run: python3 scripts/check_content_depth.py --check
+
       # The windowed engine loads its corpus from a JSON artifact the same way
       # the stateless one does, so it needs the same drift gate: a spec change
       # without a re-export would leave the deployed engine running a corpus
