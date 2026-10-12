@@ -2105,6 +2105,18 @@ jobs:
             cat injection_eval.md
           } >> "${GITHUB_STEP_SUMMARY}"
 
+      # Depth 1.6. The published verdict-quality table is generated from the
+      # committed scorecard, so a number edited into the page by hand, or a
+      # scorecard refreshed without regenerating the page, reds this step.
+      #
+      # It also refuses a scorecard that could put a score-shaped cell where
+      # no measurement exists -- most importantly a row claiming a live
+      # measurement that placed zero model calls, which is exactly what a run
+      # against a dead endpoint produces once triage falls through to its
+      # deterministic scorer.
+      - name: Verdict quality (published table matches the committed scorecard)
+        run: python3 scripts/check_verdict_quality.py --check
+
       - name: Post job summary
         if: always()
         run: |
