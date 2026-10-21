@@ -170,21 +170,27 @@ pnpm|CVE-2026-97058|sprintf-js <=1.1.3; OSV GHSA-hp3w-g68c-fv3c shows no patched
 # OSV shows no patched release for all three as of 2026-10-06.
 pnpm|CVE-2026-85393|node-forge <=1.4.0 in apps/mobile; OSV GHSA-86w9-cpqp-85rv has no patched release; expo tooling transitive; re-check monthly|2027-01-04
 
-# ── 2026-10-21 pillow in services/agents only ────────────────────────────────
+# ── 2026-10-21 pillow in services/threatintel only ───────────────────────────
 # The nine pillow advisories below are fixed exclusively in pillow 13.0.0 —
-# no 12.x patch release exists. services/agents cannot take pillow 13 because
-# qdrant-client[fastembed] depends on fastembed, and every fastembed release
-# through 0.9.0 (latest as of today) caps `pillow <13.0`. services/api carried
-# the same advisories and was fixed properly (pillow 13.0.0 in its lock, no
-# parent cap there); these entries are scoped to the `python` tool and expire
-# so the cap is re-checked rather than inherited. No module in services/agents
-# imports PIL directly; pillow arrives only as fastembed's image-model leg.
-python|CVE-2026-112395|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/agents; no direct PIL use; re-check for a fastembed release lifting the cap|2027-01-15
-python|CVE-2026-112397|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/agents; no direct PIL use; re-check for a fastembed release lifting the cap|2027-01-15
-python|CVE-2026-112400|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/agents; no direct PIL use; re-check for a fastembed release lifting the cap|2027-01-15
-python|CVE-2026-112403|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/agents; no direct PIL use; re-check for a fastembed release lifting the cap|2027-01-15
-python|CVE-2026-112404|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/agents; no direct PIL use; re-check for a fastembed release lifting the cap|2027-01-15
-python|CVE-2026-112895|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/agents; no direct PIL use; re-check for a fastembed release lifting the cap|2027-01-15
-python|CVE-2026-112896|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/agents; no direct PIL use; re-check for a fastembed release lifting the cap|2027-01-15
-python|CVE-2026-112897|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/agents; no direct PIL use; re-check for a fastembed release lifting the cap|2027-01-15
-python|CVE-2026-112899|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/agents; no direct PIL use; re-check for a fastembed release lifting the cap|2027-01-15
+# no 12.x patch release exists. services/threatintel cannot take pillow 13
+# because its fastembed use is real and load-bearing (TextEmbedding in
+# app/storage/qdrant.py generates local IOC/actor embeddings with no API
+# key), and every fastembed release through 0.9.0 (latest as of today) caps
+# `pillow <13.0`. services/api was fixed properly (pillow 13.0.0, no parent
+# cap), and services/agents was fixed by dropping the unused fastembed extra
+# from qdrant-client — its lock now carries pillow 13.0.0 too. threatintel is
+# the one service where the cap is genuinely unresolvable today: the only
+# fastembed API it calls is TextEmbedding (text-only), no module imports PIL,
+# and no code path feeds image data to Pillow's decoders. These entries are
+# scoped to the `python` tool and expire so the cap is re-checked rather than
+# inherited; the matching Dependabot alerts (#143–#151) are dismissed
+# `not_used` with the same justification.
+python|CVE-2026-112395|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/threatintel, whose only fastembed use is TextEmbedding (text-only); no PIL import or image input; re-check for a fastembed release lifting the cap|2027-01-15
+python|CVE-2026-112397|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/threatintel, whose only fastembed use is TextEmbedding (text-only); no PIL import or image input; re-check for a fastembed release lifting the cap|2027-01-15
+python|CVE-2026-112400|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/threatintel, whose only fastembed use is TextEmbedding (text-only); no PIL import or image input; re-check for a fastembed release lifting the cap|2027-01-15
+python|CVE-2026-112403|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/threatintel, whose only fastembed use is TextEmbedding (text-only); no PIL import or image input; re-check for a fastembed release lifting the cap|2027-01-15
+python|CVE-2026-112404|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/threatintel, whose only fastembed use is TextEmbedding (text-only); no PIL import or image input; re-check for a fastembed release lifting the cap|2027-01-15
+python|CVE-2026-112895|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/threatintel, whose only fastembed use is TextEmbedding (text-only); no PIL import or image input; re-check for a fastembed release lifting the cap|2027-01-15
+python|CVE-2026-112896|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/threatintel, whose only fastembed use is TextEmbedding (text-only); no PIL import or image input; re-check for a fastembed release lifting the cap|2027-01-15
+python|CVE-2026-112897|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/threatintel, whose only fastembed use is TextEmbedding (text-only); no PIL import or image input; re-check for a fastembed release lifting the cap|2027-01-15
+python|CVE-2026-112899|pillow fix is 13.0.0-only; fastembed <=0.9.0 caps pillow <13.0 in services/threatintel, whose only fastembed use is TextEmbedding (text-only); no PIL import or image input; re-check for a fastembed release lifting the cap|2027-01-15
