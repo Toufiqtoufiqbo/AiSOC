@@ -1043,3 +1043,33 @@ def test_safe_normalize_still_normalizes_raw_event():
     out = _safe_normalize(_Normalizer(), {"id": "abc", "foo": "bar"})
     assert out["external_id"] == "abc"
     assert out["raw_event"] == {"id": "abc", "foo": "bar"}
+
+
+# ---------------------------------------------------------------------------
+# Egress guard on the poll path (GHSA-cq4g-g6wp-4m2w)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_poll_refuses_a_stored_internal_destination(monkeypatch):
+    """A row saved before registration-time validation existed must not be
+    polled: the poll records a failure (visible as unhealthy in the UI) and
+    the connector class is never even constructed, so no socket can open.
+    This file rather than test_egress_guard.py because the repo-call fakes
+    are patched by this module's autouse fixture."""
+    inst = _make_instance(
+        connector_type="fake_connector",
+        auth_config={"token": "x"},
+        connector_config={"base_url": "http://169.254.169.254/latest/meta-data/"},
+    )
+    fake_connector_class = MagicMock()
+    monkeypatch.setattr("app.scheduler.CONNECTOR_REGISTRY", {"fake_connector": fake_connector_class})
+    monkeypatch.delenv("AISOC_SSRF_ALLOW_PRIVATE", raising=False)
+
+    fake_engine = _FakeEngine([inst])
+    scheduler = ConnectorScheduler(engine=fake_engine, ingest_client=_FakeIngestClient(), vault=_FakeVault())
+    await scheduler._poll_one(connector_id=inst.id)
+
+    fake_connector_class.assert_not_called()
+    assert fake_engine.failure_calls == [inst.id]
+    assert fake_engine.success_calls == []
