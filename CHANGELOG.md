@@ -29,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The kill switch can actually be engaged and TAXII collections actually be
   created: both wrote strict-RLS tables through sessions that never set the
   tenant, and 500ed on every deployment (siblings of GHSA-898c, found by sweep).
+- The connectors service adopts the platform SSRF guard on every construction
+  path — the stateless test route, resource reads and scheduled polls — so a
+  tenant-controlled `base_url` can no longer reach cloud metadata, loopback or
+  internal services (GHSA-cq4g-g6wp-4m2w). The API refuses the same
+  destinations at connector create/update, before they are encrypted and
+  stored. `AISOC_SSRF_ALLOW_PRIVATE=1` re-admits on-prem SIEMs on private
+  ranges; the cloud-metadata blocklist holds regardless.
 
 ## [19.0.0] - 2026-10-12
 
