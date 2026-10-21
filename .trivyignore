@@ -1,0 +1,20 @@
+# Trivy suppressions. Same bar as scripts/security_audit_ignores.txt: a true,
+# verifiable reason and an expiry, or the entry does not belong here.
+#
+# GHSA-8g5g-8vmr-9782 / CVE-2026-112403 (CRITICAL): pillow heap buffer
+# overflow in ImagingJpegDecode, fixed only in 13.0.0 — no 12.x backport.
+# services/api resolves 13.0.0 already; agents and threatintel cannot, because
+# their only pillow dependent is fastembed (qdrant-client[fastembed]) and every
+# fastembed release through latest 0.9.0 caps pillow <13.0. Both services use
+# fastembed for text embeddings only, so nothing feeds the JPEG decoder.
+# Re-check fastembed's cap before extending the expiry.
+GHSA-8g5g-8vmr-9782 exp:2026-12-15
+CVE-2026-112395 exp:2026-12-15
+CVE-2026-112397 exp:2026-12-15
+CVE-2026-112400 exp:2026-12-15
+CVE-2026-112403 exp:2026-12-15
+CVE-2026-112404 exp:2026-12-15
+CVE-2026-112895 exp:2026-12-15
+CVE-2026-112896 exp:2026-12-15
+CVE-2026-112897 exp:2026-12-15
+CVE-2026-112899 exp:2026-12-15

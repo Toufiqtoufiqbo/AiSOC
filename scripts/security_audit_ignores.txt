@@ -169,3 +169,24 @@ pnpm|CVE-2026-97058|sprintf-js <=1.1.3; OSV GHSA-hp3w-g68c-fv3c shows no patched
 # apps/mobile workspace (its own lockfile): node-forge is expo tooling transitive;
 # OSV shows no patched release for all three as of 2026-10-06.
 pnpm|CVE-2026-85393|node-forge <=1.4.0 in apps/mobile; OSV GHSA-86w9-cpqp-85rv has no patched release; expo tooling transitive; re-check monthly|2027-01-04
+
+# ── 2026-10-21 — pillow heap overflow with an unreachable fix ────────────────
+# GHSA-8g5g-8vmr-9782 and the CVE-2026-1123xx/1128xx family (9 CVEs): pillow
+# 13.0.0 was a security release; every fix in the family lands only there —
+# no 12.x backport exists for any of them.
+# services/api already resolves 13.0.0. agents and threatintel cannot: their
+# only pillow dependent is fastembed (via qdrant-client[fastembed]), and every
+# fastembed release through latest 0.9.0 caps pillow <13.0. The vulnerable
+# path is JPEG decoding; both services use fastembed for text embeddings
+# (IOC/actor and MITRE RAG) and never hand it an image. Re-check whether
+# fastembed has lifted the cap before extending either entry.
+python|GHSA-8g5g-8vmr-9782|pillow 13 unreachable: fastembed <=0.9.0 caps pillow <13, no 12.x backport; JPEG-decode path unused (text embeddings only)|2026-12-15
+python|CVE-2026-112395|pillow 13 unreachable: fastembed <=0.9.0 caps pillow <13, no 12.x backport; JPEG-decode path unused (text embeddings only)|2026-12-15
+python|CVE-2026-112397|pillow 13 unreachable: fastembed <=0.9.0 caps pillow <13, no 12.x backport; JPEG-decode path unused (text embeddings only)|2026-12-15
+python|CVE-2026-112400|pillow 13 unreachable: fastembed <=0.9.0 caps pillow <13, no 12.x backport; JPEG-decode path unused (text embeddings only)|2026-12-15
+python|CVE-2026-112403|pillow 13 unreachable: fastembed <=0.9.0 caps pillow <13, no 12.x backport; JPEG-decode path unused (text embeddings only)|2026-12-15
+python|CVE-2026-112404|pillow 13 unreachable: fastembed <=0.9.0 caps pillow <13, no 12.x backport; JPEG-decode path unused (text embeddings only)|2026-12-15
+python|CVE-2026-112895|pillow 13 unreachable: fastembed <=0.9.0 caps pillow <13, no 12.x backport; JPEG-decode path unused (text embeddings only)|2026-12-15
+python|CVE-2026-112896|pillow 13 unreachable: fastembed <=0.9.0 caps pillow <13, no 12.x backport; JPEG-decode path unused (text embeddings only)|2026-12-15
+python|CVE-2026-112897|pillow 13 unreachable: fastembed <=0.9.0 caps pillow <13, no 12.x backport; JPEG-decode path unused (text embeddings only)|2026-12-15
+python|CVE-2026-112899|pillow 13 unreachable: fastembed <=0.9.0 caps pillow <13, no 12.x backport; JPEG-decode path unused (text embeddings only)|2026-12-15
