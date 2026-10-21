@@ -39,6 +39,7 @@ from app.db.connector_repo import fetch_enabled_connectors
 from app.db.engine import get_engine
 from app.federated.query import QueryError, parse_unified_query
 from app.security.credential_vault import CredentialVaultError, get_vault
+from app.security.egress import EgressRefused, refuse_internal_destinations
 from app.security.tenant_scope import require_console_or_service_auth
 
 logger = structlog.get_logger()
@@ -209,7 +210,19 @@ def _instantiate_or_422(cls: type, kwargs: dict[str, Any]) -> Any:
     Pulled out into a helper because four endpoints now share the exact
     same construction path; keeping it inline meant duplicating the
     ``TypeError`` handling four times.
+
+    Destination validation happens here, before the constructor, so every
+    route that builds a connector refuses an internal URL the same way
+    (GHSA-cq4g-g6wp-4m2w) — a connector object that exists is one a later
+    edit can call.
     """
+    try:
+        refuse_internal_destinations(kwargs)
+    except EgressRefused as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
     try:
         return cls(**kwargs)
     except TypeError as exc:
@@ -303,6 +316,18 @@ async def test_connector_connection(connector_id: str, payload: TestConnectionRe
     # this ordering is defensive belt-and-braces rather than a real
     # boundary.
     kwargs = {**payload.auth_config, **payload.connector_config}
+
+    # Before the constructor, and before any socket could open: a tenant-set
+    # base_url pointing at cloud metadata, loopback or an internal service is
+    # refused here rather than fetched and reflected (GHSA-cq4g-g6wp-4m2w —
+    # this exact route was the reproduced entry point).
+    try:
+        refuse_internal_destinations(kwargs)
+    except EgressRefused as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
 
     try:
         connector = cls(**kwargs)

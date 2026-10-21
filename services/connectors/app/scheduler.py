@@ -79,6 +79,7 @@ from app.pipeline import (
     diff_fingerprints,
 )
 from app.security.credential_vault import CredentialVault, CredentialVaultError, get_vault
+from app.security.egress import EgressRefused, refuse_internal_destinations
 from app.vuln_promotion_sql import (
     MARK_OVERDUE_SQL,
     MARK_PROMOTED_SQL,
@@ -552,6 +553,27 @@ class ConnectorScheduler:
         # ``poll_interval_seconds`` (or the ingest ``checkpoint``) as a kwarg.
         runtime_config = {k: v for k, v in (target.connector_config or {}).items() if k not in {"poll_interval_seconds", "checkpoint"}}
         kwargs = {**auth, **runtime_config}
+
+        # A stored destination inside the deployment must not be polled —
+        # rows saved before registration-time validation existed were never
+        # checked, and a hostname can rebind between saves and polls
+        # (GHSA-cq4g-g6wp-4m2w). The failure is recorded so the instance
+        # shows unhealthy in the UI rather than silently doing nothing; an
+        # on-prem SIEM on RFC 1918 space is re-admitted by setting
+        # AISOC_SSRF_ALLOW_PRIVATE=1.
+        try:
+            refuse_internal_destinations(kwargs)
+        except EgressRefused as exc:
+            logger.error(
+                "connector.scheduler.destination_refused id=%s type=%s field=%s err=%s "
+                "(set AISOC_SSRF_ALLOW_PRIVATE=1 if this deployment's SIEM lives on a private range)",
+                connector_id,
+                target.connector_type,
+                exc.field_name,
+                exc.reason,
+            )
+            await self._record_failure(target.id)
+            return
 
         started = datetime.now(UTC)
         try:
