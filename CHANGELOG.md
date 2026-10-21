@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### BREAKING
+
+- `POST /api/v1/cases/{case_id}/comments` no longer accepts `is_system` in the
+  request body (GHSA-9mc5-hqgh-j6wf). The field let any `cases:write` holder
+  author rows the case summary renders as an unattributed "System note" and the
+  post-mortem drops from the analyst record, so it could not be preserved —
+  system notes are written by the server itself. A client that still sends the
+  field is ignored rather than refused, so existing requests keep succeeding;
+  only generated SDK request types lose the property.
+
+### Security
+
+- Every GET route in `cases.py` now requires `cases:read`, so an API key minted
+  with only `alerts:read` can no longer list cases or read their comments,
+  timeline and evidence chain (GHSA-wwq7-2xvh-qgq6). Role users are unaffected.
+- Outbound webhooks work and are SSRF-hardened (GHSA-898c-wxrw-hx6c): all eight
+  routes open tenant-scoped sessions (registration previously 500ed against the
+  table's row-level security for every tenant), and destinations are validated
+  through the platform SSRF guard at create, update and delivery time.
+- The kill switch can actually be engaged and TAXII collections actually be
+  created: both wrote strict-RLS tables through sessions that never set the
+  tenant, and 500ed on every deployment (siblings of GHSA-898c, found by sweep).
+
 ## [19.0.0] - 2026-10-12
 
 ### BREAKING

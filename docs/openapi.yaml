@@ -22248,10 +22248,6 @@ components:
           type: string
           minLength: 1
           title: Body
-        is_system:
-          type: boolean
-          title: Is System
-          default: false
       type: object
       required:
       - body
