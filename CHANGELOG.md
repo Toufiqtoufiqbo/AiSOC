@@ -38,7 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   destinations at connector create/update, before they are encrypted and
   stored. `AISOC_SSRF_ALLOW_PRIVATE=1` re-admits on-prem SIEMs on private
   ranges and `AISOC_SSRF_ALLOW_HOSTS` admits exact named hosts; the
-  cloud-metadata blocklist holds regardless of either.
+  cloud-metadata blocklist holds regardless of either, and compose delivers
+  both knobs to every service that runs the guard (api, connectors, agents)
+  from one `.env` value — they had shipped reaching only the agents service,
+  so the documented re-admit path changed nothing in the processes that
+  actually refuse the connection.
 - The Oct-21 advisory wave is cleared across every lockfile (#1417): `certifi`
   ≥ 2026.10.19 (GHSA-6q48-6c7w-9gw2, critical) in all 13 poetry locks,
   `aiohttp` 3.14.5 in agents/slack-bot/threatintel, `pillow` 13.0.0 in
