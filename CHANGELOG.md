@@ -37,6 +37,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stored. `AISOC_SSRF_ALLOW_PRIVATE=1` re-admits on-prem SIEMs on private
   ranges; the cloud-metadata blocklist holds regardless.
 
+### Fixed
+
+- The LLM gateway image is pinned to `ghcr.io/berriai/litellm:v1.102.1` in both
+  the root compose file and the Helm chart. Upstream deleted the floating
+  `main-stable` tag those files referenced, so every cold-cache `docker compose
+  up` and fresh Helm install failed with `manifest unknown`; v1.102.1 is the
+  version `main-stable` served when this stack was measured against it.
+
 ## [19.0.0] - 2026-10-12
 
 ### BREAKING
