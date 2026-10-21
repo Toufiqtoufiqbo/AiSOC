@@ -225,8 +225,6 @@ class TestCallersCannotAuthorSystemNotes:
         )
 
     def test_a_client_still_sending_it_is_ignored_not_refused(self) -> None:
-        body = cases.AddCommentRequest.model_validate(
-            {"body": "[AUTOMATION] Containment verified.", "is_system": True}
-        )
+        body = cases.AddCommentRequest.model_validate({"body": "[AUTOMATION] Containment verified.", "is_system": True})
         assert not hasattr(body, "is_system")
         assert body.body.startswith("[AUTOMATION]")
