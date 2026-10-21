@@ -9,13 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- The second 2026-10 Pillow advisory wave (seven CVEs against 12.3.0, every
-  fix 13.0.0-only, verified via OSV) is recorded against
-  `services/threatintel`'s known fastembed-capped lock with the same expiring
-  justification as the first wave: fastembed ≤ 0.9.0 caps `pillow <13`, the
-  service's only fastembed use is text-only `TextEmbedding`, and the
-  suppressions are re-checked for a lifting release by 2027-01-15. `agents`
-  and `api` already carry the patched 13.0.0 and are unaffected.
+- The complete 2026-10 Pillow advisory set — published to OSV in waves across
+  the day, 28 CVEs against 12.3.0 at last count, every fix 13.0.0-only
+  (verified per-CVE via OSV) — is recorded against `services/threatintel`'s
+  known fastembed-capped lock with one expiring justification: fastembed
+  ≤ 0.9.0 caps `pillow <13`, the service's only fastembed use is text-only
+  `TextEmbedding`, and all 28 suppressions are re-checked for a lifting
+  release by 2027-01-15. `agents` and `api` already carry the patched 13.0.0
+  and are unaffected.
 
 ## [20.0.0] - 2026-10-21
 

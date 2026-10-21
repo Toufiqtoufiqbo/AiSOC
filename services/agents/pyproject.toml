@@ -65,9 +65,10 @@ aiokafka = ">=0.10,<0.15"
 # fastembed-backed convenience API (client.add / models.Document), so the
 # extra only shipped an unused ONNX stack. It also pinned the whole service
 # to a vulnerable Pillow: every fastembed release through 0.9.0 caps
-# `pillow <13.0`, and the nine 2026-10 Pillow advisories (one critical) are
-# fixed only in 13.0.0. Dropping the unused extra is what lets this lock
-# carry the patched Pillow.
+# `pillow <13.0`, and the 2026-10 Pillow advisory set (28 CVEs at last count,
+# published in waves across 2026-10-21, one critical) is fixed only in
+# 13.0.0. Dropping the unused extra is what lets this lock carry the patched
+# Pillow.
 qdrant-client = "^1.9.0"
 markdown = "^3.5"
 # `<70` held this at 69.0, which carries PYSEC-2026-3940 (fixed in 70.0).
