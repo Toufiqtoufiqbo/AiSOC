@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [20.0.0] - 2026-10-21
+
 ### BREAKING
 
 - `POST /api/v1/cases/{case_id}/comments` no longer accepts `is_system` in the
@@ -35,15 +37,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   internal services (GHSA-cq4g-g6wp-4m2w). The API refuses the same
   destinations at connector create/update, before they are encrypted and
   stored. `AISOC_SSRF_ALLOW_PRIVATE=1` re-admits on-prem SIEMs on private
-  ranges; the cloud-metadata blocklist holds regardless.
+  ranges and `AISOC_SSRF_ALLOW_HOSTS` admits exact named hosts; the
+  cloud-metadata blocklist holds regardless of either.
+- The Oct-21 advisory wave is cleared across every lockfile (#1417): `certifi`
+  ≥ 2026.10.19 (GHSA-6q48-6c7w-9gw2, critical) in all 13 poetry locks,
+  `aiohttp` 3.14.5 in agents/slack-bot/threatintel, `pillow` 13.0.0 in
+  `services/api`, `@modelcontextprotocol/sdk` 1.32.x in `services/mcp`, and
+  `follow-redirects` / `launch-editor` / `vite` 8.3.4 floors in the npm
+  workspaces. `services/agents` then also reached `pillow` 13.0.0 by dropping
+  the unused `fastembed` extra of `qdrant-client` (#1420) — nothing in agents
+  imports PIL or calls the fastembed convenience API. One recorded exception
+  remains: `services/threatintel` genuinely embeds through fastembed, whose
+  every release (≤ 0.9.0) caps `pillow <13`, so its lock stays on 12.3.0 under
+  nine expiring suppressions in `scripts/security_audit_ignores.txt` (text-only
+  embedding input, no PIL import; re-checked for a lifting release until
+  2027-01-15).
+- The semgrep rule packs the scanner ratchet's ceiling was measured with are
+  vendored under `.security/semgrep/` (#1379): the scan reads the committed
+  packs rather than fetching registry heads, `scripts/vendor_semgrep_packs.py
+  --check` verifies them offline, and the ratchet gains a rules-digest arm so
+  the ceiling is bound to the exact pack bytes it was measured against — a
+  registry pack changing under the ceiling now fails instead of silently
+  re-grading the tree.
+
+### Added
+
+- OpenCTI threat-intelligence feed client (#1375, contributed by
+  [alexmateescu](https://github.com/alexmateescu)): an authenticated GraphQL
+  client pages `stixCoreObjects` indicators by `updated_at`, normalises them
+  and extracts IOCs from indicator patterns, wired into the feed scheduler
+  behind `OPENCTI_URL` / `OPENCTI_TOKEN` (disabled by default; fails closed
+  when unconfigured). Validated against a live OpenCTI 7.x platform with the
+  exact request/response pair pinned as fixtures.
 
 ### Fixed
 
+- Four connectors preserved a vendor's own top severity instead of collapsing
+  it into `high`: Lacework (#1374), Tines (#1377), Datadog (#1409) and
+  PagerDuty (#1411) now map their native critical tier to `critical`, and
+  Datadog's `emergency` and `alert` levels — which outrank `critical` in its
+  ladder — map to `critical` too (#1427). All four contributed by
+  [meshreyy](https://github.com/meshreyy).
 - The LLM gateway image is pinned to `ghcr.io/berriai/litellm:v1.102.1` in both
   the root compose file and the Helm chart. Upstream deleted the floating
   `main-stable` tag those files referenced, so every cold-cache `docker compose
   up` and fresh Helm install failed with `manifest unknown`; v1.102.1 is the
   version `main-stable` served when this stack was measured against it.
+
+### Changed
+
+- `fastapi` moves to 0.143.x repo-wide with the open Python bumps folded in
+  (#1419); the thirty mergeable Dependabot bumps of 2026-10-13 land as one
+  integrated tree (#1371); the root npm workspaces (#1423), `services/realtime`
+  (`express` 5.3.0, `pino` 10.4.0, `typescript-eslint` 8.72.0, #1424), the Go
+  services (`go-chi` 5.5.0 in ingest and enrichment, #1425) and the workflow
+  actions plus the mobile screens package (#1426) take their open dependency
+  bumps. The Dependabot queue is at zero.
 
 ## [19.0.0] - 2026-10-12
 
