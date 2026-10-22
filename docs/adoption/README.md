@@ -10,38 +10,42 @@ run. It does not mean zero. The two get conflated constantly and the
 difference matters: one is a fact about users, the other is a fact
 about our tooling.
 
-## Latest — 2026-09-21
+## Latest — 2026-10-22
 
 ### Reach
 
-- Stars: 2,361
-- Forks: 259
-- Unique visitors (14d): 1,541
-- Unique cloners (14d): 377
+- Stars: 2,601
+- Forks: 286
+- Unique visitors (14d): not measured
+- Unique cloners (14d): not measured
 
 ### Conversion
 
-- Contributors: 13
-- Release asset downloads (all time): 52
+- Contributors: 17
+- Release asset downloads (all time): 239
 
 ### Package downloads (last month)
 
 - npm `aisoc`: not measured
 - npm `@aisoc/mcp`: not measured
 - npm `@aisoc/sdk`: not measured
-- PyPI `aisoc-sandbox`: not measured
-- PyPI `aisoc-cli`: not measured
-- PyPI `aisoc-sdk`: not measured
-- PyPI `aisoc-plugin-sdk`: not measured
-- PyPI `aisoc-detections`: not measured
+- PyPI `aisoc-sandbox`: 98
+- PyPI `aisoc-cli`: 88
+- PyPI `aisoc-sdk`: 94
+- PyPI `aisoc-plugin-sdk`: 93
+- PyPI `aisoc-detections`: 101
 
 ### Why some values are missing
 
+- traffic/views unavailable (HTTP 403; needs push access)
+- traffic/clones unavailable (HTTP 403; needs push access)
 - npm aisoc: not published yet
 - npm @aisoc/mcp: not published yet
 - npm @aisoc/sdk: not published yet
-- pypi aisoc-sandbox: registry did not answer (HTTP 429)
-- pypi aisoc-cli: registry did not answer (HTTP 429)
-- pypi aisoc-sdk: registry did not answer (HTTP 429)
-- pypi aisoc-plugin-sdk: not published yet
-- pypi aisoc-detections: not published yet
+
+## History
+
+| Date | Stars | Unique cloners (14d) | Contributors | npm `aisoc` |
+| --- | --- | --- | --- | --- |
+| 2026-09-21 | 2,361 | 377 | 13 | not measured |
+| 2026-10-22 | 2,601 | not measured | 17 | not measured |

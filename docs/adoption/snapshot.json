@@ -38,6 +38,42 @@
         "pypi aisoc-plugin-sdk: not published yet",
         "pypi aisoc-detections: not published yet"
       ]
+    },
+    {
+      "date": "2026-10-22",
+      "repo": "beenuar/AiSOC",
+      "github": {
+        "stars": 2601,
+        "forks": 286,
+        "watchers": 42,
+        "open_issues": 4,
+        "views_14d": null,
+        "unique_views_14d": null,
+        "clones_14d": null,
+        "unique_clones_14d": null,
+        "contributors": 17,
+        "releases": 35,
+        "release_asset_downloads": 239
+      },
+      "npm": {
+        "aisoc": null,
+        "@aisoc/mcp": null,
+        "@aisoc/sdk": null
+      },
+      "pypi": {
+        "aisoc-sandbox": 98,
+        "aisoc-cli": 88,
+        "aisoc-sdk": 94,
+        "aisoc-plugin-sdk": 93,
+        "aisoc-detections": 101
+      },
+      "notes": [
+        "traffic/views unavailable (HTTP 403; needs push access)",
+        "traffic/clones unavailable (HTTP 403; needs push access)",
+        "npm aisoc: not published yet",
+        "npm @aisoc/mcp: not published yet",
+        "npm @aisoc/sdk: not published yet"
+      ]
     }
   ]
 }
