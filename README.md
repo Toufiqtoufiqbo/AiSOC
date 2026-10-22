@@ -45,13 +45,11 @@ git clone https://github.com/beenuar/AiSOC && cd AiSOC
 make up
 ```
 
-The [Technical Guide](https://raw.githubusercontent.com/beenuar/AiSOC/main/apps/web/public/papers/aisoc-technical-guide.pdf) covers this in depth: server sizing, where the
-model runs, every failure mode with its cause and fix, the REST API, MCP, and every console surface.
+**On Windows**, or on a machine with nothing installed yet, one line does the prerequisites too: `iwr -useb https://raw.githubusercontent.com/beenuar/AiSOC/main/install.ps1 | iex` (`curl -fsSL https://raw.githubusercontent.com/beenuar/AiSOC/main/install.sh | bash` on Linux and macOS). **Without Docker at all**, `pip install aisoc-sandbox && aisoc-sandbox demo` walks one alert through the agent funnel offline in under 30 seconds. **Without your own machine**, open the repo in GitHub Codespaces and run `make up` in its terminal. All four end at the same console; only the first three install anything.
 
-Needs Docker Compose v2 with **8 GB memory and 20 GB free disk in the Docker VM**, plus `python3`
-(3.9+) and `bash`; `make doctor` checks all of it and
-[Installation](https://beenuar.github.io/AiSOC/docs/installation#requirements) says what each number
-was measured against. The first run downloads a ~2 GB model into a volume only `make clean` clears.
+The [Technical Guide](https://raw.githubusercontent.com/beenuar/AiSOC/main/apps/web/public/papers/aisoc-technical-guide.pdf) covers this in depth: server sizing, where the model runs, every failure mode with its cause and fix, the REST API, MCP, and every console surface.
+
+Needs Docker Compose v2 with **8 GB memory and 20 GB free disk in the Docker VM**, plus `python3` (3.9+) and `bash`; `make doctor` checks all of it and [Installation](https://beenuar.github.io/AiSOC/docs/installation#requirements) says what each number was measured against. The first run downloads a ~2 GB model into a volume only `make clean` clears.
 
 `make up` also creates `.env` and generates the **fifteen** secrets in it — the credential vault, the
 session signing key, five service-to-service credentials and four datastore passwords — then creates an

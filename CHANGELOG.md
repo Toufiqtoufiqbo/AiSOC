@@ -19,6 +19,102 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is empty; a skip while lock-only services exist is still lost coverage,
   and a failed or cancelled leg on either matrix still fails.
 
+### Fixed — a fresh Windows install could not boot, and nothing could see it
+
+- **`install.ps1` now generates `.env`'s secrets instead of copying the
+  template.** `Initialize-EnvFile` was a plain `Copy-Item .env.example .env`;
+  that template ships `ENVIRONMENT=production` with `SECRET_KEY`,
+  `JWT_SECRET`, `METRICS_TOKEN` and `AISOC_CREDENTIAL_KEY` empty, and
+  `enforce_secure_defaults` refuses to start the API in production on exactly
+  those values — so the install ended at "These services are not running:
+  api" with nothing pointing back at the copy. It now runs the same
+  `scripts/ensure_env.py` that `make env` runs, and Python 3 joins Git,
+  Docker, Node and pnpm as a winget-installed prerequisite because three
+  steps of the install are Python programs. `compose-smoke.yml` had already
+  worked around this for itself, with a comment noting that a bare copy "has
+  provisioned an environment no real deployment would boot".
+- **A port already in use no longer stops the install on Windows.**
+  `Test-CorePortsFree` exited 3 and told the operator to edit
+  `docker-compose.yml` by hand, on the two conditions most likely in this
+  audience's environment — an existing Postgres on 5432, an Ollama on 11434 —
+  while `README.md` promised the opposite. It now runs the same
+  `scripts/resolve_port_conflicts.py` that `make up` runs, and every compose
+  call in the installer goes through one helper so a remapped stack is
+  addressed consistently. The closing banner reads the moved console address
+  from `.env` rather than printing a hardcoded `localhost:3000`.
+- `--no-pull` and `--rebuild` in `install.sh` were parsed into an array that
+  nothing read once the demo handoff was removed, so both were accepted and
+  silently ignored while `--help` documented them. They now set
+  `AISOC_PULL_POLICY=never` and `make up UP_FLAGS=--build` respectively, and
+  the script's header describes the flow it actually runs.
+- Both installers linked an issue template that did not exist, under two
+  different names, at the moment a failing install asks for help.
+  `.github/ISSUE_TEMPLATE/installer-failure.yml` now exists and both point
+  at it.
+
+### Changed — one way in, and no on-ramp that cannot prove itself
+
+- **The devcontainer and the sandbox README no longer send people to
+  `pnpm aisoc:demo`.** That compose file has no ingest service, no fusion
+  service and Kafka disabled — its own header says not to use it to evaluate
+  whether AiSOC works — and both installers were rewritten to remove the
+  handoff, but a fresh Codespace's attach banner and the sandbox's "when
+  you're ready for the real stack" line were still pointing at it. Both now
+  say `make up`. A parity-gate check covers all eight on-ramp surfaces at
+  once, exempting blockquotes and `:::caution` admonitions so the warnings
+  that keep evaluators *away* from that stack can stay.
+- **`render.yaml` and `infra/render/` are removed.** The blueprint's header
+  claimed a "Deploy to Render" button in `README.md` that has never existed,
+  and what it deployed was a ~$63/month stack with `AISOC_DISABLE_KAFKA` set
+  on three services and no ingest or fusion at all — a paid one-click path to
+  a populated console that cannot answer whether the pipeline works. Its
+  path filters in `isolation.yml` and its two `.gitleaksignore` exemptions go
+  with it. The Fly, Railway and Coolify recipes are untouched and deploy the
+  same lean shape; they deserve the same scrutiny.
+- The README's quick start now names all four on-ramps — `make up`, the
+  Windows and Unix one-liners, `pip install aisoc-sandbox`, and Codespaces —
+  where previously a Windows reader met only `make up`, a command their OS
+  does not have. Still inside the 250-line cap, paid for by reflowing.
+
+### Fixed — install documentation that described a different product
+
+- `apps/docs/docs/quickstart.md` advertised a machine 1.5 GB smaller than the
+  measured requirement (6.5 GB / ~18 GB / py3.11+ against the measured 8 GB /
+  20 GB / 3.9+), re-introduced the `cp .env.example .env` step the Makefile
+  eliminated, described `.env.example` as shipping secrets it no longer
+  ships, and attributed the port check to a script that does not perform it.
+- `apps/docs/docs/installation.md` said "fourteen CORE containers" (sixteen)
+  and told Windows users to run PowerShell as Administrator, which
+  `install.ps1`'s own guidance contradicts. `.env.example`'s header said
+  "the four generated secrets" (fifteen).
+- Four surfaces still advertised Swagger at `http://localhost:8000/api/docs`,
+  which the production-class stack `make up` starts answers 404 on:
+  `docs/QUICK_INSTALL.md`, `scripts/lab.sh`'s banner, and the `make up`
+  transcripts in `quickstart.md` and `deployment/walkthrough.mdx`.
+  `apps/docs/docs/api/rest.md` now says plainly that `make up` does not serve
+  them and names `make up-dev`, which does.
+- The sandbox README's badge said "not yet published" and its install section
+  said the upload was blocked on credentials, while PyPI has been serving
+  `aisoc-sandbox` 0.1.0; it also claimed the production stack needs an LLM
+  API key, which has not been true since the bundled local model shipped.
+
+### Added — gates, so none of the above drifts back
+
+- `tests/test_installer_parity_gate.py` asserts that both installers generate
+  the `.env` secrets and that `install.ps1` resolves port conflicts and
+  passes the port overlay to every compose call — the two holes that let the
+  Windows breakers ship for as long as they existed. Three existing
+  assertions were matching the installer's `-NoLaunch` *help text* rather
+  than its invocations, so they now read action lines with the output
+  cmdlets removed.
+- `installer-smoke.yml` gains a `windows-latest` job that dot-sources the
+  installer's own `Initialize-EnvFile` and fails if any generated secret
+  comes out empty. The existing Windows jobs run `-Diagnose` only, which
+  makes no changes, and a full install needs Docker Desktop — this needs
+  neither.
+- `scripts/check_profile_service_counts.py` reads number words as well as
+  digits and registers the installation page's requirements table, which is
+  where "fourteen" survived every digit-based check.
 ## [20.1.0] - 2026-10-22
 
 ### Security

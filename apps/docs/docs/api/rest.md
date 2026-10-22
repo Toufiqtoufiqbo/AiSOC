@@ -43,13 +43,18 @@ API keys are created via `POST /api/v1/api-keys` and can be scoped to specific p
 
 ## Interactive Docs
 
-When running locally, interactive Swagger UI is available at:
+**`make up` does not serve them, and that is deliberate.** It starts a
+production-class stack with the interactive docs disabled, so
+`/api/docs` there answers 404 — pointing you at it would be pointing you at
+nothing. Read the committed spec instead:
+[`docs/openapi.yaml`](https://github.com/beenuar/AiSOC/blob/main/docs/openapi.yaml).
 
-- **Swagger UI**: [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
-- **ReDoc**: [http://localhost:8000/api/redoc](http://localhost:8000/api/redoc)
-- **OpenAPI JSON**: [http://localhost:8000/api/openapi.json](http://localhost:8000/api/openapi.json)
+They are served by the development overlay (`make up-dev`), which is the
+only documented local path that enables them:
 
-The full spec is also committed at [`docs/openapi.yaml`](https://github.com/beenuar/AiSOC/blob/main/docs/openapi.yaml).
+- **Swagger UI**: `http://localhost:8000/api/docs`
+- **ReDoc**: `http://localhost:8000/api/redoc`
+- **OpenAPI JSON**: `http://localhost:8000/api/openapi.json`
 
 ## Endpoint Groups
 
