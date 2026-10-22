@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- `@vitest/mocker` moves to 4.1.12 in all three npm lockfiles (root
+  workspaces, `services/realtime`, `services/mcp/cursor-extension`), closing
+  CVE-2026-112949 and CVE-2026-112950 (#1468). The bump rode the Oct-22
+  Dependabot wave rather than waiting for it to be noticed as a security
+  item.
 - The complete 2026-10 Pillow advisory set — published to OSV in waves across
   the day, 28 CVEs against 12.3.0 at last count, every fix 13.0.0-only
   (verified per-CVE via OSV) — is recorded against `services/threatintel`'s
@@ -17,6 +22,109 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `TextEmbedding`, and all 28 suppressions are re-checked for a lifting
   release by 2027-01-15. `agents` and `api` already carry the patched 13.0.0
   and are unaffected.
+
+### Added
+
+- The API answers unauthenticated `GET /api/v1/health` (liveness: the process
+  serves HTTP, nothing else claimed) and `GET /api/v1/health/ready`
+  (readiness: can it do its job, named per dependency) (#1471, part of
+  #1446). `database` is a **block** dependency — without Postgres the status
+  goes 503 and a load balancer should stop sending traffic — while `cache` is
+  **degrade**: Redis loss is reported (`cache: false`) at status 200, because
+  failing readiness over a cache would pull the API out of the balancer to
+  fix a cache. Every probe is hard-capped well inside a prober's budget, so
+  "down and we say so" cannot decay into "down and we say nothing".
+  `services/threatintel`'s `/health` now names its Qdrant leg the same way
+  (`vector_store`, degrade).
+- The chart `stable` channel is guarded by **two version lines, and a
+  dispatchable repair tool exists** (#1469, closing #1440). v20.0.0 — chart
+  7.9.0, not a chart major — carried chart `stable` across an *application*
+  major while every image `stable` tag correctly stayed on v19, because the
+  chart guard read only the chart's own line; the decision now also compares
+  the channel's `appVersion` major, read from the registry, and fails closed
+  when the incoming chart's appVersion cannot be read.
+  `.github/workflows/chart-channel.yml` is the operator decision the guard
+  points at: it re-points `stable` at a named, already-published chart
+  version, byte-identical, in either direction — it was dispatched to roll
+  the channel back to 7.8.0 (appVersion v19.0.0), where it stays until a
+  deliberate promotion. `tests/test_release_channel_tags.py` replays whole
+  release ladders over the lifted decision blocks for both lines.
+
+### Fixed
+
+- **A connector checkpoint no longer advances past events ingest rejected**
+  (#1441, closing #1438; contributed by
+  [meshreyy](https://github.com/meshreyy)). Ingest deliberately reports
+  per-event normalization failures as HTTP 200 with `accepted`/`rejected`
+  counts, so HTTP success alone never proved advancing was safe: a poll whose
+  batch was partially rejected moved the cursor anyway, and the rejected
+  events were lost permanently — a data-loss class, invisible because the
+  poll reported success. The scheduler now persists the staged cursor only
+  when every submitted event was accepted, withholds it otherwise with a
+  warning naming the counts, and re-fetches the page on the next overlapping
+  poll, where the sink deduplicates what was already accepted.
+- The live-agent eval dispatches every incident on **one event loop**, and an
+  incident whose investigation fails outright scores **0 with the reason
+  recorded** (#1472, closing #1466). Per-incident `asyncio.run` left
+  langchain-openai's cached async HTTP client bound to a dead loop, so
+  recon's model call failed on every incident after the first and the agent
+  silently ran its deterministic heuristics — while failed incidents were
+  dropped from the sample, inflating the mean and shrinking the sample below
+  the gate's own size requirement. Failures now participate as 0 in the mean
+  with reasons in the report's `groundedness.zero_scored` block, so the
+  sample always equals the dispatched prefix. The floor was re-derived under
+  the fixed harness and **stays 0.40**, below the lowest fixed-harness run
+  (0.44) with a deliberately thinner margin: one failed investigation costs
+  the mean about 0.05 under zero-fill, so a model failing three or more of
+  ten investigations dips below the floor and reds the job — which is the
+  signal that outcome should produce. The pre-fix runs stay recorded in
+  `live_agent_floor.json` for provenance, labelled as pre-fix.
+- The chaos store-outage legs grade **real behaviour instead of artifacts of
+  their own probe contract** (#1471, part 1 of #1446). The previous shape
+  probed one API URL for all six stores: `/api/v1/health/ready` did not exist
+  (404 → every key "reads None"), the ingest URL pointed at the enrichment
+  service's port, the recovery poll re-read the same 404 forever, and the
+  ClickHouse/Neo4j legs graded containers the `core` profile never started.
+  Each leg now names the readiness surface that owns the store and the
+  dependents the expectation declares; the redis and qdrant legs pass
+  end-to-end. The postgres leg stays red **by design** — fusion and ingest do
+  not yet export the store keys the contract reads — with the finding naming
+  the service; the follow-ups live on #1446, which stays open.
+- The perf harness records the payload bytes the producer actually sent,
+  closing 17 days of scheduled `perf.yml` failures in which
+  `throughput_claims.py --check` required `payload_bytes` as context for
+  `ingest_eps` and nothing had ever written it (#1444).
+- `react-native-screens` is held at the version Expo SDK 54's compatibility
+  table names, and Dependabot is taught the hold so it stops re-proposing the
+  incompatible major (#1443).
+- The monthly adoption snapshot lands on the unprotected `adoption-data`
+  branch, needing no owner credential (#1470, closing #1445): `main` is
+  branch-protected with no bypass actors, so the workflow's direct push
+  failed (GH006) and a `GITHUB_TOKEN` PR can never merge because events that
+  token creates do not trigger the required `pull_request` checks.
+  `docs/adoption/README.md` on `main` is now a pointer; the ledger and its
+  full history live in `snapshot.json` on the data branch.
+- Three CI legs stopped failing for reasons that were never about the code
+  under test: the eval matrix's non-floor leg passes the checker's own
+  deliberate-comparison flag instead of tripping its different-model refusal
+  (#1465); jobs that start PostgreSQL fall back between the two official
+  registries when one throttles (#1434, contributed by
+  [meshreyy](https://github.com/meshreyy)); and the nightly/live suites seed
+  the state the product actually requires — `scripts/ensure_env.py` writes
+  the `.env` the stack reads, and the scheduler live suite admits its stub
+  vendor through the documented `AISOC_SSRF_ALLOW_HOSTS` path rather than a
+  test-only bypass (#1432).
+
+### Changed
+
+- `fastapi` moves to 0.146.0 repo-wide — every one of the 32 declaration
+  sites and all 13 poetry locks in one move, so the version CI tests is the
+  version every image ships (#1473).
+- The Oct-22 Dependabot waves are folded: python (`sqlalchemy` 2.1.6,
+  `strawberry-graphql` 0.336.2, `pydantic-settings` 2.16.1, `langchain-core`
+  1.6.13, `langgraph-sdk` 0.4.8, `tenacity` 9.2.1 across api, actions and
+  agents, #1467) and npm (root workspaces, realtime and the MCP cursor
+  extension, #1468).
 
 ## [20.0.0] - 2026-10-21
 

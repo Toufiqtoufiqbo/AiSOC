@@ -125,12 +125,31 @@ from major 8 until you choose it. Quote it, or your shell will glob.
 
 :::
 
-The chart follows the **chart's** major rather than the application's — the
-break it protects an operator from is a values-schema break, and the chart
-versions independently of `appVersion`. A chart `stable` tag is published for
-OCI tooling that can address tags directly (`docker buildx imagetools
-inspect`, `oras`), and a chart major stops its promotion until a maintainer
-dispatches with `promote_stable: true`, exactly as for images.
+The chart `stable` tag is guarded by **two version lines, not one**. The
+chart's own major announces a values-schema break and stops the channel, as
+for images. But the chart's values default every unpinned image tag to
+`Chart.AppVersion`, so the channel also carries operators across
+*application* majors — which is how a chart minor (7.9.0, `appVersion`
+v20.0.0) once moved chart `stable` onto a breaking application release while
+every image `stable` tag correctly stayed on v19. The decision now also
+compares the channel's `appVersion` major, read from the registry like
+everything else about the channel, and **fails closed** when the incoming
+chart's `appVersion` cannot be read: refusing is recoverable, a wrong
+crossing is not. A chart `stable` tag is published for OCI tooling that can
+address tags directly (`docker buildx imagetools inspect`, `oras`), and
+either major boundary stops promotion until a maintainer dispatches with
+`promote_stable: true`, exactly as for images.
+
+### Repairing a channel that is pointing at the wrong version
+
+`chart-channel.yml` (workflow dispatch) is the deliberate human action the
+guard points at. It re-points the chart `stable` tag at a named,
+**already-published** chart version — byte-identical manifest, either
+direction, with before/after evidence in the log. It never republishes a
+chart *version*: `helm push` overwrites silently and an overwritten version
+tag is unrecoverable, so the repair tool only moves the mutable channel tag.
+Until it existed, the only way `stable` could move was another release tag
+push, which is no tool at all when the channel is already wrong.
 
 Pin an explicit version in production; a constraint is for the case where you
 would otherwise have pinned nothing at all.
