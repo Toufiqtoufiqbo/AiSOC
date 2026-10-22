@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [20.1.0] - 2026-10-22
+
 ### Security
 
 - `@vitest/mocker` moves to 4.1.12 in all three npm lockfiles (root
