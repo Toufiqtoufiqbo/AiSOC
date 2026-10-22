@@ -142,14 +142,23 @@ either major boundary stops promotion until a maintainer dispatches with
 
 ### Repairing a channel that is pointing at the wrong version
 
-`chart-channel.yml` (workflow dispatch) is the deliberate human action the
-guard points at. It re-points the chart `stable` tag at a named,
-**already-published** chart version — byte-identical manifest, either
-direction, with before/after evidence in the log. It never republishes a
-chart *version*: `helm push` overwrites silently and an overwritten version
-tag is unrecoverable, so the repair tool only moves the mutable channel tag.
-Until it existed, the only way `stable` could move was another release tag
-push, which is no tool at all when the channel is already wrong.
+`chart-channel.yml` and `image-channel.yml` (workflow dispatch) are the
+deliberate human action the guards point at — one for the chart, one for the
+sixteen first-party images. Each re-points the `stable` tag at a named,
+**already-published** version — byte-identical manifest, either direction,
+with before/after evidence in the log. Neither ever republishes a *version*
+tag: an overwritten version is unrecoverable, so the repair tools only move
+the mutable channel tag. Until they existed, the only way `stable` could move
+was another release tag push, which is no tool at all when the channel is
+already wrong.
+
+One reading lesson is now encoded in both guards: the release workflow reads
+where a channel *is* through the registry HTTP API, never through a
+`docker buildx imagetools inspect` template — a template's shape is a
+property of whatever buildx the runner ships that day, and when it broke the
+image guard read an existing channel as a first release and moved it across
+an application major. A channel that is **present but unreadable now blocks**
+rather than moves: refusing is recoverable, a wrong crossing is not.
 
 Pin an explicit version in production; a constraint is for the case where you
 would otherwise have pinned nothing at all.

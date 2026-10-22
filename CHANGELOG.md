@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The image `stable` channel guard read the registry through a buildx
+  template, and when the runner's buildx stopped resolving it the guard
+  failed open** — the read returned empty with stderr discarded, "empty" was
+  read as "first release", and the v20.0.0 and v20.1.0 publishes each carried
+  image `stable` across the v19 → v20 application major the guard exists to
+  refuse, silently, under green runs. The read now goes through the registry
+  HTTP API (manifest → config blob → version label), exactly as the chart
+  half always did — which is why the chart channel held while the image
+  channel crossed. Three states instead of two: a 404 is the ordinary
+  first-release state and the channel may be taken; a tag that is **present
+  but unreadable blocks the channel** for that release, because refusing is
+  recoverable and a wrong crossing is not; only the deliberate
+  `promote_stable` dispatch may move a blocked channel.
+  `tests/test_release_channel_tags.py` pins both (the blocked-channel test
+  fails against the pre-fix block). `image-channel.yml` is the image half of
+  the chart's repair tool: a dispatch re-points every image's `stable` at a
+  named published release, byte-identical, with before/after evidence per
+  image — and was dispatched to restore the channel to v19.0.0, the recorded
+  owner decision.
+
 ## [20.1.0] - 2026-10-22
 
 ### Security

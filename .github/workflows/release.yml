@@ -663,34 +663,92 @@ jobs:
       # Resolved per image because a republish or a half-release can leave one
       # image's channel behind the others, and each must be judged on its own.
       #
-      # A miss is not a failure. No `stable` tag yet is the ordinary state of a
-      # first release and must leave the value empty so the channel is taken;
-      # a registry hiccup is reported and also leaves it empty, which is the
-      # safe direction -- the worst case is `stable` advancing within the major
-      # it is already on.
+      # Read through the registry HTTP API — manifest, then config blob —
+      # exactly as the chart half below already does, NEVER through a
+      # `docker buildx imagetools inspect` template. The template's shape is
+      # a property of whatever buildx the runner image ships that day, and
+      # when it broke (`.Image` stopped resolving on multi-arch indexes) the
+      # old read returned empty with stderr discarded, "empty" read as
+      # "first release", and the v20.0.0 and v20.1.0 publishes each carried
+      # `stable` across the v19 -> v20 boundary the guard exists to refuse —
+      # silently, under a green run.
+      #
+      # Three states, not two. A **404** is the ordinary first-release state:
+      # the channel may be taken. A tag that is **present but unreadable** —
+      # a non-404 registry answer, or a manifest whose version label cannot
+      # be resolved — BLOCKS the channel for this release: refusing is
+      # recoverable (the next release or a deliberate promotion moves it),
+      # a wrong crossing is not. That is the same fail-closed reasoning the
+      # chart guard already documents, applied to the read as well as the
+      # decision.
       - id: stable-major
         env:
           IMAGE: ${{ matrix.image }}
           IS_DEMO: ${{ matrix.demo }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
+          MEDIA="application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json"
+          repo="${IMAGE#ghcr.io/}"
           major=""
+          blocked="false"
           if [ "${IS_DEMO}" != "true" ]; then
-            current=$(docker buildx imagetools inspect "${IMAGE}:stable" \
-                        --format '{{ index .Image.Config.Labels "org.opencontainers.image.version" }}' \
-                      2>/dev/null || true)
-            case "${current}" in
-              v[0-9]*|[0-9]*)
-                major="${current#v}"
-                major="${major%%.*}"
-                ;;
-              *)
-                echo "::notice::no resolvable \`stable\` tag for ${IMAGE} (got '${current}'); treating as a first release"
-                ;;
-            esac
+            reg_token=$(curl -fsS -u "x:${GH_TOKEN}" \
+              "https://ghcr.io/token?scope=repository:${repo}:pull&service=ghcr.io" \
+              | python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])' || true)
+            code=$(curl -s -o /tmp/stable-manifest.json -w '%{http_code}' \
+              -H "Authorization: Bearer ${reg_token}" -H "Accept: ${MEDIA}" \
+              "https://ghcr.io/v2/${repo}/manifests/stable" || echo "000")
+            if [ "$code" = "404" ]; then
+              echo "::notice::no \`stable\` tag for ${IMAGE} (404); treating as a first release"
+            elif [ "$code" = "200" ]; then
+              # index -> a platform manifest -> config blob -> version label.
+              digest=$(python3 -c '
+          import json,sys
+          m = json.load(open("/tmp/stable-manifest.json"))
+          if "manifests" in m:
+              plats = [x["digest"] for x in m["manifests"] if x.get("platform",{}).get("architecture") in ("amd64","arm64")]
+              print(plats[0] if plats else "")
+          else:
+              print("self")' || true)
+              if [ "$digest" = "self" ]; then
+                cp /tmp/stable-manifest.json /tmp/stable-image.json
+              elif [ -n "$digest" ]; then
+                curl -fsS -H "Authorization: Bearer ${reg_token}" -H "Accept: ${MEDIA}" \
+                  "https://ghcr.io/v2/${repo}/manifests/${digest}" > /tmp/stable-image.json || : > /tmp/stable-image.json
+              else
+                : > /tmp/stable-image.json
+              fi
+              config=$(python3 -c '
+          import json,sys
+          try:
+              print(json.load(open("/tmp/stable-image.json"))["config"]["digest"])
+          except Exception:
+              print("")' || true)
+              current=""
+              if [ -n "$config" ]; then
+                current=$(curl -fsSL -H "Authorization: Bearer ${reg_token}" \
+                  "https://ghcr.io/v2/${repo}/blobs/${config}" \
+                  | python3 -c 'import json,sys; c=json.load(sys.stdin); print((c.get("config",{}).get("Labels") or {}).get("org.opencontainers.image.version",""))' || true)
+              fi
+              case "${current}" in
+                v[0-9]*|[0-9]*)
+                  major="${current#v}"
+                  major="${major%%.*}"
+                  ;;
+                *)
+                  blocked="true"
+                  echo "::error::\`${IMAGE}:stable\` exists but its version label could not be read (got '${current}'); the channel is held for this release — dispatch image-channel.yml to move it deliberately"
+                  ;;
+              esac
+            else
+              blocked="true"
+              echo "::error::reading \`${IMAGE}:stable\` answered HTTP ${code}; the channel is held for this release — a present-but-unreadable channel must never be mistaken for a first release"
+            fi
           fi
           echo "major=${major}" >> "$GITHUB_OUTPUT"
-          echo "stable channel for ${IMAGE} is on major '${major:-<none>}'"
+          echo "blocked=${blocked}" >> "$GITHUB_OUTPUT"
+          echo "stable channel for ${IMAGE} is on major '${major:-<none>}' (blocked=${blocked})"
 
 
       - id: image-tags
@@ -699,6 +757,7 @@ jobs:
           REPUBLISH: ${{ github.event_name == 'workflow_dispatch' }}
           PROMOTE_STABLE: ${{ inputs.promote_stable }}
           STABLE_MAJOR: ${{ steps.stable-major.outputs.major }}
+          STABLE_BLOCKED: ${{ steps.stable-major.outputs.blocked }}
           IMAGE: ${{ matrix.image }}
           IS_DEMO: ${{ matrix.demo }}
         run: |
@@ -737,7 +796,10 @@ jobs:
               # dispatch arm is the only way `stable` ever reaches a major,
               # and it is separate from the republish arm above so repairing
               # an old tag cannot drag `stable` backwards with it.
-              if { [ "$REPUBLISH" != "true" ] && [ "$IS_MAJOR" != "true" ] && [ "$SAME_MAJOR" = "true" ]; } || [ "$PROMOTE_STABLE" = "true" ]; then
+              # STABLE_BLOCKED means the channel exists but could not be
+              # read; moving it then would be a guess, so only the deliberate
+              # promotion arm may move a blocked channel.
+              if { [ "$REPUBLISH" != "true" ] && [ "$IS_MAJOR" != "true" ] && [ "$SAME_MAJOR" = "true" ] && [ "${STABLE_BLOCKED:-false}" != "true" ]; } || [ "$PROMOTE_STABLE" = "true" ]; then
                 echo "${IMAGE}:stable"
               fi
             fi

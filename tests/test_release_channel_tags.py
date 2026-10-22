@@ -38,7 +38,13 @@ def _tag_script() -> str:
 
 
 def run_tags(
-    *, version: str, republish: bool = False, promote_stable: bool = False, demo: bool = False, stable_major: str = ""
+    *,
+    version: str,
+    republish: bool = False,
+    promote_stable: bool = False,
+    demo: bool = False,
+    stable_major: str = "",
+    stable_blocked: bool = False,
 ) -> list[str]:
     """Execute the workflow's own tag block and return the tags it emitted."""
     script = _tag_script()
@@ -53,6 +59,7 @@ def run_tags(
             "IMAGE": IMAGE,
             "IS_DEMO": "true" if demo else "false",
             "STABLE_MAJOR": stable_major,
+            "STABLE_BLOCKED": "true" if stable_blocked else "false",
             "GITHUB_OUTPUT": str(output),
         }
         done = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True)
@@ -85,6 +92,28 @@ def test_a_major_release_moves_latest_but_not_stable() -> None:
 
 def test_a_major_reaches_stable_only_when_promoted_deliberately() -> None:
     assert f"{IMAGE}:stable" in run_tags(version="v12.0.0", republish=True, promote_stable=True)
+
+
+def test_an_unreadable_channel_is_held_not_taken() -> None:
+    """The v20.0.0/v20.1.0 regression, stated as a rule.
+
+    The runner's buildx template broke, the registry read came back empty
+    with stderr discarded, and "empty" was read as "first release" — so two
+    consecutive publishes carried `stable` across the v19 -> v20 boundary
+    the guard exists to refuse. A channel that is present but unreadable is
+    now a *blocked* state: the minor publishes, `latest` moves, and `stable`
+    stays exactly where it is.
+    """
+    assert run_tags(version="v20.1.0", stable_blocked=True) == [
+        f"{IMAGE}:v20.1.0",
+        f"{IMAGE}:latest",
+    ]
+
+
+def test_a_deliberate_promotion_overrides_a_blocked_channel() -> None:
+    """Dispatching with promote_stable is the human decision; it may move a
+    channel the automatic arm refuses to touch."""
+    assert f"{IMAGE}:stable" in run_tags(version="v21.0.0", promote_stable=True, stable_blocked=True)
 
 
 def test_repairing_an_old_tag_moves_neither_channel() -> None:
