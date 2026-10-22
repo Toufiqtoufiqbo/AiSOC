@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The nightly reproducible-builds aggregator accepts the lock-only
+  matrix's **designed** skip — its own condition skips it when every
+  service ships an image, which has been true since the last image-less
+  service gained a Dockerfile, and the aggregator had read that intended
+  no-op as "not every service was proved", failing every scheduled run
+  since 2026-10-15 while the push runs stayed green behind their path
+  filters. The skip is accepted exactly when the discovered lock-only set
+  is empty; a skip while lock-only services exist is still lost coverage,
+  and a failed or cancelled leg on either matrix still fails.
+
 ## [20.1.0] - 2026-10-22
 
 ### Security
